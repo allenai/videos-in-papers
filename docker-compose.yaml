@@ -1,0 +1,61 @@
+version: '3'
+services:
+    sonar:
+        build: ./sonar
+        depends_on:
+            - api
+            - ui
+            - proxy
+    api:
+        build: ./api
+        volumes:
+            - ./api:/api
+        environment:
+            # This ensures that errors are printed as they occur, which
+            # makes debugging easier.
+            - PYTHONUNBUFFERED=1
+            - LOG_LEVEL=DEBUG
+            - FLASK_ENV=development
+    ui:
+        build: ./ui
+        # We can't mount the entire UI directory, since JavaScript dependencies
+        # (`node_modules`) live at that location.
+        volumes:
+            - ./ui/src:/ui/src
+            - ./ui/public:/ui/public
+            - ./ui/package.json:/ui/package.json
+            - ./ui/yarn.lock:/ui/yarn.lock
+            - ./ui/tsconfig.json:/ui/tsconfig.json
+        environment:
+            - NODE_ENV=development
+    proxy:
+        build: ./proxy
+        ports:
+            - 8080:8080
+        depends_on:
+            - ui
+            - api
+    it:
+        build: ./it
+        # This tells Docker to run our entrypoint in a way that ensures
+        # signals are handled properly and that zombie processes are killed.
+        # The main outcome being that it makes it faster to shut down the
+        # stack.
+        init: true
+        # We override the default command so that the integration tests don't
+        # run on startup, and so that the container stays alive. This makes
+        # it faster when a developer wants to run the integration tests.
+        entrypoint:
+            - tail
+        command:
+            - -f
+            - /dev/null
+        volumes:
+            - ./it/src:/it/src
+            - ./it/package.json:/it/package.json
+            - ./it/yarn.lock:/it/yarn.lock
+            - ./it/tsconfig.json:/it/tsconfig.json
+        depends_on:
+            - proxy
+            - ui
+            - api
