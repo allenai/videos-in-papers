@@ -12,13 +12,13 @@ interface Props {
   onChange: (rect: LTWHP) => void;
   isScrolledTo: boolean;
   color: string;
-  is_test: number;
+  isTest: number;
   onClick: () => void;
 }
 
 export class AreaHighlight extends Component<Props> {
   render() {
-    const { highlight, onChange, isScrolledTo, color, is_test, onClick, ...otherProps } = this.props;
+    const { highlight, onChange, isScrolledTo, color, isTest, onClick, ...otherProps } = this.props;
 
     return (
       <div
@@ -58,7 +58,7 @@ export class AreaHighlight extends Component<Props> {
           }}
           onClick={onClick}
           style={{backgroundColor: color}}
-          disableDragging={!is_test}
+          disableDragging={!isTest}
           {...otherProps}
         />
       </div>

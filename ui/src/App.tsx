@@ -74,7 +74,7 @@ const VIDEO_URL_LIST = [
 const searchParams = new URLSearchParams(document.location.search);
 
 const paper_idx = searchParams.get("paper_idx");
-const is_test = searchParams.get("is_test") == null ? 0 : parseInt(searchParams.get("is_test"));
+const isTest = searchParams.get("isTest") == null ? 0 : parseInt(searchParams.get("isTest"));
 
 const PDF_URL = PDF_URL_LIST[paper_idx == null ? 0 : parseInt(paper_idx)];
 const VIDEO_URL = VIDEO_URL_LIST[paper_idx == null ? 0 : parseInt(paper_idx)];
@@ -168,6 +168,7 @@ class App extends Component<{}, State> {
           currHighlight={currHighlight}
           updateCurrHighlight={this.updateCurrHighlight.bind(this)}
           videoUrl={VIDEO_URL}
+          isTest={isTest}
         />
         <div
           style={{
@@ -194,7 +195,7 @@ class App extends Component<{}, State> {
                   hideTipAndSelection,
                   transformSelection
                 ) => {
-                  if(!is_test) {
+                  if(!isTest) {
                     return null;
                   }
                   return (
@@ -254,7 +255,7 @@ class App extends Component<{}, State> {
                           { image: screenshot(boundingRect) }
                         );
                       }}
-                      is_test={is_test}
+                      isTest={isTest}
                       onClick={() => { this.clickHighlight(highlight)}}
                       color={color}
                     />

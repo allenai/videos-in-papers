@@ -8,6 +8,7 @@ interface Props {
   currHighlight: IHighlight | null;
   updateCurrHighlight: (highlight: IHighlight | null) => void;
   videoUrl: string;
+  isTest: number;
 }
 
 // const updateHash = (highlight: IHighlight) => {
@@ -50,7 +51,8 @@ export function Player({
   highlights,
   currHighlight,
   updateCurrHighlight,
-  videoUrl
+  videoUrl,
+  isTest
 }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -117,18 +119,27 @@ export function Player({
     var highlightLeft = totalWidth * highlightTime[0] / totalDuration;
 
     return (
-      <div style={{position: "absolute", height: "16px", width: highlightWidth+"px", left: highlightLeft+"px", backgroundColor: color}}>
-      </div>
+      <div 
+        style={{
+          position: "absolute",
+          height: "16px", 
+          width: highlightWidth+"px", 
+          left: highlightLeft+"px", 
+          backgroundColor: color,
+          cursor: "pointer",
+        }}
+        onClick={() => updateCurrHighlight(highlight)}
+      ></div>
     )
   }
 
   return (
     <div className="sidebar" style={{ width: "46vw", padding: "0 2vw", display: "flex", justifyContent: "center", flexDirection: "column"}}>
       <div>
-        <button onClick={clickBtn}>Save</button>
-        <div>
+        {isTest ? <button onClick={clickBtn}>Save</button> : ""}
+        <div style={{textAlign: "center", paddingBottom: "4px", fontSize: "20px"}}>
           <span>
-            {ref.current ? secondsToTimeStr(ref.current.getDuration()*progress/100) : ""} / {ref.current ? secondsToTimeStr(ref.current.getDuration()) : ""}
+            <b>{ref.current ? secondsToTimeStr(ref.current.getDuration()*progress/100) : ""}</b> / {ref.current ? secondsToTimeStr(ref.current.getDuration()) : ""}
           </span>
         </div>
         <div style={{ position: "relative", paddingTop: "56.25%" }}>
