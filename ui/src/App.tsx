@@ -74,7 +74,7 @@ const VIDEO_URL_LIST = [
 const searchParams = new URLSearchParams(document.location.search);
 
 const paper_idx = searchParams.get("paper_idx");
-const isTest = searchParams.get("isTest") == null ? 0 : parseInt(searchParams.get("isTest"));
+const isTest = parseInt(searchParams.get("isTest") || "0");
 
 const PDF_URL = PDF_URL_LIST[paper_idx == null ? 0 : parseInt(paper_idx)];
 const VIDEO_URL = VIDEO_URL_LIST[paper_idx == null ? 0 : parseInt(paper_idx)];
