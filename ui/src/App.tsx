@@ -58,8 +58,8 @@ const PDF_URL_LIST = [
   "https://arxiv.org/pdf/2109.08544.pdf", // Multi-hop
   "https://andrewhead.info/assets/pdf/augmented-formulas.pdf",
   `https://${URL}/3491102.3501873.pdf`, // OVRlap
-  `https://${URL}/pdf/3491102.3517488.pdf`, // Signers
-  `https://${URL}/pdf/3491102.3501866.pdf`, // Gig work
+  `https://${URL}/3491102.3517488.pdf`, // Signers
+  `https://${URL}/3491102.3501866.pdf`, // Gig work
 ]
 
 const VIDEO_URL_LIST = [
