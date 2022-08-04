@@ -49,15 +49,17 @@ const HighlightPopup = ({
     </div>
   ) : null;
 
+const URL = window.location.hostname;
+
 const PDF_URL_LIST = [
   "https://arxiv.org/pdf/2110.01691.pdf",
   "https://vivlai.github.io/papers/chi2022.pdf", // Cond Deleg
   "https://arxiv.org/pdf/2107.07170.pdf",
   "https://arxiv.org/pdf/2109.08544.pdf", // Multi-hop
   "https://andrewhead.info/assets/pdf/augmented-formulas.pdf",
-  "http://localhost:3000/pdf/3491102.3501873.pdf", // OVRlap
-  "http://localhost:3000/pdf/3491102.3517488.pdf", // Signers
-  "http://localhost:3000/pdf/3491102.3501866.pdf", // Gig work
+  `https://${URL}/3491102.3501873.pdf`, // OVRlap
+  `https://${URL}/pdf/3491102.3517488.pdf`, // Signers
+  `https://${URL}/pdf/3491102.3501866.pdf`, // Gig work
 ]
 
 const VIDEO_URL_LIST = [
