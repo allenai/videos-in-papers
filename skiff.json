@@ -1,6 +1,6 @@
 {
-    "appName": "skiff-template",
-    "contact": "reviz",
-    "team": "reviz",
+    "appName": "paper-video-nav",
+    "contact": "taesook",
+    "team": "s2",
     "replicas": { "prod": 2 }
 }

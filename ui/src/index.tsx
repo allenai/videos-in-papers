@@ -12,16 +12,10 @@ import { VarnishApp } from '@allenai/varnish';
 
 import '@allenai/varnish/theme.css';
 
-import { App } from './App';
-import { ScrollToTopOnPageChange } from './components/shared';
+import App from './App';
 
 const VarnishedApp = () => (
-    <BrowserRouter>
-        <ScrollToTopOnPageChange />
-        <VarnishApp>
-            <Route path="/" component={App} />
-        </VarnishApp>
-    </BrowserRouter>
+    <App/>
 );
 
 ReactDOM.render(<VarnishedApp />, document.getElementById('root'));

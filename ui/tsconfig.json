@@ -5,7 +5,8 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "strict": true,
+    "noImplicitAny": false,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "sourceMap": true
