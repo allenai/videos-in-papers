@@ -57,14 +57,12 @@ export function Player({
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [current, setCurrent] = useState(currHighlight);
+  const [duration, setDuration] = useState(0);
 
   const ref = React.useRef<ReactPlayerProps>(null);
   const highlightRef = React.useRef<HTMLDivElement>(null);
 
   const clickBtn = () => {
-    if (ref.current) {
-      ref.current.seekTo(0);
-    }
     console.log(highlights);
   };
 
@@ -92,25 +90,23 @@ export function Player({
 
   const onProgressChange = (e : any) => {
     if(ref.current) {
-      var duration = ref.current.getDuration()
       setProgress(e.target.value);
-      ref.current.seekTo(duration * e.target.value / 100);
+      ref.current.seekTo(e.target.value);
     }
   }
 
   const updateProgress = (e : any) => {
     if(ref.current && isPlaying) {
-      var duration = ref.current.getDuration();
       var currentTime = e.playedSeconds;
       checkCurrHighlight(currentTime);
-      setProgress(currentTime / duration * 100);
+      setProgress(currentTime);
     }
   }
 
   const makeHighlight = (highlight: IHighlight, color: string) => {
     if(!highlightRef.current || !ref.current || highlight == null) return;
     var totalWidth = highlightRef.current.offsetWidth;
-    var totalDuration = ref.current.getDuration();
+    var totalDuration = duration;
 
     var highlightTime = highlightToTime(highlight);
 
@@ -142,12 +138,13 @@ export function Player({
             <b>{ref.current ? secondsToTimeStr(ref.current.getDuration()*progress/100) : ""}</b> / {ref.current ? secondsToTimeStr(ref.current.getDuration()) : ""}
           </span>
         </div>
-        <div style={{ position: "relative", paddingTop: "56.25%" }}>
+        <div style={{ position: "relative", paddingTop: "56.25%", marginBottom: "8px" }}>
             <ReactPlayer 
                 ref={ref}
                 url={videoUrl} 
                 playing={isPlaying}
-                controls={true}
+                controls={false}
+                onReady={(e) => {ref.current == null ? 0 : setDuration(ref.current.getDuration())}}
                 onProgress={(e) => {updateProgress(e)}}
                 onPlay={() => {setIsPlaying(true)}}
                 onPause={() => {setIsPlaying(false)}}
@@ -157,6 +154,7 @@ export function Player({
         </div>
         <input className="slider" 
           type="range" value={progress} style={{width: "100%", margin: "0px"}}
+          min="0" max={duration}
           onMouseDown={() => setIsPlaying(false)} onMouseUp={() => setIsPlaying(true)} onChange={onProgressChange}
         />
         <div ref={highlightRef} style={{width: "100%", height: "20px", position: "relative"}}>

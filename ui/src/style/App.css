@@ -62,3 +62,40 @@ blockquote:before {
 blockquote:after {
   content: close-quote;
 }
+
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 12px; /* Specified height */
+  background: #ddd; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+  cursor: pointer;
+  margin-top: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider:hover::-webkit-slider-thumb {
+  width: 12px;
+  border-radius: 8px;
+}
+
+.slider::-webkit-slider-thumb {
+  transition: 0.2s;
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 4px; /* Set a specific slider handle width */
+  height: 12px; /* Slider handle height */
+  background: #1075ff; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+  box-shadow: -2000px 0 0 2000px #96c3ff;
+}

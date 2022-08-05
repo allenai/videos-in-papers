@@ -49,7 +49,13 @@ const HighlightPopup = ({
     </div>
   ) : null;
 
-const URL = window.location.hostname;
+var URL = window.location.hostname;
+if(URL.includes("localhost")) {
+  URL += ":8080/pdf"
+  URL = "http://" + URL;
+} else {
+  URL = "https://" + URL;
+}
 
 const PDF_URL_LIST = [
   "https://arxiv.org/pdf/2110.01691.pdf",
@@ -57,9 +63,10 @@ const PDF_URL_LIST = [
   "https://arxiv.org/pdf/2107.07170.pdf",
   "https://arxiv.org/pdf/2109.08544.pdf", // Multi-hop
   "https://andrewhead.info/assets/pdf/augmented-formulas.pdf",
-  `https://${URL}/3491102.3501873.pdf`, // OVRlap
-  `https://${URL}/3491102.3517488.pdf`, // Signers
-  `https://${URL}/3491102.3501866.pdf`, // Gig work
+  `${URL}/3491102.3501873.pdf`, // OVRlap
+  `${URL}/3491102.3517488.pdf`, // Signers
+  `${URL}/3491102.3501866.pdf`, // Gig work
+  `${URL}/3491102.3501889.pdf`, // Shifting
 ]
 
 const VIDEO_URL_LIST = [
@@ -71,6 +78,7 @@ const VIDEO_URL_LIST = [
   "https://www.youtube.com/watch?v=mHDMrg6v17A", // OVRlap
   "https://www.youtube.com/watch?v=BnDR1L6EidA", // Signers
   "https://www.youtube.com/watch?v=GsMyjcggdyI", // Gig work
+  "https://www.youtube.com/watch?v=f8UwASBuw6c", // Shifting
 ]
 
 const searchParams = new URLSearchParams(document.location.search);
@@ -165,13 +173,6 @@ class App extends Component<{}, State> {
 
     return (
       <div className="App" style={{ display: "flex", height: "100vh" }}>
-        <Player
-          highlights={highlights}
-          currHighlight={currHighlight}
-          updateCurrHighlight={this.updateCurrHighlight.bind(this)}
-          videoUrl={VIDEO_URL}
-          isTest={isTest}
-        />
         <div
           style={{
             height: "100vh",
@@ -278,6 +279,13 @@ class App extends Component<{}, State> {
             )}
           </PdfLoader>
         </div>
+        <Player
+          highlights={highlights}
+          currHighlight={currHighlight}
+          updateCurrHighlight={this.updateCurrHighlight.bind(this)}
+          videoUrl={VIDEO_URL}
+          isTest={isTest}
+        />
       </div>
     );
   }
