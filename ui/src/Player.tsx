@@ -155,7 +155,7 @@ export function Player({
                 ref={ref}
                 url={videoUrl} 
                 playing={isPlaying}
-                controls={false}
+                controls={! videoUrl.includes('youtube')}
                 onReady={(e) => {ref.current == null ? 0 : setDuration(ref.current.getDuration())}}
                 onProgress={(e) => {updateProgress(e)}}
                 onPlay={() => {setIsPlaying(true)}}

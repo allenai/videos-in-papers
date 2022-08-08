@@ -73,6 +73,8 @@ const PDF_URL_LIST = [
   `${URL}/3491102.3517488.pdf`, // Signers
   `${URL}/3491102.3501866.pdf`, // Gig work
   `${URL}/3491102.3501889.pdf`, // Shifting
+  "https://arxiv.org/pdf/2109.13880.pdf", // Dataset
+  "https://arxiv.org/pdf/2109.10453.pdf", // scientific
 ]
 
 const VIDEO_URL_LIST = [
@@ -85,6 +87,8 @@ const VIDEO_URL_LIST = [
   "https://www.youtube.com/watch?v=BnDR1L6EidA", // Signers
   "https://www.youtube.com/watch?v=GsMyjcggdyI", // Gig work
   "https://www.youtube.com/watch?v=f8UwASBuw6c", // Shifting
+  "https://aclanthology.org/2021.emnlp-main.495.mp4", // Dataset
+  "https://aclanthology.org/2021.emnlp-main.381.mp4", // scientific
 ]
 
 const searchParams = new URLSearchParams(document.location.search);
