@@ -17,11 +17,17 @@ import { Player } from "./Player";
 
 import "./style/App.css";
 
+// list of 10 different colors that are less saturated to use for the highlights
 const colors = [
-  "#ffe28f",
-  "#f7bcbb", "#f8bbd0", "#eebff8", "#bbdefb", "#b2dfdb", 
-  "#c8e6c9", "#aed581", "#ffe082", "#ffe0b2", "#ffccbc",
-]
+  "#ff0000",
+  "#ff7f00",
+  "#ffff00",
+  "#00ff00",
+  "#0000ff",
+  "#00ffff",
+  "#7f00ff",
+  "#ff00ff",
+];
 
 interface State {
   url: string;
@@ -236,7 +242,7 @@ class App extends Component<{}, State> {
                     var text : string = currHighlight['comment']['text'];
                     currIdx = parseInt(text.split("-")[2]);
                   }
-                  var color = colors[actualIdx % colors.length] + (currIdx == actualIdx ? "ff" : "40");
+                  var color = colors[actualIdx % colors.length] + (currIdx == actualIdx ? "60" : "20");
 
 
                   const component = isTextHighlight ? (

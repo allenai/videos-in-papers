@@ -41,11 +41,15 @@ function secondsToTimeStr(seconds: number) {
 }
 
 const colors = [
-  "#ffe28f",
-  "#f7bcbb", "#f8bbd0", "#eebff8", "#bbdefb", "#b2dfdb", 
-  "#c8e6c9", "#aed581", "#ffe082", "#ffe0b2", "#ffccbc",
-]
-
+  "#ff0000",
+  "#ff7f00",
+  "#ffff00",
+  "#00ff00",
+  "#0000ff",
+  "#00ffff",
+  "#7f00ff",
+  "#ff00ff",
+];
 
 export function Player({
   highlights,
@@ -129,13 +133,21 @@ export function Player({
     )
   }
 
+  var unduplicated : Array<IHighlight> = [];
+  for(var i = 0; i < highlights.length; i++) {
+    var highlight = highlights[i];
+    if(unduplicated.findIndex(h => h.comment.text === highlight.comment.text) === -1) {
+      unduplicated.push(highlight);
+    }
+  }
+
   return (
     <div className="sidebar" style={{ width: "46vw", padding: "0 2vw", display: "flex", justifyContent: "center", flexDirection: "column"}}>
       <div>
         {isTest ? <button onClick={clickBtn}>Save</button> : ""}
         <div style={{textAlign: "center", paddingBottom: "4px", fontSize: "20px"}}>
           <span>
-            <b>{ref.current ? secondsToTimeStr(ref.current.getDuration()*progress/100) : ""}</b> / {ref.current ? secondsToTimeStr(ref.current.getDuration()) : ""}
+            <b>{secondsToTimeStr(progress)}</b> / {ref.current ? secondsToTimeStr(ref.current.getDuration()) : ""}
           </span>
         </div>
         <div style={{ position: "relative", paddingTop: "56.25%", marginBottom: "8px" }}>
@@ -158,12 +170,12 @@ export function Player({
           onMouseDown={() => setIsPlaying(false)} onMouseUp={() => setIsPlaying(true)} onChange={onProgressChange}
         />
         <div ref={highlightRef} style={{width: "100%", height: "20px", position: "relative"}}>
-          {highlights.map((highlight) => {
+          {unduplicated.map((highlight) => {
             var currIdx = -1;
             if(currHighlight !== null)
               currIdx = parseInt(currHighlight.comment.text.split("-")[2]);
             var idx = parseInt(highlight.comment.text.split("-")[2]);
-            var color = colors[idx % colors.length] + (currIdx == idx ? "ff" : "40");
+            var color = colors[idx % colors.length] + (currIdx == idx ? "60" : "20");
             return makeHighlight(highlight, color);
           })}
         </div>
