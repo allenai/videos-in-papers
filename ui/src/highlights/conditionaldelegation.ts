@@ -250,144 +250,80 @@ export const testHighlights = [
     },
     {
         "content": {
-            "text": "Summary. Taken together, our results show that people are moreengaged when performing conditional delegation than working oncreating manual rules, with more actions and a tendency to spendmore time on the task. This tendency comes with a cost of efficiencyin creating rules when only showing predicted labels. Showingmodel explanations, especially global explanations, can significantlyimprove the efficiency, resulting in comparable efficiency betweenconditional delegation and the manual rule-based approach. Thereason can be attributed to participants leveraging keywords inexplanations as hints to create delegation rules. Future researchis required to explore means to encourage people to examine theperformance of these hinted rules more carefully, to improve bothefficiency and efficacy."
+            "text": "Summary. Overall, subjective measures show a relatively posi-tive experience across board, but not strong difference betweenconditions. There is some evidence that when the model performswell (WikiAttack), local explanations provide the best experience:strong performance with relatively high efficiency, less subjectiveworkload and more confidence in the outcomes."
         },
         "position": {
             "boundingRect": {
-                "x1": 468.666259765625,
-                "y1": 520.4700317382812,
-                "x2": 982.9949951171875,
-                "y2": 748.1965942382812,
-                "width": 983,
-                "height": 1272.1176470588236,
-                "pageNumber": 13
+                "x1": 366.3968505859375,
+                "y1": 660.7162475585938,
+                "x2": 730.953125,
+                "y2": 738.1715087890625,
+                "width": 731,
+                "height": 946,
+                "pageNumber": 14
             },
             "rects": [
                 {
-                    "x1": 510.6922607421875,
-                    "y1": 520.4700317382812,
-                    "x2": 982.9892578125,
-                    "y2": 536.9700317382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
+                    "x1": 379.76983642578125,
+                    "y1": 660.7162475585938,
+                    "x2": 668.558349609375,
+                    "y2": 673.8021850585938,
+                    "width": 731,
+                    "height": 946,
+                    "pageNumber": 14
                 },
                 {
-                    "x1": 491.4947509765625,
-                    "y1": 537.9778442382812,
-                    "x2": 982.98974609375,
-                    "y2": 555.5637817382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
+                    "x1": 379.77203369140625,
+                    "y1": 673.8099975585938,
+                    "x2": 666.8768310546875,
+                    "y2": 685.8099975585938,
+                    "width": 731,
+                    "height": 946,
+                    "pageNumber": 14
                 },
                 {
-                    "x1": 492.708984375,
-                    "y1": 555.5794067382812,
-                    "x2": 982.987060546875,
-                    "y2": 573.1653442382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
+                    "x1": 366.3968505859375,
+                    "y1": 686.7084350585938,
+                    "x2": 730.953125,
+                    "y2": 700.9818725585938,
+                    "width": 731,
+                    "height": 946,
+                    "pageNumber": 14
                 },
                 {
-                    "x1": 491.4957275390625,
-                    "y1": 573.1817626953125,
-                    "x2": 982.764404296875,
-                    "y2": 590.7677001953125,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
+                    "x1": 379.37969970703125,
+                    "y1": 699.9918212890625,
+                    "x2": 668.1380615234375,
+                    "y2": 711.9918212890625,
+                    "width": 731,
+                    "height": 946,
+                    "pageNumber": 14
                 },
                 {
-                    "x1": 491.4947509765625,
-                    "y1": 590.7825317382812,
-                    "x2": 982.9949951171875,
-                    "y2": 608.3684692382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
+                    "x1": 379.76654052734375,
+                    "y1": 713.0756225585938,
+                    "x2": 666.860595703125,
+                    "y2": 725.0756225585938,
+                    "width": 731,
+                    "height": 946,
+                    "pageNumber": 14
                 },
                 {
-                    "x1": 468.666259765625,
-                    "y1": 608.3840942382812,
-                    "x2": 982.9923095703125,
-                    "y2": 625.9700317382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
-                },
-                {
-                    "x1": 492.723388671875,
-                    "y1": 625.9856567382812,
-                    "x2": 982.9931640625,
-                    "y2": 643.5715942382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
-                },
-                {
-                    "x1": 491.490966796875,
-                    "y1": 643.5872192382812,
-                    "x2": 982.7530517578125,
-                    "y2": 661.1731567382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
-                },
-                {
-                    "x1": 491.496337890625,
-                    "y1": 661.1887817382812,
-                    "x2": 982.9921875,
-                    "y2": 678.7747192382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
-                },
-                {
-                    "x1": 491.493408203125,
-                    "y1": 678.7903442382812,
-                    "x2": 982.99267578125,
-                    "y2": 696.3762817382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
-                },
-                {
-                    "x1": 492.28369140625,
-                    "y1": 696.3997192382812,
-                    "x2": 982.9912109375,
-                    "y2": 713.9856567382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
-                },
-                {
-                    "x1": 491.4947509765625,
-                    "y1": 714.0012817382812,
-                    "x2": 982.98876953125,
-                    "y2": 731.5872192382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
-                },
-                {
-                    "x1": 510.692138671875,
-                    "y1": 731.6965942382812,
-                    "x2": 642.860595703125,
-                    "y2": 748.1965942382812,
-                    "width": 983,
-                    "height": 1272.1176470588236,
-                    "pageNumber": 13
+                    "x1": 379.3818359375,
+                    "y1": 726.1715087890625,
+                    "x2": 589.5709838867188,
+                    "y2": 738.1715087890625,
+                    "width": 731,
+                    "height": 946,
+                    "pageNumber": 14
                 }
             ],
-            "pageNumber": 13
+            "pageNumber": 14
         },
         "comment": {
             "text": "7:35 - 7:52 - 17",
             "emoji": ""
-        },
-        "id": "3694440486993551"
+        }
     },
     {
         "id": "4702036441608415",
