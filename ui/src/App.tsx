@@ -92,7 +92,7 @@ const VIDEO_URL_LIST = [
   "https://aclanthology.org/2021.emnlp-main.495.mp4", // Dataset
   "https://aclanthology.org/2021.emnlp-main.381.mp4", // scientific
   "https://www.youtube.com/watch?v=rhjtvW1KVbg", // Disappearables
-  'https://drive.google.com/file/d/14BvZY6OM2Qf1yRVQgr-nP4ocD7JU1hYc/preview'
+  'https://www.youtube.com/watch?v=XPrEGQLyfS8'
 ]
 
 const searchParams = new URLSearchParams(document.location.search);
