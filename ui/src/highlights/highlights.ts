@@ -10,9 +10,10 @@ import { testHighlights as _testHighlights8 } from "./shifting";
 import { testHighlights as _testHighlights9 } from "./dataset";
 import { testHighlights as _testHighlights10 } from "./scientific";
 import { testHighlights as _testHighlights11 } from "./disappearables";
+import { testHighlights as _testHighlights12 } from "./responsible";
 
 export const highlightsList = [
     _testHighlights0, _testHighlights1, _testHighlights2, _testHighlights3, _testHighlights4, 
     _testHighlights5, _testHighlights6, _testHighlights7, _testHighlights8, _testHighlights9, 
-    _testHighlights10, _testHighlights11
+    _testHighlights10, _testHighlights11, _testHighlights12
 ];

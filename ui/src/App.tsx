@@ -75,7 +75,8 @@ const PDF_URL_LIST = [
   `${URL}/3491102.3501889.pdf`, // Shifting
   "https://arxiv.org/pdf/2109.13880.pdf", // Dataset
   "https://arxiv.org/pdf/2109.10453.pdf", // scientific
-  '${URL}/3491102.3501906.pdf', // Disappearables
+  `${URL}/3491102.3501906.pdf`, // Disappearables
+  'https://arxiv.org/pdf/1910.04214.pdf',
 ]
 
 const VIDEO_URL_LIST = [
@@ -91,6 +92,7 @@ const VIDEO_URL_LIST = [
   "https://aclanthology.org/2021.emnlp-main.495.mp4", // Dataset
   "https://aclanthology.org/2021.emnlp-main.381.mp4", // scientific
   "https://www.youtube.com/watch?v=rhjtvW1KVbg", // Disappearables
+  'https://drive.google.com/file/d/14BvZY6OM2Qf1yRVQgr-nP4ocD7JU1hYc/preview'
 ]
 
 const searchParams = new URLSearchParams(document.location.search);
