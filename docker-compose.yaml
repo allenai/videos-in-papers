@@ -21,11 +21,9 @@ services:
         # We can't mount the entire UI directory, since JavaScript dependencies
         # (`node_modules`) live at that location.
         volumes:
-            - ./ui/src:/ui/src
-            - ./ui/public:/ui/public
-            - ./ui/package.json:/ui/package.json
-            - ./ui/yarn.lock:/ui/yarn.lock
-            - ./ui/tsconfig.json:/ui/tsconfig.json
+            - ./ui/components:/usr/local/src/skiff/app/ui/components
+            - ./ui/less:/usr/local/src/skiff/app/ui/less
+            - ./ui/data:/usr/local/src/skiff/app/ui/data
         environment:
             - NODE_ENV=development
     proxy:

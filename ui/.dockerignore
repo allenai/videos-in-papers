@@ -3,7 +3,6 @@
 .git/
 
 # Docker artifacts
-.dockerignore
 Dockerfile
 
 # UI dependencies
