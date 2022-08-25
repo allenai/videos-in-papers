@@ -14,7 +14,8 @@ interface Props {
   current: number;
   changeCurrent: (index: number) => void;
   handleNavigate: (e: any) => void;
-  isOverlay?: boolean;
+  isOverlay: boolean;
+  isReplacement: boolean;
 }
 
 type Caption = {
@@ -42,7 +43,8 @@ export function Player({
   current,
   changeCurrent,
   handleNavigate,
-  isOverlay
+  isOverlay,
+  isReplacement
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
 
@@ -177,7 +179,16 @@ export function Player({
   var videoHeight = videoWidth/16*9;
 
   return (
-    <div className="video__note" style={{top: top+"px", left: left+"px", zIndex: isOverlay ? 3 : 1}} onClick={handleNavigate}>
+    <div 
+      className="video__note" data-index={index}
+      style={{
+        top: top+"px", left: left+"px", 
+        zIndex: isOverlay ? 3 : 1, 
+        position: isOverlay ? "fixed" : "absolute",
+        opacity: isReplacement ? 0.5 : 1,
+      }} 
+      onClick={handleNavigate}
+    >
       <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[index]}}>
         <div style={{height: videoHeight+"px"}}>
             <ReactPlayer 
