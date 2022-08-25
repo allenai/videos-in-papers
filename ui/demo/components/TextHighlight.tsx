@@ -4,15 +4,13 @@ import * as React from 'react';
 
 type Props = {
   pageIndex: number;
-  data: Array<Mappings>;
-  current: number;
-  changeCurrent: (index: number) => void;
+  highlights: Array<Mappings>;
 };
 
 /*
  * Example of BoundingBoxes used as text highlights
  */
-export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, data, current, changeCurrent }: Props) => {
+export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, highlights }: Props) => {
   const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
 
@@ -22,8 +20,8 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, data,
 
   function getBoundingBoxProps() {
     var results : Array<Array<BoundingBoxType>> = [];
-    for(var i = 0; i < data.length; i++) {
-      var rects = data[i].rects;
+    for(var i = 0; i < highlights.length; i++) {
+      var rects = highlights[i].rects;
       var boundingBoxes : Array<BoundingBoxType> = [];
       for(var j = 0; j < rects.length; j++) {
         var bbox = scaleRawBoundingBox(rects[j], pageDimensions.height, pageDimensions.width);
@@ -38,7 +36,6 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, data,
   function onClickHighlight (e: React.MouseEvent) {
     e.stopPropagation();
     var id = e.currentTarget.getAttribute('id');
-    changeCurrent(parseInt(id ? id : "-1"));
   }
 
   function renderHighlightedBoundingBoxes(): Array<React.ReactElement> {
@@ -49,8 +46,8 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, data,
         if (prop.page === pageIndex) {
           const props = {
             ...prop,
-            id: data[i].id,
-            className: 'reader_highlight_color-' + parseInt(data[i].id) % 7,
+            id: highlights[i].id,
+            className: 'reader_highlight_color-' + parseInt(highlights[i].id) % 7,
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
             key: i+"-"+j,

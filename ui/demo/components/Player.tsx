@@ -7,13 +7,11 @@ import _ReactPlayer, { ReactPlayerProps } from 'react-player';
 const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
 interface Props {
-  index: number;
+  id: number;
   top: number;
   url: string;
-  data: Array<Mappings>;
-  current: number;
-  changeCurrent: (index: number) => void;
-  handleNavigate: (e: any) => void;
+  numClips: number;
+  handleNavigate: (from: number, to: number) => void;
   isOverlay: boolean;
   isReplacement: boolean;
 }
@@ -36,12 +34,10 @@ function parseStrToTime(str: string) {
 }
 
 export function Player({
-  index,
+  id,
   top,
   url, 
-  data,
-  current,
-  changeCurrent,
+  numClips,
   handleNavigate,
   isOverlay,
   isReplacement
@@ -50,7 +46,6 @@ export function Player({
 
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
-  const [currentHighlight, setCurrentHighlight] = React.useState<number>(current);
   const [captions, setCaptions] = React.useState<Array<Caption>>([]);
   const [duration, setDuration] = React.useState(0);
   const [currentCaption, setCurrentCaption] = React.useState<number>(0);
@@ -63,35 +58,6 @@ export function Player({
       .then((response) => response.json())
       .then((data) => setCaptions(data));
   }, []);
-
-  React.useEffect(() => {
-    if (currentHighlight == current) return;
-    setCurrentHighlight(current);
-    if (ref.current && currentHighlight != -1) {
-      setIsPlaying(true);
-      var currentData = data.find(d => parseInt(d.id) == currentHighlight);
-      if(currentData) {
-        ref.current.seekTo(currentData.timestamp.start);
-      }
-    }
-  }, [current]);
-
-  const checkCurrHighlight = (currentTime: number) => {
-    var currentData = data.find(d => parseInt(d.id) == currentHighlight);
-    for(var i = 0; i < data.length; i++) {
-      var highlight = data[i];
-      var startTime = highlight.timestamp.start;
-      var endTime = highlight.timestamp.end;
-      if ((currentTime >= startTime && currentTime <= endTime)) {
-        if(currentHighlight != -1 && currentData && currentData.id === highlight.id) return;
-        setCurrentHighlight(parseInt(highlight.id));
-        changeCurrent(parseInt(highlight.id));
-        return;
-      }
-    }
-    setCurrentHighlight(-1);
-    changeCurrent(-1);
-  }
 
 
   const onProgressChange = (e : any) => {
@@ -119,7 +85,6 @@ export function Player({
   const updateProgress = (e : any) => {
     if(ref.current && isPlaying) {
       var currentTime = e.playedSeconds;
-      checkCurrHighlight(currentTime);
       checkCurrCaption(currentTime)
       setProgress(currentTime);
     }
@@ -148,9 +113,6 @@ export function Player({
           backgroundColor: colorWheel[parseInt(id) % colorWheel.length],
           cursor: "pointer",
         }}
-        onClick={() => {
-          changeCurrent(parseInt(id));
-        }}
       ></div>
     )
   }
@@ -165,36 +127,36 @@ export function Player({
     }
   }
 
-  var unduplicated : Array<Mappings> = [];
-  for(var i = 0; i < data.length; i++) {
-    var highlight = data[i];
-    if(unduplicated.findIndex(h => h.id === highlight.id) === -1) {
-      unduplicated.push(highlight);
-    }
-  }
-
-  var left = 0;
-  var videoWidth = 0;
-  var videoHeight = 0;
-  if(document.getElementsByClassName('video__note-list').length > 0) {
+  var left = 40;
+  var videoWidth = 420;
+  var videoHeight = videoWidth/16*9;
+  if(isOverlay) {
       var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
       left = container.left + 40;
-      videoWidth = 420;
-      videoHeight = Math.floor(videoWidth/16*9);
   }
 
   return (
     <div 
-      className="video__note" data-index={index}
+      key={id}
+      id={"video__note-" + id}
+      className="video__note" data-index={id}
       style={{
-        top: top+"px", left: left+"px", 
+        top: top+"px", left: left + "px", 
         zIndex: isOverlay ? 3 : 1, 
         position: isOverlay ? "fixed" : "absolute",
         opacity: isReplacement ? 0.5 : 1,
       }} 
-      onClick={handleNavigate}
     >
-      <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[index]}}>
+      <div className="video__note-navigator">
+        <div style={{color: "#999"}} onClick={() => handleNavigate(id, id-1 < 0 ? numClips-1 : id-1)}>
+          {"<"}
+        </div>
+        <div> {id+1}/{numClips} </div>
+        <div style={{color: "#999"}} onClick={() => handleNavigate(id, (id+1)%numClips)}>
+          {">"}
+        </div>
+      </div>
+      <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[id]}}>
         <div style={{height: videoHeight+"px"}}>
             <ReactPlayer 
                 ref={ref}
