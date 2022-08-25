@@ -1,13 +1,20 @@
 import * as React from 'react';
+import {
+  DocumentContext,
+} from '@allenai/pdf-components';
 import { Mappings, Snippet } from '../types/annotations';
 import _ReactPlayer, { ReactPlayerProps } from 'react-player';
 const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
 interface Props {
+  index: number;
+  top: number;
   url: string;
   data: Array<Mappings>;
   current: number;
   changeCurrent: (index: number) => void;
+  handleNavigate: (e: any) => void;
+  isOverlay?: boolean;
 }
 
 type Caption = {
@@ -28,11 +35,17 @@ function parseStrToTime(str: string) {
 }
 
 export function Player({
+  index,
+  top,
   url, 
   data,
   current,
   changeCurrent,
+  handleNavigate,
+  isOverlay
 }: Props) {
+  const { pageDimensions, numPages } = React.useContext(DocumentContext);
+
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [currentHighlight, setCurrentHighlight] = React.useState<number>(current);
@@ -141,6 +154,7 @@ export function Player({
   }
 
   const handleCaptionClick = (e: any) => {
+    e.stopPropagation();
     var idx = parseInt(e.target.getAttribute('data-idx'));
     if(ref && ref.current) {
       ref.current.seekTo(captions[idx].start_time/1000);
@@ -157,10 +171,15 @@ export function Player({
     }
   }
 
+  var pageWidth = pageDimensions.width;
+  var left = pageWidth + 48*2;
+  var videoWidth = window.innerWidth - left - 48 - 240;
+  var videoHeight = videoWidth/16*9;
+
   return (
-    <div className="sidebar" style={{ width: "46vw", padding: "0 2vw", display: "flex", justifyContent: "center", flexDirection: "column"}}>
-      <div>
-        <div style={{ position: "relative", paddingTop: "56.25%" }}>
+    <div className="video__note" style={{top: top+"px", left: left+"px", zIndex: isOverlay ? 3 : 1}} onClick={handleNavigate}>
+      <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[index]}}>
+        <div style={{height: videoHeight+"px"}}>
             <ReactPlayer 
                 ref={ref}
                 url={url} 
@@ -171,38 +190,40 @@ export function Player({
                 onPlay={() => {setIsPlaying(true)}}
                 onPause={() => {setIsPlaying(false)}}
                 width="100%" height="100%"
-                style={{ position: "absolute", top: "0", left: "0" }}
             />
         </div>
-        <input className="slider" 
-          type="range" value={progress} style={{width: "100%", margin: "0px"}}
-          min="0" max={duration}
-          onMouseDown={() => setIsPlaying(false)} onMouseUp={() => setIsPlaying(true)} onChange={onProgressChange}
-        />
-        <div ref={snippetRef} style={{width: "100%", height: "20px", position: "relative"}}>
-          {unduplicated.map((highlight, idx) => {
-            // var currIdx = -1;
-            // if(currHighlight !== null)
-            //   currIdx = parseInt(currHighlight.comment.text.split("-")[2]);
-            // var idx = parseInt(highlight.comment.text.split("-")[2]);
-            var color = colors[idx % colors.length] //+ (currIdx == idx ? "ff" : "40");
-            return makeSnippet(highlight.timestamp, highlight.id);
+        <div className="video__note-captions">
+          {captions.map((caption, idx) => {
+            if(idx > 2) return;
+            return (
+              <div 
+                key={idx} data-idx={idx} 
+                className="player__caption" onClick={handleCaptionClick}
+                style={currentCaption == idx ? {backgroundColor: "rgba(0,0,0,0.1)"} : {}}
+              >
+                {caption.text}
+              </div>
+            )
           })}
-        </div>
-        <div className="player__captions">
-            {captions.map((caption, idx) => {
-              return (
-                <div 
-                  key={idx} data-idx={idx} 
-                  className="player__caption" onClick={handleCaptionClick}
-                  style={currentCaption == idx ? {backgroundColor: "rgba(0,0,0,0.1)"} : {}}
-                >
-                  {caption.text}
-                </div>
-              )
-            })}
         </div>
       </div>
     </div>
   );
 }
+
+
+{/* <input className="slider" 
+type="range" value={progress} style={{width: "100%", margin: "0px"}}
+min="0" max={duration}
+onMouseDown={() => setIsPlaying(false)} onMouseUp={() => setIsPlaying(true)} onChange={onProgressChange}
+/>
+<div ref={snippetRef} style={{width: "100%", height: "20px", position: "relative"}}>
+{unduplicated.map((highlight, idx) => {
+  // var currIdx = -1;
+  // if(currHighlight !== null)
+  //   currIdx = parseInt(currHighlight.comment.text.split("-")[2]);
+  // var idx = parseInt(highlight.comment.text.split("-")[2]);
+  var color = colors[idx % colors.length] //+ (currIdx == idx ? "ff" : "40");
+  return makeSnippet(highlight.timestamp, highlight.id);
+})}
+</div> */}

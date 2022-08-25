@@ -8,6 +8,7 @@ body {
   flex-direction: row;
   height: 100vh;
   width: 100vw;
+  background-color: @grey;
 }
 
 .reader__header {
@@ -24,11 +25,10 @@ body {
 .reader__page-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  background-color: @grey;
   overflow: scroll;
   height: 100%;
   position: relative;
+  padding: 0 24px;
 }
 
 .reader__zoom-btn {
@@ -70,21 +70,6 @@ body {
   .reader__popover__citation-abstract {
     font-weight: 300;
   }
-}
-
-.player__main {
-  flex: 1;
-  padding-top: 20px;
-}
-
-.player__captions {
-  width: 100%;
-  border: solid 1px #ccc;
-  border-radius: 8px;
-  height: 600px; 
-  overflow-y: scroll;
-  margin-top: 12px;
-  padding: 8px;
 }
 
 .slider {

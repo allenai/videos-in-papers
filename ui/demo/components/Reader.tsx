@@ -30,6 +30,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [rawCitations, setRawCitations] = React.useState<RawCitation[]>();
   const [current, setCurrent] = React.useState(-1);
 
+  const [navigating, setNavigating] = React.useState(null);
+
   // ref for the div in which the Document component renders
   const pdfContentRef = React.createRef<HTMLDivElement>();
 
@@ -84,13 +86,52 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setCurrent(index);
   }
 
+  React.useEffect(() => {
+    if(navigating == null) return;
+    setTimeout(() => {
+      var container = document.getElementsByClassName("reader__page-list")[0];
+      container.scrollTo({top: navigating.scrollTo, left: 0, behavior: "smooth"})
+    }, 300);
+  }, [navigating]);
+
+  const handleNavigate = (e: any) => {
+    var clientTop = e.currentTarget.getBoundingClientRect().top;
+    var index = e.currentTarget.getAttribute('index');
+    var nextVideo = document.getElementsByClassName("video__note-container")[3];
+    var container = document.getElementsByClassName("reader__page-list")[0];
+    var nextPageTop = nextVideo.getBoundingClientRect().top + container.scrollTop;
+
+    setNavigating({
+      top: clientTop,
+      index: index,
+      scrollTo: Math.floor(nextPageTop - clientTop),
+    });
+  }
+
+  const handleScroll = (e: any) => {
+    if(navigating == null) return;
+    console.log(e.target.scrollTop, navigating)
+    if(navigating.scrollTo == e.target.scrollTop) {
+      setNavigating(null);
+    }
+  };
+
   return (
     <BrowserRouter>
       <Route path="/">
         <div className="reader__container">
+          {navigating == null ? "" : 
+            <Player 
+              top={navigating.top} index={navigating.index}
+              url={videoUrl} data={data} 
+              current={current} changeCurrent={changeCurrent}
+              handleNavigate={handleNavigate}
+              isOverlay={true}
+            />
+          }
           <DocumentWrapper className="reader__main" file={samplePdfUrl} inputRef={pdfContentRef}>
             <Outline parentRef={pdfContentRef} />
-            <div className="reader__page-list" ref={pdfScrollableRef}>
+            <div className="reader__page-list" ref={pdfScrollableRef} onScroll={handleScroll} style={{overflowY: navigating == null ? "scroll" : "hidden"}}>
               {Array.from({ length: numPages }).map((_, i) => (
                 <PageWrapper key={i} pageIndex={i}>
                   <Overlay>
@@ -105,11 +146,19 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   </Overlay>
                 </PageWrapper>
               ))}
+              {[0, 1, 2, 3].map((idx) => {
+                if(navigating != null && navigating.index == idx) return "";
+                return (
+                  <Player 
+                    top={400*(idx+1)} index={idx}
+                    url={videoUrl} data={data} 
+                    current={current} changeCurrent={changeCurrent}
+                    handleNavigate={handleNavigate}
+                  />
+                )
+              })}
             </div>
           </DocumentWrapper>
-          <div className="player__main">
-            <Player url={videoUrl} data={data} current={current} changeCurrent={changeCurrent}/>
-          </div>
         </div>
       </Route>
     </BrowserRouter>
