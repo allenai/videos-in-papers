@@ -88,16 +88,17 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   React.useEffect(() => {
     if(navigating == null) return;
-    var container = document.getElementsByClassName("reader__page-list")[0];
+    var container = document.getElementsByClassName("reader__main")[0];
     container.scrollTo({top: navigating.scrollTo, left: 0, behavior: "smooth"})
   }, [navigating]);
 
   const handleNavigate = (e: any) => {
     var fromTop = e.currentTarget.getBoundingClientRect().top;
     var fromIndex = parseInt(e.currentTarget.getAttribute('data-index'));
-    var toIndex = fromIndex + 1 % 4;
+    var toIndex = (fromIndex + 1) % 4;
+    console.log(toIndex);
     var toVideo = document.getElementsByClassName("video__note-container")[toIndex];
-    var container = document.getElementsByClassName("reader__page-list")[0];
+    var container = document.getElementsByClassName("reader__main")[0];
     var toTop = toVideo.getBoundingClientRect().top + container.scrollTop;
 
     setNavigating({
@@ -121,9 +122,14 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     <BrowserRouter>
       <Route path="/">
         <div className="reader__container">
-          <DocumentWrapper className="reader__main" file={samplePdfUrl} inputRef={pdfContentRef}>
+          <DocumentWrapper 
+            className="reader__main" 
+            file={samplePdfUrl} inputRef={pdfContentRef} 
+            style={{overflowY: navigating == null ? "scroll" : "hidden"}}
+            onScroll={handleScroll}
+          >
             <Outline parentRef={pdfContentRef} />
-            <div className="reader__page-list" ref={pdfScrollableRef} onScroll={handleScroll} style={{overflowY: navigating == null ? "scroll" : "hidden"}}>
+            <div className="reader__page-list" ref={pdfScrollableRef}>
               {Array.from({ length: numPages }).map((_, i) => (
                 <PageWrapper key={i} pageIndex={i}>
                   <Overlay>
@@ -138,6 +144,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   </Overlay>
                 </PageWrapper>
               ))}
+            </div>
+            <div className="video__note-list">
               {[0, 1, 2, 3].map((idx) => {
                 var top = 800*(idx+1);
                 var isOverlay = false;

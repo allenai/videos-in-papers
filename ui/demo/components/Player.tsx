@@ -173,10 +173,15 @@ export function Player({
     }
   }
 
-  var pageWidth = pageDimensions.width;
-  var left = pageWidth + 48*2;
-  var videoWidth = window.innerWidth - left - 48 - 240;
-  var videoHeight = videoWidth/16*9;
+  var left = 0;
+  var videoWidth = 0;
+  var videoHeight = 0;
+  if(document.getElementsByClassName('video__note-list').length > 0) {
+      var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
+      left = container.left + 40;
+      videoWidth = 420;
+      videoHeight = Math.floor(videoWidth/16*9);
+  }
 
   return (
     <div 

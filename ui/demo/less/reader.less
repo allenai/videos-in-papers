@@ -5,9 +5,7 @@ body {
 
 .reader__container {
   display: flex;
-  flex-direction: row;
   height: 100vh;
-  width: 100vw;
   background-color: @grey;
 }
 
@@ -16,19 +14,17 @@ body {
 }
 
 .reader__main {
-  grid-area: main;
   position: relative;
   flex: 1;
   overflow: scroll;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 
 .reader__page-list {
   display: flex;
   flex-direction: column;
-  overflow: scroll;
-  height: 100%;
-  position: relative;
-  padding: 0 24px;
 }
 
 .reader__zoom-btn {
