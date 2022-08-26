@@ -16,12 +16,13 @@ import { CitationsDemo } from './CitationsDemo';
 import { HighlightOverlayDemo } from './HighlightOverlayDemo';
 import { Outline } from './Outline';
 import { ScrollToDemo } from './ScrollToDemo';
-import { TextHighlight } from './TextHighlight';
+import { SidebarOverlay } from './SidebarOverlay';
 import { VideoNotes } from './VideoNotes';
 
 import { Clip } from '../types/clips';
 
 import data from '../data/annotations/aichains.json';
+import { TextHighlight } from './TextHighlight';
 
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
@@ -168,7 +169,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   <PageWrapper key={i} pageIndex={i}>
                     <Overlay>
                       <HighlightOverlayDemo pageIndex={i} />
-                      <TextHighlight pageIndex={i} highlights={data['highlights']} />
+                      <SidebarOverlay pageIndex={i} highlights={data['highlights']} />
                       <ScrollToDemo pageIndex={i} />
                       <CitationsDemo
                         annotations={annotations}

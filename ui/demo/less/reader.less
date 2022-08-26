@@ -139,3 +139,14 @@ body {
 .reader__page-overlay__bounding-box-underline {
   border: none;
 }
+
+.reader__page-overlay__sidebar {
+  position: absolute;
+  opacity: 0.6;
+  border-radius: 6px;
+  z-index: @z-index-bounding-box-overlay;
+  cursor: pointer;
+  &:hover {
+    opacity: 1;
+  }
+}
