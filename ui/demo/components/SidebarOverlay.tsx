@@ -6,12 +6,17 @@ import * as React from 'react';
 type Props = {
   pageIndex: number;
   highlights: Array<Highlight>;
+  changeClipPosition: (id: string) => void;
 };
 
 /*
  * Overlaying sidebars on the margin of the paper
  */
-export const SidebarOverlay: React.FunctionComponent<Props> = ({ pageIndex, highlights }: Props) => {
+export const SidebarOverlay: React.FunctionComponent<Props> = ({ 
+    pageIndex, 
+    highlights,
+    changeClipPosition
+}: Props) => {
   const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
 
@@ -61,6 +66,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({ pageIndex, high
   function onClickHighlight (e: React.MouseEvent) {
     e.stopPropagation();
     var id = e.currentTarget.getAttribute('id');
+    changeClipPosition(id);
   }
 
   function renderSidebars(): Array<React.ReactElement> {

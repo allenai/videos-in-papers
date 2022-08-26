@@ -7,13 +7,13 @@ import _ReactPlayer, { ReactPlayerProps } from 'react-player';
 const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
 interface Props {
-  id: number;
+  id: string;
   top: number;
   url: string;
   numClips: number;
   handleNavigate: (from: number, to: number) => void;
   isOverlay: boolean;
-  isReplacement: boolean;
+  isPhantom: boolean;
 }
 
 type Caption = {
@@ -38,7 +38,7 @@ export function Player({
   numClips,
   handleNavigate,
   isOverlay,
-  isReplacement
+  isPhantom
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
 
@@ -74,19 +74,21 @@ export function Player({
         top: top+"px", left: left + "px", 
         zIndex: isOverlay ? 3 : 1, 
         position: isOverlay ? "fixed" : "absolute",
-        opacity: isReplacement ? 0.5 : 1,
-      }} 
+        opacity: isPhantom ? 0.2 : 1,
+        pointerEvents: isPhantom ? "none" : "auto",
+        transition: isOverlay ? "none" : "top 0.5s ease 0s",
+      }}
     >
       <div className="video__note-navigator">
-        <div style={{color: "#999"}} onClick={() => handleNavigate(id, id-1 < 0 ? numClips-1 : id-1)}>
+        <div style={{color: "#999"}} onClick={() => handleNavigate(parseInt(id), parseInt(id)-1 < 0 ? numClips-1 : parseInt(id)-1)}>
           {"<"}
         </div>
-        <div> {id+1}/{numClips} </div>
-        <div style={{color: "#999"}} onClick={() => handleNavigate(id, (id+1)%numClips)}>
+        <div> {parseInt(id)+1}/{numClips} </div>
+        <div style={{color: "#999"}} onClick={() => handleNavigate(parseInt(id), (parseInt(id)+1)%numClips)}>
           {">"}
         </div>
       </div>
-      <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[id % 7]}}>
+      <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[parseInt(id) % 7]}}>
         <div style={{height: videoHeight+"px"}}>
             <ReactPlayer 
                 ref={ref}

@@ -19,7 +19,7 @@ import { ScrollToDemo } from './ScrollToDemo';
 import { SidebarOverlay } from './SidebarOverlay';
 import { VideoNotes } from './VideoNotes';
 
-import { Clip } from '../types/clips';
+import { Highlight, Clip } from '../types/clips';
 
 import data from '../data/annotations/aichains.json';
 import { TextHighlight } from './TextHighlight';
@@ -37,6 +37,12 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   // ref for the scrollable region where the pages are rendered
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
+
+  const [ highlights, setHighlights ] = React.useState<Array<Highlight>>(data['highlights']);
+  for(var i = 0; i < data['clips'].length; i++) {
+    data['clips'][i]['position'] = 0;
+  }
+  const [ clips, setClips ] = React.useState<Array<Clip>>(data['clips']);
 
   // navigating mode = auto-scrolling between video clips 
   const [navigating, setNavigating] = React.useState(null);
@@ -66,11 +72,11 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       return;
     }
 
-    fetch(sampleS2airsUrl, { referrer: '' })
-      .then(response => response.json())
-      .then(data => {
-        setRawCitations(data[0].citations);
-      });
+    // fetch(sampleS2airsUrl, { referrer: '' })
+    //   .then(response => response.json())
+    //   .then(data => {
+    //     setRawCitations(data[0].citations);
+    //   });
   }, [pageDimensions]);
 
   React.useEffect(() => {
@@ -140,16 +146,21 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setNavigating(null);
   };
 
-  var clips: Array<Clip> = [];
-  for(var i = 0; i < data['clips'].length; i++) {
-    var clip = data['clips'][i];
-    var highlightIdx = clip['highlights'][0]
-    var highlight = data['highlights'][highlightIdx];
-    var page = highlight['rects'][0]['page'];
-    var top = highlight['rects'][0]['top'];
-    clips.push(
-      {id: parseInt(clip['id']), start:clip.start, end: clip.end, highlights: clip['highlights'], pageIndex: page, top: top}
-    )
+  const changeClipPosition = (highlightId: string) => {
+    var clipId = highlights[highlightId]['clip'];
+    var newClips: Array<Clip> = [];
+    for(var i = 0; i < clips.length; i++) {
+      if(clips[i]['id'] != clipId) {
+        newClips.push(clips[i]);
+      } else {
+        var position = clips[i]['highlights'].findIndex((ele) => ele == highlightId);
+        newClips.push({
+          ...clips[i],
+          position: position
+        })
+      }
+    }
+    setClips(newClips);
   }
 
   return (
@@ -169,7 +180,11 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   <PageWrapper key={i} pageIndex={i}>
                     <Overlay>
                       <HighlightOverlayDemo pageIndex={i} />
-                      <SidebarOverlay pageIndex={i} highlights={data['highlights']} />
+                      <SidebarOverlay 
+                        pageIndex={i} 
+                        highlights={highlights} 
+                        changeClipPosition={changeClipPosition}
+                      />
                       <ScrollToDemo pageIndex={i} />
                       <CitationsDemo
                         annotations={annotations}
@@ -182,7 +197,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
               </div>
               <div style={{position: "relative"}}>
                 <VideoNotes 
-                  url={videoUrl} clips={clips} 
+                  url={videoUrl} clips={clips} highlights={highlights}
                   navigating={navigating} handleNavigate={handleNavigate}
                 />
               </div>

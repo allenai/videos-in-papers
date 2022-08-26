@@ -6,13 +6,14 @@ import {
   } from '@allenai/pdf-components';
 
 import { Player } from './Player';
-import { Clip } from '../types/clips';
+import { Highlight, Clip } from '../types/clips';
 
 import { spreadOutClips } from '../utils/positioning';
 
 type Props = {
   url: string;
   clips: Array<Clip>;
+  highlights: Array<Highlight>;
   navigating: {
     fromId: number;
     toId: number;
@@ -23,9 +24,15 @@ type Props = {
   handleNavigate: (fromId: number, toId: number) => void;
 };
 
+type ProcessedClip = Clip & {
+  page: number;
+  top: number;
+}
+
 export const VideoNotes: React.FunctionComponent<Props> = ({
     url,
     clips,
+    highlights,
     navigating,
     handleNavigate
 }: Props) => {
@@ -34,28 +41,48 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   const [ processedClips, setProcessedClips ] = React.useState([]);
 
   React.useEffect(() => {
-    setProcessedClips(spreadOutClips(clips));
-  }, []);
+    var processedClips: Array<ProcessedClip> = [];
+    for(var i = 0; i < clips.length; i++) {
+      var clip = clips[i];
+      var highlightIdx = clip['highlights'][clip.position]
+      var highlight = highlights[highlightIdx];
+      var page = highlight['rects'][0]['page'];
+      var top = highlight['rects'][0]['top'];
+      processedClips.push({...clip, page, top})
+    }
+    setProcessedClips(spreadOutClips(processedClips));
+  }, [clips]);
+
+  function renderPhantom(): React.ReactElement {
+    var clip = processedClips.find((ele) => ele.id == navigating.toId);
+    var id = clip.id
+    var top = (clip.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
+    return (
+      <Player key={"phantom-" + id}
+        top={top} id={id} url={url} numClips={clips.length}
+        handleNavigate={handleNavigate}
+        isOverlay={false} isPhantom={true}
+      />      
+    )
+  }
 
   function renderClips(): Array<React.ReactElement> {
     return processedClips.map((clip) => {
         var id = clip.id
-        var top = (clip.top + clip.pageIndex) * pageDimensions.height * scale + (24 + clip.pageIndex * 48);
+        var top = (clip.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
         var isOverlay = false;
-        var isReplacement = false;
+        var isPhantom = false;
         if(navigating !== null && navigating.fromId == id) {
-            top = navigating.toTop;
-            id = navigating.toId;
-            isReplacement = true;
+            isPhantom = true;
         } else if(navigating !== null && navigating.toId == id) {
             top = navigating.fromTop;
             isOverlay = true;
         }
         return (
-            <Player 
+            <Player key={id}
                 top={top} id={id} url={url} numClips={clips.length}
                 handleNavigate={handleNavigate}
-                isOverlay={isOverlay} isReplacement={isReplacement}
+                isOverlay={isOverlay} isPhantom={isPhantom}
             />
         )
     })
@@ -64,6 +91,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   return (
     <div className="video__note-list">
         {renderClips()}
+        {navigating != null && renderPhantom()}
     </div>
   )
 };

@@ -8,10 +8,9 @@ export type Highlight = {
 }
 
 export type Clip = {
-    id: number,
+    id: string,
     start: number,
     end: number,
     highlights: Array<number>,
-    pageIndex: number,
-    top: number,
+    position: number;
 }
