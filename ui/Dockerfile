@@ -11,16 +11,18 @@ RUN yarn install --frozen-lockfile
 
 # Install dependencies for library and point library to demo react link
 WORKDIR /usr/local/src/skiff/app/ui/library
-COPY ./library/package.json ./library/yarn.lock ./
+COPY ./pdf-component-library/ui/library/package.json ./pdf-component-library/ui/library/yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Copy in all of the source code for both the library and the demo
-WORKDIR /usr/local/src/skiff/app/ui
-COPY . .
+WORKDIR /usr/local/src/skiff/app/ui/demo
+COPY ./demo .
+WORKDIR /usr/local/src/skiff/app/ui/library
+COPY ./pdf-component-library/ui/library .
 
 # link the demo 'react' dependency to the 'library' to fulfill the peer dependency
 # and build the library and create a link for it
-RUN cd ./demo && yarn link:react \
+RUN cd ../demo && yarn link:react \
     && cd ../library && yarn link:react \
     && yarn build && yarn link:lib \
     && cd ../demo && yarn link:lib

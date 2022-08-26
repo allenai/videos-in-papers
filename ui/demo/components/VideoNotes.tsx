@@ -35,7 +35,20 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
 
+  // spread out clips in page so they don't overlap
+  function spreadOutClips() {
+    var sortedClips = JSON.parse(JSON.stringify(clips));
+    sortedClips.sort((a, b) => a.pageIndex == b.pageIndex ? a.top - b.top : a.pageIndex - b.pageIndex);
+    for(var i = 0; i < numPages; i++) {
+      var pageClips = sortedClips.filter((c) => c.pageIndex == i);
+      for(var j = 0; j < pageClips.length; j++) {
+        "hey"
+      }
+    }
+  }
+
   function renderClips(): Array<React.ReactElement> {
+    var spreadClips = spreadOutClips();
     return clips.map((clip) => {
         var id = clip.id
         var top = (clip.top + clip.pageIndex) * pageDimensions.height * scale + (24 + clip.pageIndex * 48);

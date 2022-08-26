@@ -19,7 +19,7 @@ import { ScrollToDemo } from './ScrollToDemo';
 import { TextHighlight } from './TextHighlight';
 import { VideoNotes } from './VideoNotes';
 
-import data from '../data/annotations/conditionaldelegation.json';
+import data from '../data/annotations/aichains.json';
 
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
@@ -29,8 +29,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   );
   const [rawCitations, setRawCitations] = React.useState<RawCitation[]>();
 
+  // navigating mode = auto-scrolling between video clips 
   const [navigating, setNavigating] = React.useState(null);
-
+  // check if scrolling before or beyond available space
   const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
   // ref for the div in which the Document component renders
@@ -39,10 +40,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // ref for the scrollable region where the pages are rendered
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
 
-  const samplePdfUrl = 'https://vivlai.github.io/papers/chi2022.pdf';
+  const samplePdfUrl = 'https://arxiv.org/pdf/2110.01691.pdf';
   const sampleS2airsUrl =
     'http://s2airs.prod.s2.allenai.org/v1/pdf_data?pdf_sha=9b79eb8d21c8a832daedbfc6d8c31bebe0da3ed5';
-  const videoUrl = 'https://www.youtube.com/watch?v=4W2ed8C9LYM';
+  const videoUrl = 'https://www.youtube.com/watch?v=brCo42DoMu0';
 
   const {
     isShowingHighlightOverlay,
@@ -84,11 +85,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   }, [rawCitations, pageDimensions]);
 
   React.useEffect(() => {
+    // In navigation mode, scroll to the next video clip
     if(navigating == null) return;
     var container = document.getElementsByClassName("reader__main")[0];
     container.scrollTo({top: navigating.scrollTo, left: 0, behavior: "smooth"})
   }, [navigating]);
 
+  // scroll from video clip to video clip
   const handleNavigate = (fromId: number, toId: number) => {
     var container = document.getElementsByClassName("reader__main")[0];
 
@@ -102,11 +105,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     if(toVideo != null)
       toTop = toVideo.getBoundingClientRect().top + container.scrollTop;
 
+    // scrollTo location = location of toId but adjusted to match relative screen location of fromId
     var scrollTo = Math.floor(toTop - fromTop);
+
+    // fix scroll if overflowing (beyond page)
     if(scrollTo < 0) {
       setScrollOverflow(-1);
       var container = document.getElementsByClassName("reader__main")[0];
-      //container.scrollTo({top: container.scrollTop + 1000});
       scrollTo += 1000
     } else if (scrollTo + window.innerHeight > container.scrollHeight) {
       setScrollOverflow(1);
@@ -119,6 +124,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const handleScroll = (e: any) => {
     if(navigating == null) {
+      // added spaces for scrolling not needed anymore
       if(scrollOverflow == -1 && e.target.scrollTop > 1000){
         setScrollOverflow(0);
       } else if(scrollOverflow == 1 && e.target.scrollTop + window.innerHeight < e.target.scrollHeight - 2000) {
@@ -127,15 +133,21 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       return;
     }
     if(navigating.scrollTo != e.target.scrollTop) return;
+    // reached desired scorll position --> navigation mode finished
     setNavigating(null);
   };
 
-  const clips = [
-    {id: 0, pageIndex: 0, top: 0},
-    {id: 1, pageIndex: 1, top: 0.3},
-    {id: 2, pageIndex: 1, top: 0.8},
-    {id: 3, pageIndex: 17, top: 1},
-  ];
+  var clips = [];
+  for(var i = 0; i < data['clips'].length; i++) {
+    var clip = data['clips'][i];
+    var highlightIdx = clip['highlights'][0]
+    var highlight = data['highlights'][highlightIdx];
+    var page = highlight['rects'][0]['page'];
+    var top = highlight['rects'][0]['top'];
+    clips.push(
+      {id: parseInt(clip['id']), pageIndex: page, top: top}
+    )
+  }
 
   return (
     <BrowserRouter>

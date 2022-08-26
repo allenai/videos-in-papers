@@ -1,10 +1,10 @@
 import { BoundingBox, BoundingBoxType, UiContext, DocumentContext, scaleRawBoundingBox } from '@allenai/pdf-components';
-import { Mappings } from '../types/annotations';
+import { Highlight } from '../types/annotations';
 import * as React from 'react';
 
 type Props = {
   pageIndex: number;
-  highlights: Array<Mappings>;
+  highlights: Array<Highlight>;
 };
 
 /*
@@ -47,7 +47,7 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, highl
           const props = {
             ...prop,
             id: highlights[i].id,
-            className: 'reader_highlight_color-' + parseInt(highlights[i].id) % 7,
+            className: 'reader_highlight_color-' + parseInt(highlights[i].clip) % 7,
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
             key: i+"-"+j,

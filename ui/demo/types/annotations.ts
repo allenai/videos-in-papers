@@ -48,15 +48,16 @@ function addCitationToPage(citation: Citation, pageToAnnotationsMap: PageToAnnot
   }
 }
 
-
-export type Snippet = {
-  start: number,
-  end: number,
-}
-
-export type Mappings = {
+export type Highlight = {
   id: string,
   type: string,
   rects: Array<BoundingBoxType>,
-  timestamp: Snippet,
+  clip: string,
+}
+
+export type Clip = {
+  id: string,
+  start: number,
+  end: number,
+  highlights: Array<string>
 }

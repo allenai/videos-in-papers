@@ -20,11 +20,10 @@ for filename in os.listdir(annotations_dir):
     with open(file_path, 'r') as f:
         annotations = json.load(f)
         for i, an in enumerate(annotations):
-            type = "text"
             if "image" in an["content"].keys():
                 type = "image"
-            rects = []
-            for rect in an["position"]["rects"]:
+                rects = []
+                rect = an['position']['boundingRect']
                 rects.append({
                     "page": rect['pageNumber'] - 1,
                     "top": rect['y1'] / rect['height'],
@@ -32,6 +31,17 @@ for filename in os.listdir(annotations_dir):
                     "height": (rect['y2'] - rect['y1']) / rect['height'],
                     "width": (rect['x2'] - rect['x1']) / rect['width']
                 })
+            else:
+                type = "text"
+                rects = []
+                for rect in an["position"]["rects"]:
+                    rects.append({
+                        "page": rect['pageNumber'] - 1,
+                        "top": rect['y1'] / rect['height'],
+                        "left": rect['x1'] / rect['width'],
+                        "height": (rect['y2'] - rect['y1']) / rect['height'],
+                        "width": (rect['x2'] - rect['x1']) / rect['width']
+                    })
 
             info = map(lambda s: s.strip(), an["comment"]['text'].split("-"))
             id = info[2]

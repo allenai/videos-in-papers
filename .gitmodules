@@ -1,0 +1,6 @@
+[submodule "pdf-component-library"]
+	path = pdf-component-library
+	url = https://github.com/allenai/pdf-component-library.git
+[submodule "ui/pdf-component-library"]
+	path = ui/pdf-component-library
+	url = https://github.com/allenai/pdf-component-library.git

@@ -1,6 +1,0 @@
-dist/
-node_modules/
-package.json
-tsconfig.json
-webpack.config.js
-jsdom.setup.js
