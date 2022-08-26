@@ -19,6 +19,8 @@ import { ScrollToDemo } from './ScrollToDemo';
 import { TextHighlight } from './TextHighlight';
 import { VideoNotes } from './VideoNotes';
 
+import { Clip } from '../types/clips';
+
 import data from '../data/annotations/aichains.json';
 
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
@@ -29,16 +31,16 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   );
   const [rawCitations, setRawCitations] = React.useState<RawCitation[]>();
 
-  // navigating mode = auto-scrolling between video clips 
-  const [navigating, setNavigating] = React.useState(null);
-  // check if scrolling before or beyond available space
-  const [scrollOverflow, setScrollOverflow] = React.useState(0);
-
   // ref for the div in which the Document component renders
   const pdfContentRef = React.createRef<HTMLDivElement>();
 
   // ref for the scrollable region where the pages are rendered
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
+
+  // navigating mode = auto-scrolling between video clips 
+  const [navigating, setNavigating] = React.useState(null);
+  // check if scrolling before or beyond available space
+  const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
   const samplePdfUrl = 'https://arxiv.org/pdf/2110.01691.pdf';
   const sampleS2airsUrl =
@@ -137,7 +139,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setNavigating(null);
   };
 
-  var clips = [];
+  var clips: Array<Clip> = [];
   for(var i = 0; i < data['clips'].length; i++) {
     var clip = data['clips'][i];
     var highlightIdx = clip['highlights'][0]
@@ -145,7 +147,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     var page = highlight['rects'][0]['page'];
     var top = highlight['rects'][0]['top'];
     clips.push(
-      {id: parseInt(clip['id']), pageIndex: page, top: top}
+      {id: parseInt(clip['id']), start:clip.start, end: clip.end, highlights: clip['highlights'], pageIndex: page, top: top}
     )
   }
 

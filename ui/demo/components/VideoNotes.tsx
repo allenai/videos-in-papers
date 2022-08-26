@@ -6,12 +6,9 @@ import {
   } from '@allenai/pdf-components';
 
 import { Player } from './Player';
+import { Clip } from '../types/clips';
 
-type Clip  = {
-    id: number;
-    pageIndex: number;
-    top: number;
-}
+import { spreadOutClips } from '../utils/positioning';
 
 type Props = {
   url: string;
@@ -34,22 +31,14 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
+  const [ processedClips, setProcessedClips ] = React.useState([]);
 
-  // spread out clips in page so they don't overlap
-  function spreadOutClips() {
-    var sortedClips = JSON.parse(JSON.stringify(clips));
-    sortedClips.sort((a, b) => a.pageIndex == b.pageIndex ? a.top - b.top : a.pageIndex - b.pageIndex);
-    for(var i = 0; i < numPages; i++) {
-      var pageClips = sortedClips.filter((c) => c.pageIndex == i);
-      for(var j = 0; j < pageClips.length; j++) {
-        "hey"
-      }
-    }
-  }
+  React.useEffect(() => {
+    setProcessedClips(spreadOutClips(clips));
+  }, []);
 
   function renderClips(): Array<React.ReactElement> {
-    var spreadClips = spreadOutClips();
-    return clips.map((clip) => {
+    return processedClips.map((clip) => {
         var id = clip.id
         var top = (clip.top + clip.pageIndex) * pageDimensions.height * scale + (24 + clip.pageIndex * 48);
         var isOverlay = false;

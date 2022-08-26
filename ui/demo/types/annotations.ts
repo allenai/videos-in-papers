@@ -47,17 +47,3 @@ function addCitationToPage(citation: Citation, pageToAnnotationsMap: PageToAnnot
     annotationsForPage.citations.push(citation);
   }
 }
-
-export type Highlight = {
-  id: string,
-  type: string,
-  rects: Array<BoundingBoxType>,
-  clip: string,
-}
-
-export type Clip = {
-  id: string,
-  start: number,
-  end: number,
-  highlights: Array<string>
-}

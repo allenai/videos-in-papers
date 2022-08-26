@@ -1,5 +1,5 @@
 import { BoundingBox, BoundingBoxType, UiContext, DocumentContext, scaleRawBoundingBox } from '@allenai/pdf-components';
-import { Highlight } from '../types/annotations';
+import { Highlight } from '../types/clips';
 import * as React from 'react';
 
 type Props = {
