@@ -20,9 +20,9 @@ import { ScrollToDemo } from './ScrollToDemo';
 import { SidebarOverlay } from './SidebarOverlay';
 import { VideoNotes } from './VideoNotes';
 
-import { Highlight, Clip } from '../types/clips';
+import { Highlight, Clip, Caption } from '../types/clips';
 
-import data from '../data/annotations/aichains.json';
+import data from '../data/annotations/3491102.3517582.json';
 import { spreadOutClips } from '../utils/positioning';
 
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
@@ -42,6 +42,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
+  const [ captions, setCaptions ] = React.useState<Array<Caption>>(data['captions']);
 
   // navigating mode = auto-scrolling between video clips 
   const [navigating, setNavigating] = React.useState(null);
@@ -49,8 +50,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
   const samplePdfUrl = 'https://arxiv.org/pdf/2110.01691.pdf';
-  const sampleS2airsUrl =
-    'http://s2airs.prod.s2.allenai.org/v1/pdf_data?pdf_sha=9b79eb8d21c8a832daedbfc6d8c31bebe0da3ed5';
   const videoUrl = 'https://www.youtube.com/watch?v=brCo42DoMu0';
 
   const {
@@ -219,17 +218,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                 {Array.from({ length: numPages }).map((_, i) => (
                   <PageWrapper key={i} pageIndex={i}>
                     <Overlay>
-                      <HighlightOverlayDemo pageIndex={i} />
                       <SidebarOverlay 
                         pageIndex={i} 
                         highlights={highlights} 
                         changeClipPosition={changeClipPosition}
-                      />
-                      <ScrollToDemo pageIndex={i} />
-                      <CitationsDemo
-                        annotations={annotations}
-                        pageIndex={i}
-                        parentRef={pdfScrollableRef}
                       />
                     </Overlay>
                   </PageWrapper>
@@ -240,6 +232,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   url={videoUrl} clips={clips} highlights={highlights}
                   navigating={navigating} handleNavigate={handleNavigate}
                   navigateToPosition={navigateToPosition}
+                  captions={captions}
                 />
               </div>
             </div>

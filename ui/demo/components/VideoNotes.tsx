@@ -6,7 +6,7 @@ import {
   } from '@allenai/pdf-components';
 
 import { Player } from './Player';
-import { Highlight, Clip } from '../types/clips';
+import { Highlight, Clip, Caption } from '../types/clips';
 
 import { spreadOutClips } from '../utils/positioning';
 
@@ -24,6 +24,7 @@ type Props = {
   };
   handleNavigate: (fromId: number, toId: number) => void;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
+  captions: Array<Caption>;
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -32,7 +33,8 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     highlights,
     navigating,
     handleNavigate,
-    navigateToPosition
+    navigateToPosition,
+    captions
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -57,6 +59,23 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     )
   }
 
+  function getCaptions(start: number, end: number): Array<Caption> {
+    var clipCaptions = [];
+
+    for(var i = 0; i < captions.length; i++) {
+      var caption = captions[i];
+      if(caption['start'] <= start && start < caption['end']) {
+        clipCaptions.push(caption);
+      } else if(start < caption['start'] && caption['end'] < end) {
+        clipCaptions.push(caption);
+      } else if(caption['start'] < end && end <= caption['end']) {
+        clipCaptions.push(caption);
+      }
+    }
+
+    return clipCaptions;
+  }
+
   function renderClips(): Array<React.ReactElement> {
     return Object.keys(processedClips).map((i) => {
         var id = parseInt(i);
@@ -78,6 +97,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
                 handleNavigate={handleNavigate}
                 isOverlay={isOverlay} isPhantom={isPhantom}
                 navigateToPosition={navigateToPosition}
+                captions={getCaptions(clip['start']*1000, clip['end']*1000)}
             />
         )
     })

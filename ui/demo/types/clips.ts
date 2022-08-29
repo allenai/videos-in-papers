@@ -16,3 +16,9 @@ export type Clip = {
     top: number;
     page: number;
 }
+
+export type Caption = {
+    caption: string,
+    start: number,
+    end: number
+}

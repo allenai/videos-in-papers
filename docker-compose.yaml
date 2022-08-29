@@ -25,6 +25,7 @@ services:
             - ./ui/demo/less:/usr/local/src/skiff/app/ui/demo/less
             - ./ui/demo/data:/usr/local/src/skiff/app/ui/demo/data
             - ./ui/demo/utils:/usr/local/src/skiff/app/ui/demo/utils
+            - ./ui/demo/public:/usr/local/src/skiff/app/ui/demo/public
         environment:
             - NODE_ENV=development
     proxy:

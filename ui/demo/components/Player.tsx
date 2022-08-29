@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   DocumentContext,
 } from '@allenai/pdf-components';
-import { Highlight, Clip } from '../types/annotations';
+import { Highlight, Clip, Caption } from '../types/annotations';
 import _ReactPlayer, { ReactPlayerProps } from 'react-player';
 const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
@@ -17,12 +17,7 @@ interface Props {
   isOverlay: boolean;
   isPhantom: boolean;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
-}
-
-type Caption = {
-  text: string;
-  start_time: number;
-  duration: number;
+  captions: Array<Caption>;
 }
 
 const colors = [
@@ -44,7 +39,8 @@ export function Player({
   handleNavigate,
   isOverlay,
   isPhantom,
-  navigateToPosition
+  navigateToPosition,
+  captions
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
 
@@ -79,6 +75,7 @@ export function Player({
       toId = 0;
     }
     handleNavigate(fromId, toId);
+    setIsPlaying(false);
   }
 
   const handleSideClick = (e: any) => {
@@ -122,21 +119,20 @@ export function Player({
           </div>
           <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[id % 7]}}>
             <div style={{height: videoHeight+"px"}}>
-                {/* <ReactPlayer 
+                <ReactPlayer 
                     ref={videoRef}
-                    url={url} 
+                    url={'public/clips/'+id+'.mp4'} 
                     playing={isPlaying}
-                    controls={! url.includes('youtube')}
+                    controls={true}
                     onReady={(e) => {videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration())}}
                     onProgress={(e) => {updateProgress(e)}}
                     onPlay={() => {setIsPlaying(true)}}
                     onPause={() => {setIsPlaying(false)}}
                     width="100%" height="100%"
-                    light={true}
-                /> */}
+                />
             </div>
             <div className="video__note-captions">
-              Caption summary would go here.
+              {captions.map((c) => c['caption'].trim()).join(" ")}
             </div>
           </div>
         </div>
