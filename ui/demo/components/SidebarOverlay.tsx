@@ -3,10 +3,14 @@ import { Sidebar } from './Sidebar';
 import { Highlight } from '../types/clips';
 import * as React from 'react';
 
+type Bar = BoundingBoxType & {
+  id: number;
+}
+
 type Props = {
   pageIndex: number;
-  highlights: Array<Highlight>;
-  changeClipPosition: (id: string) => void;
+  highlights: {[index: number]: Highlight};
+  changeClipPosition: (id: number) => void;
 };
 
 /*
@@ -26,10 +30,11 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
 
   // transform BoundingBoxes for highlights into Sidebar dimensions
   function getSidebarProps() {
-    var results : Array<Array<BoundingBoxType>> = [];
-    for(var i = 0; i < highlights.length; i++) {
-      var sidebars: Array<BoundingBoxType> = [];
-      var rects = highlights[i].rects;
+    var results : Array<Array<Bar>> = [];
+    for(var i = 0; i < Object.keys(highlights).length; i++) {
+      var id = Object.keys(highlights)[i];
+      var sidebars: Array<Bar> = [];
+      var rects = highlights[id].rects;
       var pages: Array<number> = []
       for(var j = 0; j < rects.length; j++) {
         if(pages.includes(rects[j].page)) continue;
@@ -43,18 +48,20 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         var left = 48;
         var width = 12;
         var totalCenters = 0;
+        var num_rects = 0
         for(var k = 0; k < rects.length; k++) {
             if(rects[k].page !== page) continue;
             var bbox = scaleRawBoundingBox(rects[k], pageDimensions.height, pageDimensions.width);
             if(bbox.top < top) top = bbox.top;
             if(bbox.height+bbox.top > bottom) bottom = bbox.height + bbox.top;
             totalCenters += bbox.left + bbox.width/2;
+            num_rects += 1
         }
-        var avgCenter = totalCenters / rects.length;
+        var avgCenter = totalCenters / num_rects;
         if(avgCenter > pageDimensions.width/2) {
             left = pageDimensions.width - left - width;
         }
-        sidebars.push({top, height: bottom - top, width, left, page});
+        sidebars.push({id: id, top, height: bottom - top, width, left, page});
       }
 
       results.push(sidebars);
@@ -65,23 +72,23 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
 
   function onClickHighlight (e: React.MouseEvent) {
     e.stopPropagation();
-    var id = e.currentTarget.getAttribute('id');
+    var id = parseInt(e.currentTarget.getAttribute('id'));
     changeClipPosition(id);
   }
 
   function renderSidebars(): Array<React.ReactElement> {
     const boxes: Array<React.ReactElement> = [];
-    getSidebarProps().map((bars, i) => {
+    getSidebarProps().map((bars) => {
       // Only render this BoundingBox if it belongs on the current page
       bars.map((prop, j) => {
         if (prop.page === pageIndex) {
           const props = {
             ...prop,
-            id: highlights[i].id,
-            className: 'reader_highlight_color-' + parseInt(highlights[i].clip) % 7,
+            id: prop.id,
+            className: 'reader_highlight_color-' + parseInt(highlights[prop.id].clip) % 7,
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
-            key: i+"-"+j,
+            key: prop.id+"-"+j,
             onClick: onClickHighlight,
           };
 

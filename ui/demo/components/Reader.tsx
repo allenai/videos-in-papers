@@ -38,11 +38,12 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // ref for the scrollable region where the pages are rendered
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
 
-  const [ highlights, setHighlights ] = React.useState<Array<Highlight>>(data['highlights']);
-  for(var i = 0; i < data['clips'].length; i++) {
-    data['clips'][i]['position'] = 0;
+  const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
+  for(var i = 0; i < Object.keys(data['clips']).length; i++) {
+    var clipId = Object.keys(data['clips'])[i];
+    data['clips'][clipId]['position'] = 0;
   }
-  const [ clips, setClips ] = React.useState<Array<Clip>>(data['clips']);
+  const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
 
   // navigating mode = auto-scrolling between video clips 
   const [navigating, setNavigating] = React.useState(null);
@@ -101,7 +102,16 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   }, [navigating]);
 
   // scroll from video clip to video clip
-  const handleNavigate = (fromId: number, toId: number) => {
+  const handleNavigate = (id: number, direction: number) => {
+    var numClips = Object.keys(clips).length;
+    var fromId = id;
+    var toId = fromId + direction;
+    if(toId < 0) {
+      toId = numClips -1;
+    } else if(toId >= numClips) {
+      toId = 0;
+    }
+
     var container = document.getElementsByClassName("reader__main")[0];
 
     var fromVideo = document.getElementById("video__note-" + fromId);
@@ -142,25 +152,22 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       return;
     }
     if(navigating.scrollTo != e.target.scrollTop) return;
-    // reached desired scorll position --> navigation mode finished
+    // reached desired scroll position --> navigation mode finished
     setNavigating(null);
   };
 
-  const changeClipPosition = (highlightId: string) => {
+  const changeClipPosition = (highlightId: number) => {
     var clipId = highlights[highlightId]['clip'];
-    var newClips: Array<Clip> = [];
-    for(var i = 0; i < clips.length; i++) {
-      if(clips[i]['id'] != clipId) {
-        newClips.push(clips[i]);
-      } else {
-        var position = clips[i]['highlights'].findIndex((ele) => ele == highlightId);
-        newClips.push({
-          ...clips[i],
-          position: position
-        })
-      }
-    }
+    var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+    var newPosition = newClips[clipId]['highlights'].findIndex((ele) => ele == highlightId);
+    newClips[clipId].position = newPosition;
     setClips(newClips);
+  }
+
+  const navigateToPosition = (clipId: number, highlightIdx: number) => {
+    var clip = clips.find((ele) => ele.id == clipId);
+    var highlightId = clip['highlights'][highlightIdx];
+    console.log(clip);
   }
 
   return (
@@ -199,6 +206,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                 <VideoNotes 
                   url={videoUrl} clips={clips} highlights={highlights}
                   navigating={navigating} handleNavigate={handleNavigate}
+                  navigateToPosition={navigateToPosition}
                 />
               </div>
             </div>

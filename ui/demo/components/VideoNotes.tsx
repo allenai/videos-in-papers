@@ -12,8 +12,8 @@ import { spreadOutClips } from '../utils/positioning';
 
 type Props = {
   url: string;
-  clips: Array<Clip>;
-  highlights: Array<Highlight>;
+  clips: {[index: number]: Clip};
+  highlights: {[index: number]: Highlight};
   navigating: {
     fromId: number;
     toId: number;
@@ -21,7 +21,8 @@ type Props = {
     toTop: number;
     scrollTo: number;
   };
-  handleNavigate: (fromId: number, toId: number) => void;
+  handleNavigate: (id: number, direction: number) => void;
+  navigateToPosition: (clipId: number, highlightIdx: number) => void;
 };
 
 type ProcessedClip = Clip & {
@@ -34,41 +35,47 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     clips,
     highlights,
     navigating,
-    handleNavigate
+    handleNavigate,
+    navigateToPosition
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
-  const [ processedClips, setProcessedClips ] = React.useState([]);
+  const [ processedClips, setProcessedClips ] = React.useState({});
 
   React.useEffect(() => {
-    var processedClips: Array<ProcessedClip> = [];
-    for(var i = 0; i < clips.length; i++) {
-      var clip = clips[i];
-      var highlightIdx = clip['highlights'][clip.position]
-      var highlight = highlights[highlightIdx];
+    var processedClips: {[index: number]: ProcessedClip} = {};
+    var clipIds = Object.keys(clips);
+    for(var i = 0; i < clipIds.length; i++) {
+      var id = clipIds[i];
+      var clip = clips[id];
+      var highlightId = clip['highlights'][clip.position];
+      var highlight = highlights[highlightId];
       var page = highlight['rects'][0]['page'];
       var top = highlight['rects'][0]['top'];
-      processedClips.push({...clip, page, top})
+      processedClips[id] = {...clip, page, top};
     }
     setProcessedClips(spreadOutClips(processedClips));
   }, [clips]);
 
   function renderPhantom(): React.ReactElement {
-    var clip = processedClips.find((ele) => ele.id == navigating.toId);
+    var clip = processedClips[navigating.toId];
     var id = clip.id
     var top = (clip.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
     return (
-      <Player key={"phantom-" + id}
-        top={top} id={id} url={url} numClips={clips.length}
+      <Player key={"phantom-" + id}id={id+7000} top={top}
+        clip={clip} highlights={clip['highlights'].map((id) => highlights[id])}
+        url={url} numClips={Object.keys(clips).length}
         handleNavigate={handleNavigate}
         isOverlay={false} isPhantom={true}
+        navigateToPosition={navigateToPosition}
       />      
     )
   }
 
   function renderClips(): Array<React.ReactElement> {
-    return processedClips.map((clip) => {
-        var id = clip.id
+    return Object.keys(processedClips).map((i) => {
+        var id = parseInt(i);
+        var clip = processedClips[id];
         var top = (clip.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
         var isOverlay = false;
         var isPhantom = false;
@@ -79,10 +86,13 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
             isOverlay = true;
         }
         return (
-            <Player key={id}
-                top={top} id={id} url={url} numClips={clips.length}
+            <Player 
+                key={id} id={id} top={top}
+                clip={clip} highlights={clip['highlights'].map((id) => highlights[id])}
+                url={url} numClips={Object.keys(clips).length}
                 handleNavigate={handleNavigate}
                 isOverlay={isOverlay} isPhantom={isPhantom}
+                navigateToPosition={navigateToPosition}
             />
         )
     })

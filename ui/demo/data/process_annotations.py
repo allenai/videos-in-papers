@@ -15,7 +15,7 @@ for filename in os.listdir(annotations_dir):
 annotations_dir = './annotations'
 for filename in os.listdir(annotations_dir):
     file_path = os.path.join(annotations_dir, filename)
-    processed = {"highlights": [], "clips": []}
+    processed = {"highlights": {}, "clips": {}}
     found_clips = []
     with open(file_path, 'r') as f:
         annotations = json.load(f)
@@ -49,24 +49,23 @@ for filename in os.listdir(annotations_dir):
             end = info[1].split(":")
 
             if id in found_clips:
-                clip_idx = found_clips.index(id)
-                processed['clips'][clip_idx]['highlights'].append(i)
+                processed['clips'][id]['highlights'].append(i)
             else:
-                processed['clips'].append({
+                processed['clips'][id] = {
                     "id": id,
                     "start": int(start[0]) * 60 + int(start[1]),
                     "end": int(end[0]) * 60 + int(end[1]),
                     "highlights": [i]
-                })
+                }
                 found_clips.append(id)
                 
 
             
-            processed['highlights'].append({
+            processed['highlights'][i] = {
                 "id": i,
                 "type": type,
                 "rects": rects,
                 "clip": id
-            })
+            }
         with open(file_path, 'w') as f:
             json.dump(processed, f)
