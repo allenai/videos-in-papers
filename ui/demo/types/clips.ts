@@ -13,4 +13,6 @@ export type Clip = {
     end: number,
     highlights: Array<number>,
     position: number;
+    top: number;
+    page: number;
 }

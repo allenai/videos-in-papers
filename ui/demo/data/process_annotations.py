@@ -55,7 +55,10 @@ for filename in os.listdir(annotations_dir):
                     "id": id,
                     "start": int(start[0]) * 60 + int(start[1]),
                     "end": int(end[0]) * 60 + int(end[1]),
-                    "highlights": [i]
+                    "highlights": [i],
+                    "position": 0,
+                    "top": rects[0]['top'],
+                    "page": rects[0]['page'],
                 }
                 found_clips.append(id)
                 

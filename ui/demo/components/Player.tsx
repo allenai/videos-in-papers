@@ -13,7 +13,7 @@ interface Props {
   highlights: Array<Highlight>;
   url: string;
   numClips: number;
-  handleNavigate: (id: number, direction: number) => void;
+  handleNavigate: (fromId: number, toId: number) => void;
   isOverlay: boolean;
   isPhantom: boolean;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
@@ -53,21 +53,32 @@ export function Player({
   const [duration, setDuration] = React.useState(0);
   const [isShove, setIsShove] = React.useState(false);
 
-  const ref = React.useRef<ReactPlayerProps>(null);
-
-  React.useEffect(() => {
-    if(!isOverlay && !isPhantom) {
-      setIsShove(true);
-    } else {
-      setIsShove(false);
-    }
-  }, [top]);
+  const videoRef = React.useRef<ReactPlayerProps>(null);
 
   const updateProgress = (e : any) => {
-    if(ref.current && isPlaying) {
+    if(videoRef.current && isPlaying) {
       var currentTime = e.playedSeconds;
       setProgress(currentTime);
     }
+  }
+
+  React.useEffect(() => {
+    if(!isOverlay) {
+      setIsShove(true);
+    } else {
+      setIsShove(false)
+    }
+  }, [top]);
+
+  const handleNavigateClick = (id: number, direction: number) => {
+    var fromId = id;
+    var toId = fromId + direction;
+    if(toId < 0) {
+      toId = numClips -1;
+    } else if(toId >= numClips) {
+      toId = 0;
+    }
+    handleNavigate(fromId, toId);
   }
 
   const handleSideClick = (e: any) => {
@@ -101,28 +112,28 @@ export function Player({
       <div className="video__note-supercontainer">
         <div>
           <div className="video__note-timeline">
-            <div style={{color: "#999"}} onClick={() => handleNavigate(id, -1)}>
+            <div style={{color: "#999"}} onClick={() => handleNavigateClick(id, -1)}>
               {"<"}
             </div>
             <div> {id+1}/{numClips} </div>
-            <div style={{color: "#999"}} onClick={() => handleNavigate(id, 1)}>
+            <div style={{color: "#999"}} onClick={() => handleNavigateClick(id, 1)}>
               {">"}
             </div>
           </div>
           <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[id % 7]}}>
             <div style={{height: videoHeight+"px"}}>
-                <ReactPlayer 
-                    ref={ref}
+                {/* <ReactPlayer 
+                    ref={videoRef}
                     url={url} 
                     playing={isPlaying}
                     controls={! url.includes('youtube')}
-                    onReady={(e) => {ref.current == null ? 0 : setDuration(ref.current.getDuration())}}
+                    onReady={(e) => {videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration())}}
                     onProgress={(e) => {updateProgress(e)}}
                     onPlay={() => {setIsPlaying(true)}}
                     onPause={() => {setIsPlaying(false)}}
                     width="100%" height="100%"
                     light={true}
-                />
+                /> */}
             </div>
             <div className="video__note-captions">
               Caption summary would go here.

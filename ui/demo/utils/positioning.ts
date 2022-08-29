@@ -1,11 +1,6 @@
 import { Clip } from '../types/clips';
 
-type ProcessedClip = Clip & {
-    page: number;
-    top: number;
-}
-
-export function checkOverlap(clips: Array<ProcessedClip>) {
+export function checkOverlap(clips: Array<Clip>) {
     var overlapping_groups: Array<Array<number>> = []
     var curr_group: Array<number> = []
     for(var i = 0; i < clips.length - 1; i++) {

@@ -5,6 +5,7 @@ import {
   PageWrapper,
   ScrollContext,
   UiContext,
+  TransformContext,
 } from '@allenai/pdf-components';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
@@ -22,10 +23,11 @@ import { VideoNotes } from './VideoNotes';
 import { Highlight, Clip } from '../types/clips';
 
 import data from '../data/annotations/aichains.json';
-import { TextHighlight } from './TextHighlight';
+import { spreadOutClips } from '../utils/positioning';
 
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
+  const { rotation, scale } = React.useContext(TransformContext);
   const { setScrollRoot } = React.useContext(ScrollContext);
   const [annotations, setAnnotations] = React.useState<PageToAnnotationsMap>(
     new Map<number, Annotations>()
@@ -39,10 +41,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
 
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
-  for(var i = 0; i < Object.keys(data['clips']).length; i++) {
-    var clipId = Object.keys(data['clips'])[i];
-    data['clips'][clipId]['position'] = 0;
-  }
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
 
   // navigating mode = auto-scrolling between video clips 
@@ -102,16 +100,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   }, [navigating]);
 
   // scroll from video clip to video clip
-  const handleNavigate = (id: number, direction: number) => {
-    var numClips = Object.keys(clips).length;
-    var fromId = id;
-    var toId = fromId + direction;
-    if(toId < 0) {
-      toId = numClips -1;
-    } else if(toId >= numClips) {
-      toId = 0;
-    }
-
+  const handleNavigate = (fromId: number, toId: number) => {
     var container = document.getElementsByClassName("reader__main")[0];
 
     var fromVideo = document.getElementById("video__note-" + fromId);
@@ -138,7 +127,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         scrollTo -= 1000
     }
 
-    setNavigating({ fromId, toId, fromTop, toTop, scrollTo });
+    setNavigating({ fromId, toId, fromTop, toTop, scrollTo, position: null });
   }
 
   const handleScroll = (e: any) => {
@@ -153,21 +142,65 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     }
     if(navigating.scrollTo != e.target.scrollTop) return;
     // reached desired scroll position --> navigation mode finished
-    setNavigating(null);
+    if(navigating.position == null) {
+      setNavigating(null);
+    } else {
+      var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+      newClips[navigating.toId].position = navigating.position;
+      var highlightId = newClips[navigating.toId].highlights[navigating.position];
+      newClips[navigating.toId].position = navigating.position;
+      newClips[navigating.toId].top = highlights[highlightId].rects[0].top;
+      newClips[navigating.toId].page = highlights[highlightId].rects[0].page;
+      setNavigating(null);
+    }
   };
 
   const changeClipPosition = (highlightId: number) => {
     var clipId = highlights[highlightId]['clip'];
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
-    var newPosition = newClips[clipId]['highlights'].findIndex((ele) => ele == highlightId);
+    var newPosition = newClips[clipId].highlights.findIndex((ele) => ele == highlightId);
     newClips[clipId].position = newPosition;
+    newClips[clipId].top = highlights[highlightId].rects[0].top;
+    newClips[clipId].page = highlights[highlightId].rects[0].page;
     setClips(newClips);
   }
 
   const navigateToPosition = (clipId: number, highlightIdx: number) => {
-    var clip = clips.find((ele) => ele.id == clipId);
-    var highlightId = clip['highlights'][highlightIdx];
-    console.log(clip);
+    var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+    newClips[clipId].position = highlightIdx;
+    var highlightId = newClips[clipId].highlights[highlightIdx];
+    newClips[clipId].top = highlights[highlightId].rects[0].top;
+    newClips[clipId].page = highlights[highlightId].rects[0].page;
+
+    var spreadClips = spreadOutClips(newClips);
+
+    var container = document.getElementsByClassName("reader__main")[0];
+
+    var fromVideo = document.getElementById("video__note-" + clipId);
+    var fromTop = 0;
+    if(fromVideo != null)
+      fromTop = fromVideo.getBoundingClientRect().top;
+
+    var toTop = (spreadClips[clipId].top + spreadClips[clipId].page) * pageDimensions.height * scale + (24 + spreadClips[clipId].page * 48);
+    if(scrollOverflow == -1)
+      toTop += 1000;
+
+    // scrollTo location = location of toId but adjusted to match relative screen location of fromId
+    var scrollTo = Math.floor(toTop - fromTop);
+
+    // fix scroll if overflowing (beyond page)
+    if(scrollTo < 0) {
+      setScrollOverflow(-1);
+      var container = document.getElementsByClassName("reader__main")[0];
+      scrollTo += 1000
+    } else if (scrollTo + window.innerHeight > container.scrollHeight) {
+      setScrollOverflow(1);
+      if(scrollOverflow == -1)
+        scrollTo -= 1000
+    }
+    setClips(newClips);
+    
+    setNavigating({ fromId: -1, toId: clipId, fromTop, toTop, scrollTo, position: highlightIdx });
   }
 
   return (

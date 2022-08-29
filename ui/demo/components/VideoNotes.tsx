@@ -20,15 +20,11 @@ type Props = {
     fromTop: number;
     toTop: number;
     scrollTo: number;
+    position: number;
   };
-  handleNavigate: (id: number, direction: number) => void;
+  handleNavigate: (fromId: number, toId: number) => void;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
 };
-
-type ProcessedClip = Clip & {
-  page: number;
-  top: number;
-}
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
     url,
@@ -43,18 +39,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   const [ processedClips, setProcessedClips ] = React.useState({});
 
   React.useEffect(() => {
-    var processedClips: {[index: number]: ProcessedClip} = {};
-    var clipIds = Object.keys(clips);
-    for(var i = 0; i < clipIds.length; i++) {
-      var id = clipIds[i];
-      var clip = clips[id];
-      var highlightId = clip['highlights'][clip.position];
-      var highlight = highlights[highlightId];
-      var page = highlight['rects'][0]['page'];
-      var top = highlight['rects'][0]['top'];
-      processedClips[id] = {...clip, page, top};
-    }
-    setProcessedClips(spreadOutClips(processedClips));
+    setProcessedClips(spreadOutClips(clips));
   }, [clips]);
 
   function renderPhantom(): React.ReactElement {
@@ -101,7 +86,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   return (
     <div className="video__note-list">
         {renderClips()}
-        {navigating != null && renderPhantom()}
+        {navigating != null && navigating.position == null && renderPhantom()}
     </div>
   )
 };
