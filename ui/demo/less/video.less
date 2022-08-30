@@ -32,7 +32,12 @@ video {
     overflow-y: scroll;
     margin-top: 8px;
     padding: 0 12px 8px 12px;
-    color: #333;
+    color: #555;
+    font-size: 12px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    cursor: pointer;
 }
 
 .video__note-timeline {
@@ -73,4 +78,11 @@ video {
     box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
     font-size: 16px;
     cursor: pointer;
+}
+
+.video__note-timestamp {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 }

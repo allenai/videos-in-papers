@@ -20,7 +20,7 @@ import { ScrollToDemo } from './ScrollToDemo';
 import { SidebarOverlay } from './SidebarOverlay';
 import { VideoNotes } from './VideoNotes';
 
-import { Highlight, Clip, Caption } from '../types/clips';
+import { Highlight, Clip } from '../types/clips';
 
 import data from '../data/annotations/3491102.3517582.json';
 import { spreadOutClips } from '../utils/positioning';
@@ -42,7 +42,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
-  const [ captions, setCaptions ] = React.useState<Array<Caption>>(data['captions']);
 
   // navigating mode = auto-scrolling between video clips 
   const [navigating, setNavigating] = React.useState(null);
@@ -171,7 +170,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].top = highlights[highlightId].rects[0].top;
     newClips[clipId].page = highlights[highlightId].rects[0].page;
 
-    var spreadClips = spreadOutClips(newClips);
+    var spreadClips = spreadOutClips(newClips, pageDimensions.height);
 
     var container = document.getElementsByClassName("reader__main")[0];
 
@@ -202,13 +201,21 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setNavigating({ fromId: -1, toId: clipId, fromTop, toTop, scrollTo, position: highlightIdx });
   }
 
+  const toggleCaptions = (clipId: number, isExpand: boolean) => {
+    console.log(clipId, isExpand);
+    var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+    newClips[clipId]['expanded'] = isExpand;
+    setClips(newClips);
+  }
+
   return (
     <BrowserRouter>
       <Route path="/">
         <div className="reader__container">
           <DocumentWrapper 
             className="reader__main"
-            file={samplePdfUrl} inputRef={pdfContentRef} 
+            file={samplePdfUrl} 
+            inputRef={pdfContentRef} 
             onScroll={handleScroll}
           >
             {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}
@@ -229,10 +236,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
               </div>
               <div style={{position: "relative"}}>
                 <VideoNotes 
-                  url={videoUrl} clips={clips} highlights={highlights}
-                  navigating={navigating} handleNavigate={handleNavigate}
+                  url={videoUrl} 
+                  clips={clips} 
+                  highlights={highlights}
+                  navigating={navigating} 
+                  handleNavigate={handleNavigate}
                   navigateToPosition={navigateToPosition}
-                  captions={captions}
+                  toggleCaptions={toggleCaptions}
                 />
               </div>
             </div>

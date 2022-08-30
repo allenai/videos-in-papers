@@ -13,11 +13,11 @@ interface Props {
   highlights: Array<Highlight>;
   url: string;
   numClips: number;
-  handleNavigate: (fromId: number, toId: number) => void;
   isOverlay: boolean;
   isPhantom: boolean;
-  navigateToPosition: (clipId: number, highlightIdx: number) => void;
-  captions: Array<Caption>;
+  handleNavigate?: (fromId: number, toId: number) => void;
+  navigateToPosition?: (clipId: number, highlightIdx: number) => void;
+  toggleCaptions?: (clipId: number, isExpand: boolean) => void;
 }
 
 const colors = [
@@ -29,6 +29,12 @@ function parseStrToTime(str: string) {
   return minutes * 60 + seconds;
 }
 
+function timeToStr(time: number) {
+  var min = Math.floor(time / 60);
+  var sec = Math.floor(time % 60);
+  return (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+}
+
 export function Player({
   id,
   top,
@@ -36,11 +42,11 @@ export function Player({
   highlights,
   url, 
   numClips,
-  handleNavigate,
   isOverlay,
   isPhantom,
+  handleNavigate,
   navigateToPosition,
-  captions
+  toggleCaptions
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
 
@@ -74,24 +80,35 @@ export function Player({
     } else if(toId >= numClips) {
       toId = 0;
     }
-    handleNavigate(fromId, toId);
+    if(handleNavigate)
+      handleNavigate(fromId, toId);
     setIsPlaying(false);
   }
 
   const handleSideClick = (e: any) => {
     var idx = parseInt(e.currentTarget.getAttribute("data-idx"));
-    navigateToPosition(clip.id, idx);
+    if(navigateToPosition)
+      navigateToPosition(clip.id, idx);
   }
 
+  const handleCaptionClick =  (e: any) => {
+    console.log('hey')
+    if(toggleCaptions)
+      toggleCaptions(id,  !clip['expanded']);
+  }
+
+
   var left = 40;
-  var videoWidth = 420;
-  var videoHeight = videoWidth/16*9;
+  var videoHeight = pageDimensions.height * 0.25;
+  var videoWidth = videoHeight/9*16
 
   // if it is overlaid, position is relative so adjust
   if(isOverlay) {
       var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
       left = container.left + 40;
   }
+
+  var caption_text = clip['captions'].map((c: Caption) => c['caption'].trim()).join(" ");
 
   return (
     <div 
@@ -112,7 +129,7 @@ export function Player({
             <div style={{color: "#999"}} onClick={() => handleNavigateClick(id, -1)}>
               {"<"}
             </div>
-            <div> {id+1}/{numClips} </div>
+            <div> {(id+1) % 100000}/{numClips} </div>
             <div style={{color: "#999"}} onClick={() => handleNavigateClick(id, 1)}>
               {">"}
             </div>
@@ -131,8 +148,19 @@ export function Player({
                     width="100%" height="100%"
                 />
             </div>
-            <div className="video__note-captions">
-              {captions.map((c) => c['caption'].trim()).join(" ")}
+            <div className="video__note-captions" onClick={handleCaptionClick}>
+              <div className="video__note-timestamp">
+                <div style={{textAlign: "center"}}>
+                  <div style={{fontWeight: "bold"}}>{timeToStr(progress)}</div> 
+                  <div style={{color: "#999"}}>{timeToStr(duration)}</div>
+                </div>
+                <div>
+                  <i className={"fa fa-chevron-" + (clip.expanded ? "up" : "down")}></i>
+                </div>
+              </div>
+              <div style={{flex: 1}}>
+                {!!clip.expanded ? caption_text : caption_text.split(".")[0]}
+              </div>
             </div>
           </div>
         </div>

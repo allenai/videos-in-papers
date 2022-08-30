@@ -7,6 +7,12 @@ export type Highlight = {
     clip: string,
 }
 
+export type Caption = {
+    caption: string,
+    start: number,
+    end: number
+}
+
 export type Clip = {
     id: number,
     start: number,
@@ -15,10 +21,6 @@ export type Clip = {
     position: number;
     top: number;
     page: number;
-}
-
-export type Caption = {
-    caption: string,
-    start: number,
-    end: number
+    captions: Array<Caption>;
+    expanded?: boolean;
 }
