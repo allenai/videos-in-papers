@@ -25,6 +25,7 @@ type Props = {
   handleNavigate: (fromId: number, toId: number) => void;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
   toggleCaptions: (clipId: number, isExpand: boolean) => void;
+  scrubClip: {clip: number, progress: number};
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -34,7 +35,8 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     navigating,
     handleNavigate,
     navigateToPosition,
-    toggleCaptions
+    toggleCaptions,
+    scrubClip,
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -108,6 +110,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
                 handleNavigate={handleNavigateWrapper}
                 navigateToPosition={navigateToPosition}
                 toggleCaptions={toggleCaptions}
+                scrubClip={scrubClip}
             />
         )
     }), navigating != null && navigating.position == null && renderPhantom(timeOrderedClips)];

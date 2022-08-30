@@ -6,6 +6,7 @@ import {
   ScrollContext,
   UiContext,
   TransformContext,
+  ZoomInButton,
 } from '@allenai/pdf-components';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
@@ -50,6 +51,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const videoUrl = 'https://www.youtube.com/watch?v=brCo42DoMu0';
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
+
+  const [ scrubClip, setScrubClip ] = React.useState(null);
 
   const {
     isShowingHighlightOverlay,
@@ -188,8 +191,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   }
 
   // Expand or contract captions
+  // This needs to be saved in the clips because it affects their size and how they are spread out
   const toggleCaptions = (clipId: number, isExpand: boolean) => {
-    console.log(clipId, isExpand);
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
     newClips[clipId]['expanded'] = isExpand;
     setClips(newClips);
@@ -198,6 +201,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   return (
     <BrowserRouter>
       <Route path="/">
+        <div>
+          <ZoomInButton/>
+        </div>
         <div className="reader__container">
           <DocumentWrapper 
             className="reader__main"
@@ -216,6 +222,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         pageIndex={i} 
                         highlights={highlights} 
                         changeClipPosition={changeClipPosition}
+                        setScrubClip={setScrubClip}
                       />
                     </Overlay>
                   </PageWrapper>
@@ -230,6 +237,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   handleNavigate={handleNavigate}
                   navigateToPosition={navigateToPosition}
                   toggleCaptions={toggleCaptions}
+                  scrubClip={scrubClip}
                 />
               </div>
             </div>

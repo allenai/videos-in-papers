@@ -21,6 +21,7 @@ interface Props {
   handleNavigate?: (fromId: number, toId: number, isPlay: boolean) => void;
   navigateToPosition?: (clipId: number, highlightIdx: number) => void;
   toggleCaptions?: (clipId: number, isExpand: boolean) => void;
+  scrubClip: {clip: number, progress: number};
 }
 
 const colors = [
@@ -45,7 +46,8 @@ export function Player({
   isPhantom,
   handleNavigate,
   navigateToPosition,
-  toggleCaptions
+  toggleCaptions,
+  scrubClip,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
 
@@ -79,6 +81,12 @@ export function Player({
     else
       setIsPlaying(false);
   }, [playingClip]);
+
+  React.useEffect(() => {
+    if(scrubClip && scrubClip.clip == id) {
+      videoRef.current.seekTo(scrubClip.progress, 'fraction')
+    }
+  }, [scrubClip]);
 
   function handleNavigateWrapper(fromId: number, toId: number) {
     if(handleNavigate) {
@@ -127,6 +135,13 @@ export function Player({
       left = container.left + 40;
   }
 
+
+  var testSummaries = [
+    "This is a presentation of OVRlap.",
+    "The OVRlap technique allows users to see multiple viewpoints from a first-person perspective.",
+    "The idea for OVRlap came from considering why people can only be in one place at a time, and how virtual reality could allow people to be in multiple places at once.",
+    "The OVRlap technique allows users to see and interact with multiple distinct and distant locations from a first-person perspective."
+  ]
   var caption_text = clip['captions'].map((c: Caption) => c['caption'].trim()).join(" ");
 
   return (
@@ -169,7 +184,7 @@ export function Player({
                 <div><i className={"fa fa-chevron-" + (clip.expanded ? "up" : "down")}></i></div>
               </div>
               <div style={{flex: 1}}>
-                {!!clip.expanded ? caption_text : caption_text.split(".")[0]}
+                {!!clip.expanded ? caption_text : (id < 4 ? testSummaries[id] : caption_text.split(".")[0])}
               </div>
             </div>
           </div>

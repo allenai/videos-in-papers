@@ -11,6 +11,7 @@ type Props = {
   pageIndex: number;
   highlights: {[index: number]: Highlight};
   changeClipPosition: (id: number) => void;
+  setScrubClip: (data: {clip: number, progress: number} | null) => void;
 };
 
 /*
@@ -19,7 +20,8 @@ type Props = {
 export const SidebarOverlay: React.FunctionComponent<Props> = ({ 
     pageIndex, 
     highlights,
-    changeClipPosition
+    changeClipPosition,
+    setScrubClip
 }: Props) => {
   const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
@@ -84,7 +86,11 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     var position = e.pageY - rect.top;
     if(position < 0) position = 0;
     var progress = position / rect.height;
-    console.log(id, progress);
+    setScrubClip({clip: parseInt(highlights[id].clip), progress: progress});
+  }
+
+  function onMouseOutSidebar () {
+    setScrubClip(null);
   }
 
   function renderSidebars(): Array<React.ReactElement> {
@@ -101,7 +107,8 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             isHighlighted: true,
             key: prop.id+"-"+j,
             onClick: onClickSidebar,
-            onMouseMove: onMoveInSidebar
+            onMouseMove: onMoveInSidebar,
+            onMouseOut: onMouseOutSidebar
           };
 
           boxes.push(<Sidebar {...props} />);

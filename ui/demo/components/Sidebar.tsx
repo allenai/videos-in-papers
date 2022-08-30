@@ -9,6 +9,7 @@ export type Props = {
   isHighlighted?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   onMouseMove?: (e: React.MouseEvent) => void;
+  onMouseOut?: () => void;
 } & BoundingBoxType;
 
 /*
@@ -24,6 +25,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   isHighlighted,
   onClick,
   onMouseMove,
+  onMouseOut,
   ...extraProps
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
@@ -51,6 +53,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
         style={getBoundingBoxStyle()}
         onClick={onClick}
         onMouseMove={onMouseMove}
+        onMouseOut={onMouseOut}
         {...extraProps}
       />
     </React.Fragment>
