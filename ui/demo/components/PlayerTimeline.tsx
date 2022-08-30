@@ -31,7 +31,7 @@ export function PlayerTimeline({
     setRatio(width / clips[clips.length - 1].end);
   }, []);
 
-  const handleClick = (e: any) => {
+  const handleClick = (e: React.MouseEvent) => {
     handleNavigate(id, parseInt(e.currentTarget.getAttribute('data-id')));
   }
 
@@ -47,6 +47,7 @@ export function PlayerTimeline({
             var borderRadius = isStart ? "4px 0 0 4px" : (isEnd ? "0 4px 4px 0" : "");
             return (
                 <div 
+                    key={i}
                     className="video__note-timeline-block" 
                     data-id={clip.id}
                     style={{

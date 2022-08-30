@@ -27,11 +27,6 @@ const colors = [
   "#cb725e", "#d9a460", "#3e9d29", "#306ed3", "#07cead", "#9d58e1", "#dd59ba"
 ]
 
-function parseStrToTime(str: string) {
-  const [minutes, seconds] = str.split(':').map(Number);
-  return minutes * 60 + seconds;
-}
-
 function timeToStr(time: number) {
   var min = Math.floor(time / 60);
   var sec = Math.floor(time % 60);
@@ -57,10 +52,11 @@ export function Player({
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
-  const [isShove, setIsShove] = React.useState(false);
+  const [pushable, setPushable] = React.useState(false);
 
   const videoRef = React.useRef<ReactPlayerProps>(null);
 
+  // Update progress (current time) as video plays
   const updateProgress = (e : any) => {
     if(videoRef.current && isPlaying) {
       var currentTime = e.playedSeconds;
@@ -68,14 +64,15 @@ export function Player({
     }
   }
 
+  // If not navigating, let the clip be "pushable" (change top)
   React.useEffect(() => {
-    if(!isOverlay) {
-      setIsShove(true);
-    } else {
-      setIsShove(false)
-    }
+    if(!isOverlay)
+      setPushable(true);
+    else
+      setPushable(false)
   }, [top]);
 
+  // Pause or play depending on if it is the currently playing clip
   React.useEffect(() => {
     if(playingClip == id)
       setIsPlaying(true);
@@ -91,17 +88,20 @@ export function Player({
     }
   }
 
-  function handleSideClick(e: any) {
+  // Navigate to another highlight in the paper
+  function handleSideClick(e: React.MouseEvent) {
     var idx = parseInt(e.currentTarget.getAttribute("data-idx"));
     if(navigateToPosition)
       navigateToPosition(clip.id, idx);
   }
 
-  function handleCaptionClick(e: any) {
+  // Expand or contract the captions
+  function handleCaptionClick(e: React.MouseEvent) {
     if(toggleCaptions)
       toggleCaptions(id,  !clip['expanded']);
   }
 
+  // When clip finishes, autoplay the next one
   function handleEnd() {
     var fromIdx = clips.findIndex((c) => c.id == id);
     if(fromIdx == clips.length - 1) return;
@@ -113,7 +113,6 @@ export function Player({
   function handlePlay() {
     setPlayingClip(id);
   }
-
   function handlePause() {
     setPlayingClip(-1);
   }
@@ -122,7 +121,7 @@ export function Player({
   var videoHeight = pageDimensions.height * 0.25;
   var videoWidth = videoHeight/9*16
 
-  // if it is overlaid, position is relative so adjust
+  // If clip is navigating, adjust the positions to be relative
   if(isOverlay) {
       var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
       left = container.left + 40;
@@ -140,7 +139,7 @@ export function Player({
         top: top+"px", left: left + "px", 
         opacity: isPhantom ? 0.2 : 1,
         pointerEvents: isPhantom ? "none" : "auto",
-        transition: isShove ? "top 0.5s" : "none",
+        transition: pushable ? "top 0.5s" : "none",
       }}
     >
       <div className="video__note-supercontainer">

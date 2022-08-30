@@ -28,7 +28,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     return null;
   }
 
-  // transform BoundingBoxes for highlights into Sidebar dimensions
+  // Transform BoundingBoxes for highlights into Sidebar dimensions
   function getSidebarProps() {
     var results : Array<Array<Bar>> = [];
     for(var i = 0; i < Object.keys(highlights).length; i++) {
@@ -70,10 +70,21 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     return results;
   }
 
-  function onClickHighlight (e: React.MouseEvent) {
+  // Click sidebar to move clip to this position
+  function onClickSidebar (e: React.MouseEvent) {
     e.stopPropagation();
     var id = parseInt(e.currentTarget.getAttribute('id'));
     changeClipPosition(id);
+  }
+
+  // Move in sidebar to scrub through video
+  function onMoveInSidebar (e: React.MouseEvent) {
+    var id = e.currentTarget.getAttribute('id');
+    var rect = e.currentTarget.getBoundingClientRect();
+    var position = e.pageY - rect.top;
+    if(position < 0) position = 0;
+    var progress = position / rect.height;
+    console.log(id, progress);
   }
 
   function renderSidebars(): Array<React.ReactElement> {
@@ -89,7 +100,8 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
             key: prop.id+"-"+j,
-            onClick: onClickHighlight,
+            onClick: onClickSidebar,
+            onMouseMove: onMoveInSidebar
           };
 
           boxes.push(<Sidebar {...props} />);

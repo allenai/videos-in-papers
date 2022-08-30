@@ -22,7 +22,7 @@ import { VideoNotes } from './VideoNotes';
 
 import { Highlight, Clip } from '../types/clips';
 
-import data from '../data/annotations/3491102.3517582.json';
+import data from '../data/annotations/3491102.3501873.json';
 import { spreadOutClips } from '../utils/positioning';
 
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
@@ -40,16 +40,16 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // ref for the scrollable region where the pages are rendered
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
 
-  const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
-  const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
-
-  // navigating mode = auto-scrolling between video clips 
+  // Navigation mode = auto-scrolling between video clips
+  // Scroll overflow checks if padding needs to be added to the page
   const [navigating, setNavigating] = React.useState(null);
-  // check if scrolling before or beyond available space
   const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
-  const samplePdfUrl = 'https://arxiv.org/pdf/2110.01691.pdf';
+  // Load data
+  const samplePdfUrl = 'public/pdf/3491102.3501873.pdf';
   const videoUrl = 'https://www.youtube.com/watch?v=brCo42DoMu0';
+  const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
+  const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
 
   const {
     isShowingHighlightOverlay,
@@ -68,36 +68,20 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     if (rawCitations) {
       return;
     }
-
-    // fetch(sampleS2airsUrl, { referrer: '' })
-    //   .then(response => response.json())
-    //   .then(data => {
-    //     setRawCitations(data[0].citations);
-    //   });
   }, [pageDimensions]);
 
   React.useEffect(() => {
     setScrollRoot(pdfScrollableRef.current || null);
   }, [pdfScrollableRef]);
 
-  // Attaches annotation data to paper
+  // In navigation mode, scroll to the video clip
   React.useEffect(() => {
-    // Don't execute until paper data and PDF document have loaded
-    if (!rawCitations || !pageDimensions.height || !pageDimensions.width) {
-      return;
-    }
-
-    setAnnotations(generateCitations(rawCitations, pageDimensions));
-  }, [rawCitations, pageDimensions]);
-
-  React.useEffect(() => {
-    // In navigation mode, scroll to the next video clip
     if(navigating == null) return;
     var container = document.getElementsByClassName("reader__main")[0];
     container.scrollTo({top: navigating.scrollTo, left: 0, behavior: "smooth"})
   }, [navigating]);
 
-  // scroll from video clip to video clip
+  // Scroll from video clip to video clip
   const handleNavigate = (fromId: number, toId: number) => {
     if(fromId == toId) return;
     var container = document.getElementsByClassName("reader__main")[0];
@@ -112,10 +96,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     if(toVideo != null)
       toTop = toVideo.getBoundingClientRect().top + container.scrollTop;
 
-    // scrollTo location = location of toId but adjusted to match relative screen location of fromId
+    // ScrollTo location = location of toId but adjusted to match relative screen location of fromId
     var scrollTo = Math.floor(toTop - fromTop);
 
-    // fix scroll if overflowing (beyond page)
+    // Add padding to the page if scroll overflows beyond the page
     if(scrollTo < 0) {
       setScrollOverflow(-1);
       var container = document.getElementsByClassName("reader__main")[0];
@@ -131,7 +115,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const handleScroll = (e: any) => {
     if(navigating == null) {
-      // added spaces for scrolling not needed anymore
+      // Remove the padding spaces added to handle overflow
       if(scrollOverflow == -1 && e.target.scrollTop > 1000){
         setScrollOverflow(0);
       } else if(scrollOverflow == 1 && e.target.scrollTop + window.innerHeight < e.target.scrollHeight - 2000) {
@@ -140,7 +124,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       return;
     }
     if(navigating.scrollTo != e.target.scrollTop) return;
-    // reached desired scroll position --> navigation mode finished
+    // Reached desired scroll position so finish navigation mode
     if(navigating.position == null) {
       setNavigating(null);
     } else {
@@ -154,6 +138,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     }
   };
 
+  // Move clip to the position of another paper highlight
   const changeClipPosition = (highlightId: number) => {
     var clipId = highlights[highlightId]['clip'];
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
@@ -164,19 +149,19 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setClips(newClips);
   }
 
+  // Navigate with clip to the position of another paper highlight
   const navigateToPosition = (clipId: number, highlightIdx: number) => {
     if(clips[clipId].position == highlightIdx) return;
-    
+
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
     newClips[clipId].position = highlightIdx;
     var highlightId = newClips[clipId].highlights[highlightIdx];
     newClips[clipId].top = highlights[highlightId].rects[0].top;
     newClips[clipId].page = highlights[highlightId].rects[0].page;
 
+    // Find what the clip's top will be in the new position;
     var spreadClips = spreadOutClips(newClips, pageDimensions.height);
-
     var container = document.getElementsByClassName("reader__main")[0];
-
     var fromVideo = document.getElementById("video__note-" + clipId);
     var fromTop = 0;
     if(fromVideo != null)
@@ -186,10 +171,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     if(scrollOverflow == -1)
       toTop += 1000;
 
-    // scrollTo location = location of toId but adjusted to match relative screen location of fromId
     var scrollTo = Math.floor(toTop - fromTop);
 
-    // fix scroll if overflowing (beyond page)
     if(scrollTo < 0) {
       setScrollOverflow(-1);
       var container = document.getElementsByClassName("reader__main")[0];
@@ -204,6 +187,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setNavigating({ fromId: -1, toId: clipId, fromTop, toTop, scrollTo, position: highlightIdx });
   }
 
+  // Expand or contract captions
   const toggleCaptions = (clipId: number, isExpand: boolean) => {
     console.log(clipId, isExpand);
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));

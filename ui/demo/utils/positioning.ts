@@ -3,6 +3,7 @@ import { Clip } from '../types/clips';
 const VIDEO_HEIGHT = 0.25;
 const CHAR_WIDTH = 6;
 
+// Approximate the height of the caption text
 function getTextHeight(text: string, pageHeight: number) {
     var VIDEO_WIDTH = pageHeight * VIDEO_HEIGHT / 9 * 16;
     var num_lines = Math.ceil((text.length * CHAR_WIDTH) / (VIDEO_WIDTH - 44));
@@ -12,6 +13,7 @@ function getTextHeight(text: string, pageHeight: number) {
         return 3*19 / pageHeight;
 }
 
+// Find all clips that are overlapping
 export function checkOverlap(clips: Array<Clip>, captionHeights: {[id: number]: number}) {
     var overlapping_groups: Array<Array<number>> = [];
     var curr_group: Array<number> = [];
@@ -42,11 +44,12 @@ export function checkOverlap(clips: Array<Clip>, captionHeights: {[id: number]: 
     return overlapping_groups;
 }
 
-// spread out clips in page so they don't overlap
+// Spread out clips in page so that they don't overlap
 export function spreadOutClips(clips: {[index: number]: Clip}, pageHeight: number) {
     var sortedClips = Object.values(clips);
     sortedClips.sort((a, b) => (a.page + a.top) - (b.page + b.top));
 
+    // Approximate the height of each video clip
     var base_spacing = VIDEO_HEIGHT + (36 + 8 + 16) / pageHeight;  // timeline + border width + caption padding
     var captionHeights: {[id: number]: number} = {};
     for(var i = 0; i < sortedClips.length; i++) {
@@ -63,6 +66,8 @@ export function spreadOutClips(clips: {[index: number]: Clip}, pageHeight: numbe
         for(var i = 0; i < overlaps.length; i++) {
             var overlap_group = overlaps[i];
             var positions = overlap_group.map((id) => clips[id].top + clips[id].page);
+
+            // Adjust the position of overlapping clips by repeling from each other
             var repel_vector = positions.reduce((a, b) => a + b, 0);
             var vectors = positions.map((v) => v*positions.length - repel_vector);
             for(var j = 0; j < vectors.length; j++) {

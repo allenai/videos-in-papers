@@ -7,7 +7,8 @@ export type Props = {
   className?: string;
   id?: string;
   isHighlighted?: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
+  onMouseMove?: (e: React.MouseEvent) => void;
 } & BoundingBoxType;
 
 /*
@@ -22,6 +23,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   id,
   isHighlighted,
   onClick,
+  onMouseMove,
   ...extraProps
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
@@ -48,6 +50,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
         className={`${componentClassName} ${rotationClassName()}`}
         style={getBoundingBoxStyle()}
         onClick={onClick}
+        onMouseMove={onMouseMove}
         {...extraProps}
       />
     </React.Fragment>

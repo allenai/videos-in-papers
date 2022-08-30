@@ -40,19 +40,23 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   const { rotation, scale } = React.useContext(TransformContext);
   const [ processedClips, setProcessedClips ] = React.useState({});
 
+  // ID of the clip that is currently playing
   const [ playingClip, setPlayingClip ] = React.useState(-1);
 
+  // On load, find top positions of clips so that they are spread out
   React.useEffect(() => {
     if(pageDimensions.height == 0) return;
     setProcessedClips(spreadOutClips(clips, pageDimensions.height));
   }, [pageDimensions.height, clips]);
 
+  // Navigate and change playingClip if autoplaying
   function handleNavigateWrapper(fromId: number, toId: number, isPlay: boolean) {
     handleNavigate(fromId, toId);
     if(isPlay)
       setPlayingClip(toId);
   }
 
+  // Render a phantom clip to act as placeholder for clips during navigation
   function renderPhantom(timeOrderedClips: Array<Clip>): React.ReactElement {
     var clip = processedClips[navigating.toId];
     var id = clip.id
@@ -73,6 +77,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     )
   }
 
+  // Render all the clips
   function renderClips(): Array<React.ReactElement> {
     var timeOrderedClips = Object.values(clips);
     timeOrderedClips.sort((a, b) => a['start'] - b['start']);
