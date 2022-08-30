@@ -1,11 +1,11 @@
 import { Clip } from '../types/clips';
 
 const VIDEO_HEIGHT = 0.25;
-const CHAR_WIDTH = 6.5;
+const CHAR_WIDTH = 6;
 
 function getTextHeight(text: string, pageHeight: number) {
     var VIDEO_WIDTH = pageHeight * VIDEO_HEIGHT / 9 * 16;
-    var num_lines = Math.ceil(text.length * CHAR_WIDTH / VIDEO_WIDTH);
+    var num_lines = Math.ceil((text.length * CHAR_WIDTH) / (VIDEO_WIDTH - 44));
     if(num_lines > 3)
         return num_lines*19 / pageHeight;
     else
@@ -47,7 +47,7 @@ export function spreadOutClips(clips: {[index: number]: Clip}, pageHeight: numbe
     var sortedClips = Object.values(clips);
     sortedClips.sort((a, b) => (a.page + a.top) - (b.page + b.top));
 
-    var base_spacing = VIDEO_HEIGHT + (16 + 36) / pageHeight;
+    var base_spacing = VIDEO_HEIGHT + (36 + 8 + 16) / pageHeight;  // timeline + border width + caption padding
     var captionHeights: {[id: number]: number} = {};
     for(var i = 0; i < sortedClips.length; i++) {
         var clip = sortedClips[i];

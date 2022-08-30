@@ -6,16 +6,19 @@ import { Highlight, Clip, Caption } from '../types/annotations';
 import _ReactPlayer, { ReactPlayerProps } from 'react-player';
 const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
+import { PlayerTimeline } from './PlayerTimeline';
+
 interface Props {
   id: number;
   top: number;
   clip: Clip;
+  clips: Array<Clip>;
   highlights: Array<Highlight>;
-  url: string;
-  numClips: number;
+  playingClip: number;
+  setPlayingClip: (id: number) => void;
   isOverlay: boolean;
   isPhantom: boolean;
-  handleNavigate?: (fromId: number, toId: number) => void;
+  handleNavigate?: (fromId: number, toId: number, isPlay: boolean) => void;
   navigateToPosition?: (clipId: number, highlightIdx: number) => void;
   toggleCaptions?: (clipId: number, isExpand: boolean) => void;
 }
@@ -39,9 +42,10 @@ export function Player({
   id,
   top,
   clip,
+  clips,
   highlights,
-  url, 
-  numClips,
+  playingClip, 
+  setPlayingClip,
   isOverlay,
   isPhantom,
   handleNavigate,
@@ -72,31 +76,47 @@ export function Player({
     }
   }, [top]);
 
-  const handleNavigateClick = (id: number, direction: number) => {
-    var fromId = id;
-    var toId = fromId + direction;
-    if(toId < 0) {
-      toId = numClips -1;
-    } else if(toId >= numClips) {
-      toId = 0;
+  React.useEffect(() => {
+    if(playingClip == id)
+      setIsPlaying(true);
+    else
+      setIsPlaying(false);
+  }, [playingClip]);
+
+  function handleNavigateWrapper(fromId: number, toId: number) {
+    if(handleNavigate) {
+      handleNavigate(fromId, toId, false);
+      if(isPlaying)
+        setPlayingClip(-1);
     }
-    if(handleNavigate)
-      handleNavigate(fromId, toId);
-    setIsPlaying(false);
   }
 
-  const handleSideClick = (e: any) => {
+  function handleSideClick(e: any) {
     var idx = parseInt(e.currentTarget.getAttribute("data-idx"));
     if(navigateToPosition)
       navigateToPosition(clip.id, idx);
   }
 
-  const handleCaptionClick =  (e: any) => {
-    console.log('hey')
+  function handleCaptionClick(e: any) {
     if(toggleCaptions)
       toggleCaptions(id,  !clip['expanded']);
   }
 
+  function handleEnd() {
+    var fromIdx = clips.findIndex((c) => c.id == id);
+    if(fromIdx == clips.length - 1) return;
+    var toId = clips[fromIdx + 1].id;
+    if(handleNavigate)
+      handleNavigate(id, toId, true);
+  }
+
+  function handlePlay() {
+    setPlayingClip(id);
+  }
+
+  function handlePause() {
+    setPlayingClip(-1);
+  }
 
   var left = 40;
   var videoHeight = pageDimensions.height * 0.25;
@@ -125,15 +145,7 @@ export function Player({
     >
       <div className="video__note-supercontainer">
         <div>
-          <div className="video__note-timeline">
-            <div style={{color: "#999"}} onClick={() => handleNavigateClick(id, -1)}>
-              {"<"}
-            </div>
-            <div> {(id+1) % 100000}/{numClips} </div>
-            <div style={{color: "#999"}} onClick={() => handleNavigateClick(id, 1)}>
-              {">"}
-            </div>
-          </div>
+          <PlayerTimeline id={id} clip={clip} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper}/>
           <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[id % 7]}}>
             <div style={{height: videoHeight+"px"}}>
                 <ReactPlayer 
@@ -143,8 +155,9 @@ export function Player({
                     controls={true}
                     onReady={(e) => {videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration())}}
                     onProgress={(e) => {updateProgress(e)}}
-                    onPlay={() => {setIsPlaying(true)}}
-                    onPause={() => {setIsPlaying(false)}}
+                    onPlay={handlePlay}
+                    onPause={handlePause}
+                    onEnded={handleEnd}
                     width="100%" height="100%"
                 />
             </div>
@@ -154,9 +167,7 @@ export function Player({
                   <div style={{fontWeight: "bold"}}>{timeToStr(progress)}</div> 
                   <div style={{color: "#999"}}>{timeToStr(duration)}</div>
                 </div>
-                <div>
-                  <i className={"fa fa-chevron-" + (clip.expanded ? "up" : "down")}></i>
-                </div>
+                <div><i className={"fa fa-chevron-" + (clip.expanded ? "up" : "down")}></i></div>
               </div>
               <div style={{flex: 1}}>
                 {!!clip.expanded ? caption_text : caption_text.split(".")[0]}

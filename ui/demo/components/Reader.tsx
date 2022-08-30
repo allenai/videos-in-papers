@@ -99,6 +99,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   // scroll from video clip to video clip
   const handleNavigate = (fromId: number, toId: number) => {
+    if(fromId == toId) return;
     var container = document.getElementsByClassName("reader__main")[0];
 
     var fromVideo = document.getElementById("video__note-" + fromId);
@@ -164,6 +165,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   }
 
   const navigateToPosition = (clipId: number, highlightIdx: number) => {
+    if(clips[clipId].position == highlightIdx) return;
+    
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
     newClips[clipId].position = highlightIdx;
     var highlightId = newClips[clipId].highlights[highlightIdx];
