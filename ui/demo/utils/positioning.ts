@@ -4,7 +4,7 @@ const VIDEO_HEIGHT = 0.25;
 const CHAR_WIDTH = 6;
 
 // Approximate the height of the caption text
-function getTextHeight(text: string, pageHeight: number) {
+function getTextHeight(text: string, pageHeight: number, scale: number) {
     var VIDEO_WIDTH = pageHeight * VIDEO_HEIGHT / 9 * 16;
     var num_lines = Math.ceil((text.length * CHAR_WIDTH) / (VIDEO_WIDTH - 44));
     if(num_lines > 3)
@@ -45,7 +45,7 @@ export function checkOverlap(clips: Array<Clip>, captionHeights: {[id: number]: 
 }
 
 // Spread out clips in page so that they don't overlap
-export function spreadOutClips(clips: {[index: number]: Clip}, pageHeight: number) {
+export function spreadOutClips(clips: {[index: number]: Clip}, pageHeight: number, scale: number) {
     var sortedClips = Object.values(clips);
     sortedClips.sort((a, b) => (a.page + a.top) - (b.page + b.top));
 
@@ -57,7 +57,7 @@ export function spreadOutClips(clips: {[index: number]: Clip}, pageHeight: numbe
         var caption_text = clip['captions'].map((c) => c['caption'].trim()).join(' ');
         if(!clip.expanded)
             caption_text = caption_text.split(".")[0];
-        var curr_spacing = base_spacing + getTextHeight(caption_text, pageHeight);
+        var curr_spacing = base_spacing + getTextHeight(caption_text, pageHeight, scale);
         captionHeights[clip.id] = curr_spacing;
     }
 

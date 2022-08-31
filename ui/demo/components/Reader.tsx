@@ -6,6 +6,7 @@ import {
   ScrollContext,
   UiContext,
   TransformContext,
+  ZoomOutButton,
   ZoomInButton,
 } from '@allenai/pdf-components';
 import * as React from 'react';
@@ -163,14 +164,14 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].page = highlights[highlightId].rects[0].page;
 
     // Find what the clip's top will be in the new position;
-    var spreadClips = spreadOutClips(newClips, pageDimensions.height);
+    var spreadClips = spreadOutClips(newClips, pageDimensions.height, scale);
     var container = document.getElementsByClassName("reader__main")[0];
     var fromVideo = document.getElementById("video__note-" + clipId);
     var fromTop = 0;
     if(fromVideo != null)
       fromTop = fromVideo.getBoundingClientRect().top;
 
-    var toTop = (spreadClips[clipId].top + spreadClips[clipId].page) * pageDimensions.height * scale + (24 + spreadClips[clipId].page * 48);
+    var toTop = (spreadClips[clipId].top + spreadClips[clipId].page) * pageDimensions.height * scale + (24 + spreadClips[clipId].page * 48) + 38;
     if(scrollOverflow == -1)
       toTop += 1000;
 
@@ -201,7 +202,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   return (
     <BrowserRouter>
       <Route path="/">
-        <div>
+        <div className="reader__header">
+          <ZoomOutButton/>
           <ZoomInButton/>
         </div>
         <div className="reader__container">

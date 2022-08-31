@@ -48,7 +48,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   // On load, find top positions of clips so that they are spread out
   React.useEffect(() => {
     if(pageDimensions.height == 0) return;
-    setProcessedClips(spreadOutClips(clips, pageDimensions.height));
+    setProcessedClips(spreadOutClips(clips, pageDimensions.height, scale));
   }, [pageDimensions.height, clips]);
 
   // Navigate and change playingClip if autoplaying

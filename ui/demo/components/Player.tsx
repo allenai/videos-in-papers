@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {
   DocumentContext,
+  TransformContext,
 } from '@allenai/pdf-components';
 import { Highlight, Clip, Caption } from '../types/annotations';
 import _ReactPlayer, { ReactPlayerProps } from 'react-player';
@@ -50,6 +51,7 @@ export function Player({
   scrubClip,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
+  const { rotation, scale } = React.useContext(TransformContext);
 
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
@@ -125,16 +127,15 @@ export function Player({
     setPlayingClip(-1);
   }
 
-  var left = 40;
-  var videoHeight = pageDimensions.height * 0.25;
+  var left = 20;
+  var videoHeight = pageDimensions.height * scale  * 0.25 * (1 - (scale - 1));
   var videoWidth = videoHeight/9*16
 
   // If clip is navigating, adjust the positions to be relative
   if(isOverlay) {
       var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
-      left = container.left + 40;
+      left = container.left + 20;
   }
-
 
   var testSummaries = [
     "This is a presentation of OVRlap.",

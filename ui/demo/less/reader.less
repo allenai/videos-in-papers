@@ -9,14 +9,12 @@ body {
   background-color: @grey;
 }
 
-.reader__header {
-  grid-area: header;
-}
 
 .reader__main {
   position: relative;
   flex: 1;
   overflow: scroll;
+  padding-top: 38px;
 }
 
 .reader__main-inner {
@@ -42,8 +40,15 @@ body {
 }
 
 .reader__header{
-  padding: 20px;
+  padding: 8px;
   text-align: center;
+  background-color: #333;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+  z-index: 10;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
 
   .header-control {
     display: inline-block;
@@ -142,7 +147,7 @@ body {
 
 .reader__page-overlay__sidebar {
   position: absolute;
-  opacity: 0.6;
+  opacity: 0.5;
   border-radius: 6px;
   z-index: @z-index-bounding-box-overlay;
   cursor: pointer;

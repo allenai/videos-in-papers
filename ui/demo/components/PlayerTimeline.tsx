@@ -29,7 +29,7 @@ export function PlayerTimeline({
 
   React.useEffect(() => {
     setRatio(width / clips[clips.length - 1].end);
-  }, []);
+  }, [width]);
 
   const handleClick = (e: React.MouseEvent) => {
     handleNavigate(id, parseInt(e.currentTarget.getAttribute('data-id')));
