@@ -23,6 +23,7 @@ interface Props {
   navigateToPosition?: (clipId: number, highlightIdx: number) => void;
   toggleCaptions?: (clipId: number, isExpand: boolean) => void;
   scrubClip: {clip: number, progress: number};
+  videoWidth: number;
 }
 
 const colors = [
@@ -49,6 +50,7 @@ export function Player({
   navigateToPosition,
   toggleCaptions,
   scrubClip,
+  videoWidth,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -128,9 +130,8 @@ export function Player({
   }
 
   var left = 20;
-  var videoHeight = pageDimensions.height * scale  * 0.25 * (1 - (scale - 1));
-  var videoWidth = videoHeight/9*16
-
+  var videoHeight = videoWidth / 16 * 9;
+  
   // If clip is navigating, adjust the positions to be relative
   if(isOverlay) {
       var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
@@ -145,6 +146,25 @@ export function Player({
   ]
   var caption_text = clip['captions'].map((c: Caption) => c['caption'].trim()).join(" ");
 
+  var otherHighlights = [];
+  for(var i = 0; i < highlights.length; i++) {
+    var highlight = highlights[i];
+    if(i%2 == 0) {
+      otherHighlights.push([]);
+    } 
+    otherHighlights[Math.floor(i/2)].push(
+      <div 
+        key={i}
+        className="video__note-navigator-link"
+        data-idx={i} onClick={handleSideClick}
+        style={{opacity: i == clip.position ? "1" : "0.6"}}
+      >
+        <b>{highlight.id}</b> Example Test
+      </div>
+    );
+  }
+
+  otherHighlights = [];
   return (
     <div 
       id={"video__note-" + id}
@@ -177,33 +197,25 @@ export function Player({
                 />
             </div>
             <div className="video__note-captions" onClick={handleCaptionClick}>
-              <div className="video__note-timestamp">
-                <div style={{textAlign: "center"}}>
-                  <div style={{fontWeight: "bold"}}>{timeToStr(progress)}</div> 
-                  <div style={{color: "#999"}}>{timeToStr(duration)}</div>
-                </div>
-                <div><i className={"fa fa-chevron-" + (clip.expanded ? "up" : "down")}></i></div>
-              </div>
-              <div style={{flex: 1}}>
-                {!!clip.expanded ? caption_text : (id < 4 ? testSummaries[id] : caption_text.split(".")[0])}
+              <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : caption_text.split(".")[0]}
+              {!!clip.expanded ? [<br/>, <span><b>Transcript</b>&nbsp;&nbsp;{caption_text}</span>] : ""}
+              <div style={{textAlign: "center", color: "#999"}}>
+                <i className={"fa fa-" + (clip.expanded ? "minus" : "plus")}></i>
               </div>
             </div>
           </div>
-        </div>
-        <div className="video__note-navigator">
-          {highlights.map((highlight, i) => {
-            return (
-              <div 
-                key={i}
-                data-idx={i} onClick={handleSideClick}
-                style={{opacity: i == clip.position ? "1" : "0.6"}}
-              >
-                <div className="video__note-navigator-link">
-                  <b>{highlight.id}</b> Example Test
+          <div className="video__note-navigator">
+            <div className="video__note-navigator-row" style={{fontSize: "18px", color: "rgba(0, 0, 0, 0.3)"}}>
+              <i className={"fa fa-chevron-" + (clip.expanded ? "up" : "down")}></i>
+            </div>
+            {otherHighlights.map((row, i) => {
+              return (
+                <div key={"row-" + i} className="video__note-navigator-row">
+                  {row}
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>

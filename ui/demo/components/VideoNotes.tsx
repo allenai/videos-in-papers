@@ -26,6 +26,7 @@ type Props = {
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
   toggleCaptions: (clipId: number, isExpand: boolean) => void;
   scrubClip: {clip: number, progress: number};
+  videoWidth: number;
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -37,6 +38,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     navigateToPosition,
     toggleCaptions,
     scrubClip,
+    videoWidth,
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -47,9 +49,9 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
 
   // On load, find top positions of clips so that they are spread out
   React.useEffect(() => {
-    if(pageDimensions.height == 0) return;
-    setProcessedClips(spreadOutClips(clips, pageDimensions.height, scale));
-  }, [pageDimensions.height, clips]);
+    if(pageDimensions.height == 0 || videoWidth == 0) return;
+    setProcessedClips(spreadOutClips(clips, videoWidth, pageDimensions.height * scale));
+  }, [pageDimensions, clips, videoWidth]);
 
   // Navigate and change playingClip if autoplaying
   function handleNavigateWrapper(fromId: number, toId: number, isPlay: boolean) {
@@ -75,6 +77,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
         numClips={Object.keys(clips).length}
         isOverlay={false} 
         isPhantom={true}
+        videoWidth={videoWidth}
       />      
     )
   }
@@ -111,13 +114,14 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
                 navigateToPosition={navigateToPosition}
                 toggleCaptions={toggleCaptions}
                 scrubClip={scrubClip}
+                videoWidth={videoWidth}
             />
         )
     }), navigating != null && navigating.position == null && renderPhantom(timeOrderedClips)];
   }
 
   return (
-    <div className="video__note-list">
+    <div className="video__note-list" style={{width: videoWidth + 40 + "px"}}>
         {renderClips()}
     </div>
   )

@@ -53,6 +53,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
 
+  const [ videoWidth, setVideoWidth ] = React.useState(pageDimensions * 0.25 / 9 * 16);
+
   const [ scrubClip, setScrubClip ] = React.useState(null);
 
   const {
@@ -72,7 +74,28 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     if (rawCitations) {
       return;
     }
+    var videoHeight = pageDimensions.height * scale * 0.25;
+    var videoWidth = videoHeight/9*16
+  
+    var pageWidth = pageDimensions.width * scale + 48;
+    if(videoWidth + pageWidth > window.innerWidth) {
+      videoWidth = window.innerWidth - pageWidth - 40;
+    }  
+
+    setVideoWidth(videoWidth);
   }, [pageDimensions]);
+
+  React.useEffect(() => {
+    var videoHeight = pageDimensions.height * scale * 0.25;
+    var videoWidth = videoHeight/9*16
+  
+    var pageWidth = pageDimensions.width * scale + 48;
+    if(videoWidth + pageWidth > window.innerWidth) {
+      videoWidth = window.innerWidth - pageWidth - 40;
+    }
+
+    setVideoWidth(videoWidth);
+  }, [scale]);
 
   React.useEffect(() => {
     setScrollRoot(pdfScrollableRef.current || null);
@@ -164,7 +187,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].page = highlights[highlightId].rects[0].page;
 
     // Find what the clip's top will be in the new position;
-    var spreadClips = spreadOutClips(newClips, pageDimensions.height, scale);
+    var spreadClips = spreadOutClips(newClips, videoWidth, pageDimensions.height * scale);
     var container = document.getElementsByClassName("reader__main")[0];
     var fromVideo = document.getElementById("video__note-" + clipId);
     var fromTop = 0;
@@ -230,18 +253,17 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   </PageWrapper>
                 ))}
               </div>
-              <div style={{position: "relative"}}>
-                <VideoNotes 
-                  url={videoUrl} 
-                  clips={clips} 
-                  highlights={highlights}
-                  navigating={navigating} 
-                  handleNavigate={handleNavigate}
-                  navigateToPosition={navigateToPosition}
-                  toggleCaptions={toggleCaptions}
-                  scrubClip={scrubClip}
-                />
-              </div>
+              <VideoNotes 
+                url={videoUrl} 
+                clips={clips} 
+                highlights={highlights}
+                navigating={navigating} 
+                handleNavigate={handleNavigate}
+                navigateToPosition={navigateToPosition}
+                toggleCaptions={toggleCaptions}
+                scrubClip={scrubClip}
+                videoWidth={videoWidth}
+              />
             </div>
             {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}
           </DocumentWrapper>

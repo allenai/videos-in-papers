@@ -1,16 +1,11 @@
 import { Clip } from '../types/clips';
 
-const VIDEO_HEIGHT = 0.25;
 const CHAR_WIDTH = 6;
 
 // Approximate the height of the caption text
-function getTextHeight(text: string, pageHeight: number, scale: number) {
-    var VIDEO_WIDTH = pageHeight * VIDEO_HEIGHT / 9 * 16;
-    var num_lines = Math.ceil((text.length * CHAR_WIDTH) / (VIDEO_WIDTH - 44));
-    if(num_lines > 3)
-        return num_lines*19 / pageHeight;
-    else
-        return 3*19 / pageHeight;
+function getTextLineNum(text: string, videoWidth: number) {
+    var num_lines = Math.ceil((text.length * CHAR_WIDTH) / videoWidth);
+    return num_lines;
 }
 
 // Find all clips that are overlapping
@@ -45,19 +40,22 @@ export function checkOverlap(clips: Array<Clip>, captionHeights: {[id: number]: 
 }
 
 // Spread out clips in page so that they don't overlap
-export function spreadOutClips(clips: {[index: number]: Clip}, pageHeight: number, scale: number) {
+export function spreadOutClips(clips: {[index: number]: Clip}, videoWidth: number, scaledPageHeight: number) {
     var sortedClips = Object.values(clips);
     sortedClips.sort((a, b) => (a.page + a.top) - (b.page + b.top));
 
     // Approximate the height of each video clip
-    var base_spacing = VIDEO_HEIGHT + (36 + 8 + 16) / pageHeight;  // timeline + border width + caption padding
+    var videoHeight = videoWidth / 16 * 9;
+    var base_spacing = (videoHeight + 36 + 8 + 16 + 26) / scaledPageHeight;  // timeline + border width + caption padding
     var captionHeights: {[id: number]: number} = {};
     for(var i = 0; i < sortedClips.length; i++) {
         var clip = sortedClips[i];
-        var caption_text = clip['captions'].map((c) => c['caption'].trim()).join(' ');
-        if(!clip.expanded)
-            caption_text = caption_text.split(".")[0];
-        var curr_spacing = base_spacing + getTextHeight(caption_text, pageHeight, scale);
+        var caption_text = "Transcript  " + clip['captions'].map((c) => c['caption'].trim()).join(' ');
+        var summary_text = "Summary  " + caption_text.split(".")[0];
+        var num_lines = getTextLineNum(summary_text, videoWidth) + 1;
+        if(clip.expanded)
+            num_lines += getTextLineNum(caption_text, videoWidth);
+        var curr_spacing = base_spacing + (num_lines * 19) / scaledPageHeight;
         captionHeights[clip.id] = curr_spacing;
     }
 

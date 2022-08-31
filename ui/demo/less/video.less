@@ -1,6 +1,6 @@
 .video__note-list {
+    position: relative;
     height: 100%;
-    width: 500px;
 }
 
 .video__note {
@@ -34,9 +34,6 @@ video {
     padding: 0 12px 8px 12px;
     color: #555;
     font-size: 12px;
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
     cursor: pointer;
 }
 
@@ -75,21 +72,31 @@ video {
 }
 
 .video__note-navigator {
-    margin-left: 8px;
-    margin-top: 36px;
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
+    align-items: center;
+}
+
+.video__note-navigator-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
 }
 
 .video__note-navigator-link {
     background-color: #FAFAFA;
     border-radius: 8px;
-    width: 180px;
     padding: 4px 8px;
     box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
     font-size: 16px;
     cursor: pointer;
+    width: 50%;
 }
 
 .video__note-timestamp {
