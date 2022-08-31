@@ -23,4 +23,5 @@ export type Clip = {
     page: number;
     captions: Array<Caption>;
     expanded?: boolean;
+    alternatives?: boolean;
 }

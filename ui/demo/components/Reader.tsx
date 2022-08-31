@@ -222,6 +222,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setClips(newClips);
   }
 
+  // Show or hide other highlights
+  const toggleAltHighlights = (clipId: number, isShow: boolean) => {
+    var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+    newClips[clipId]['alternatives'] = isShow;
+    setClips(newClips);
+  }
+
   return (
     <BrowserRouter>
       <Route path="/">
@@ -261,6 +268,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                 handleNavigate={handleNavigate}
                 navigateToPosition={navigateToPosition}
                 toggleCaptions={toggleCaptions}
+                toggleAltHighlights={toggleAltHighlights}
                 scrubClip={scrubClip}
                 videoWidth={videoWidth}
               />

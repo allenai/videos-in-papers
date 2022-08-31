@@ -9,7 +9,7 @@ function getTextLineNum(text: string, videoWidth: number) {
 }
 
 // Find all clips that are overlapping
-export function checkOverlap(clips: Array<Clip>, captionHeights: {[id: number]: number}) {
+export function checkOverlap(clips: Array<Clip>, heights: {[id: number]: number}) {
     var overlapping_groups: Array<Array<number>> = [];
     var curr_group: Array<number> = [];
 
@@ -18,7 +18,7 @@ export function checkOverlap(clips: Array<Clip>, captionHeights: {[id: number]: 
     
         var next_clip = clips[i + 1]
         var curr_top = curr_clip.top+curr_clip.page;
-        var curr_bot = curr_top + captionHeights[curr_clip.id];
+        var curr_bot = curr_top + heights[curr_clip.id];
         var next_top = next_clip.top + next_clip.page;
 
         if(curr_top < next_top && next_top < curr_bot) {
@@ -46,8 +46,8 @@ export function spreadOutClips(clips: {[index: number]: Clip}, videoWidth: numbe
 
     // Approximate the height of each video clip
     var videoHeight = videoWidth / 16 * 9;
-    var base_spacing = (videoHeight + 36 + 8 + 16 + 26) / scaledPageHeight;  // timeline + border width + caption padding
-    var captionHeights: {[id: number]: number} = {};
+    var base_spacing = videoHeight + 36 + 8 + 16;  // timeline + border width + caption padding
+    var heights: {[id: number]: number} = {};
     for(var i = 0; i < sortedClips.length; i++) {
         var clip = sortedClips[i];
         var caption_text = "Transcript  " + clip['captions'].map((c) => c['caption'].trim()).join(' ');
@@ -55,11 +55,19 @@ export function spreadOutClips(clips: {[index: number]: Clip}, videoWidth: numbe
         var num_lines = getTextLineNum(summary_text, videoWidth) + 1;
         if(clip.expanded)
             num_lines += getTextLineNum(caption_text, videoWidth);
-        var curr_spacing = base_spacing + (num_lines * 19) / scaledPageHeight;
-        captionHeights[clip.id] = curr_spacing;
+        var curr_spacing = base_spacing + (num_lines * 19);
+
+        if(clip['highlights'].length > 1) {
+            curr_spacing += 8 + 18;
+            if(clip['alternatives']) {
+                curr_spacing += Math.ceil(clip['highlights'].length / 2)*(8+33);
+            }
+        }
+
+        heights[clip.id] = curr_spacing / scaledPageHeight;
     }
 
-    var overlaps = checkOverlap(sortedClips, captionHeights);
+    var overlaps = checkOverlap(sortedClips, heights);
     while(overlaps.length > 0) {
         for(var i = 0; i < overlaps.length; i++) {
             var overlap_group = overlaps[i];
@@ -77,7 +85,7 @@ export function spreadOutClips(clips: {[index: number]: Clip}, videoWidth: numbe
         }
         sortedClips = Object.values(clips);
         sortedClips.sort((a, b) => (a.page + a.top) - (b.page + b.top));
-        overlaps = checkOverlap(sortedClips, captionHeights);
+        overlaps = checkOverlap(sortedClips, heights);
     }
     return clips;
 }

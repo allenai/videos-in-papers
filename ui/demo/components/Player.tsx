@@ -22,6 +22,7 @@ interface Props {
   handleNavigate?: (fromId: number, toId: number, isPlay: boolean) => void;
   navigateToPosition?: (clipId: number, highlightIdx: number) => void;
   toggleCaptions?: (clipId: number, isExpand: boolean) => void;
+  toggleAltHighlights?: (clipId: number, isShow: boolean) => void;
   scrubClip: {clip: number, progress: number};
   videoWidth: number;
 }
@@ -49,6 +50,7 @@ export function Player({
   handleNavigate,
   navigateToPosition,
   toggleCaptions,
+  toggleAltHighlights,
   scrubClip,
   videoWidth,
 }: Props) {
@@ -113,6 +115,12 @@ export function Player({
       toggleCaptions(id,  !clip['expanded']);
   }
 
+  // Show or hide the alternative highlights
+  function handleAltClick(e: React.MouseEvent) {
+    if(toggleAltHighlights)
+    toggleAltHighlights(id,  !clip['alternatives']);
+  }
+
   // When clip finishes, autoplay the next one
   function handleEnd() {
     var fromIdx = clips.findIndex((c) => c.id == id);
@@ -147,24 +155,25 @@ export function Player({
   var caption_text = clip['captions'].map((c: Caption) => c['caption'].trim()).join(" ");
 
   var otherHighlights = [];
-  for(var i = 0; i < highlights.length; i++) {
-    var highlight = highlights[i];
-    if(i%2 == 0) {
-      otherHighlights.push([]);
-    } 
-    otherHighlights[Math.floor(i/2)].push(
-      <div 
-        key={i}
-        className="video__note-navigator-link"
-        data-idx={i} onClick={handleSideClick}
-        style={{opacity: i == clip.position ? "1" : "0.6"}}
-      >
-        <b>{highlight.id}</b> Example Test
-      </div>
-    );
+  if(clip['alternatives']) {
+    for(var i = 0; i < highlights.length; i++) {
+      var highlight = highlights[i];
+      if(i%2 == 0) {
+        otherHighlights.push([]);
+      } 
+      otherHighlights[Math.floor(i/2)].push(
+        <div 
+          key={i}
+          className="video__note-navigator-link"
+          data-idx={i} onClick={handleSideClick}
+          style={{opacity: i == clip.position ? "1" : "0.6"}}
+        >
+          <b>{highlight.id}</b> Example Test
+        </div>
+      );
+    }
   }
 
-  otherHighlights = [];
   return (
     <div 
       id={"video__note-" + id}
@@ -204,18 +213,25 @@ export function Player({
               </div>
             </div>
           </div>
-          <div className="video__note-navigator">
-            <div className="video__note-navigator-row" style={{fontSize: "18px", color: "rgba(0, 0, 0, 0.3)"}}>
-              <i className={"fa fa-chevron-" + (clip.expanded ? "up" : "down")}></i>
-            </div>
-            {otherHighlights.map((row, i) => {
-              return (
-                <div key={"row-" + i} className="video__note-navigator-row">
-                  {row}
-                </div>
-              )
-            })}
-          </div>
+          {highlights.length > 1 ?
+            <div className="video__note-navigator">
+              <div 
+                className="video__note-navigator-row" 
+                style={{fontSize: "18px", color: "rgba(0, 0, 0, 0.3)", cursor: "pointer"}}
+                onClick={handleAltClick}
+              >
+                <i className={"fa fa-chevron-" + (clip.alternatives ? "up" : "down")}></i>
+              </div>
+              {otherHighlights.map((row, i) => {
+                return (
+                  <div key={"row-" + i} className="video__note-navigator-row">
+                    {row}
+                  </div>
+                )
+              })}
+            </div> :
+            ""
+          }
         </div>
       </div>
     </div>

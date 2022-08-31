@@ -25,6 +25,7 @@ type Props = {
   handleNavigate: (fromId: number, toId: number) => void;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
   toggleCaptions: (clipId: number, isExpand: boolean) => void;
+  toggleAltHighlights: (clipId: number, isShow: boolean) => void;
   scrubClip: {clip: number, progress: number};
   videoWidth: number;
 };
@@ -37,6 +38,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     handleNavigate,
     navigateToPosition,
     toggleCaptions,
+    toggleAltHighlights,
     scrubClip,
     videoWidth,
 }: Props) => {
@@ -113,6 +115,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
                 handleNavigate={handleNavigateWrapper}
                 navigateToPosition={navigateToPosition}
                 toggleCaptions={toggleCaptions}
+                toggleAltHighlights={toggleAltHighlights}
                 scrubClip={scrubClip}
                 videoWidth={videoWidth}
             />
