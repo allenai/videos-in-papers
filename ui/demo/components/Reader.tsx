@@ -58,13 +58,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [ scrubClip, setScrubClip ] = React.useState(null);
 
-  var history: {[id: number]: Array<number>} = {};
+  var history: {[id: number]: {isPlayed: boolean, captions: Array<number>}} = {};
   var clipIds: Array<string> = Object.keys(clips);
   for(var i = 0; i < clipIds.length; i++) { 
     var id: number = parseInt(clipIds[i])
-    history[id] = [];
+    history[id] = { isPlayed: false, captions: [] };
   }
-  const [ playedHistory, setPlayedHistory ] = React.useState<{[id: number]: Array<number>}>(history);
+  const [ playedHistory, setPlayedHistory ] = React.useState<{[id: number]: {isPlayed: boolean, captions: Array<number>}}>(history);
 
   const {
     isShowingHighlightOverlay,
@@ -183,9 +183,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].top = highlights[highlightId].rects[0].top;
     newClips[clipId].page = highlights[highlightId].rects[0].page;
     setClips(newClips);
-    
+
     var copyHistory = {...playedHistory};
-    copyHistory[clipId] = [];
+    copyHistory[clipId]['captions'] = [];
     setPlayedHistory(copyHistory);
   }
 
@@ -225,7 +225,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setClips(newClips);
 
     var copyHistory = {...playedHistory};
-    copyHistory[clipId] = [];
+    copyHistory[clipId]['captions'] = [];
     setPlayedHistory(copyHistory);
     
     setNavigating({ fromId: -1, toId: clipId, fromTop, toTop, scrollTo, position: highlightIdx });
@@ -248,9 +248,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const updatePlayedHistory = (clipId: number, captionIdx: number) => {
     var copyHistory = {...playedHistory};
-    if(copyHistory[clipId].includes(captionIdx)) return;
-    copyHistory[clipId].push(captionIdx);
-    console.log(clipId, captionIdx);
+    if(copyHistory[clipId]['captions'].includes(captionIdx)) return;
+    copyHistory[clipId]['isPlayed'] = true;
+    copyHistory[clipId]['captions'].push(captionIdx);
     setPlayedHistory(copyHistory);
   }
 
@@ -286,6 +286,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         highlights={highlights} 
                         changeClipPosition={changeClipPosition}
                         setScrubClip={setScrubClip}
+                        playedHistory={playedHistory}
                       />
                     </Overlay>
                   </PageWrapper>

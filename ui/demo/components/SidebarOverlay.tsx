@@ -11,7 +11,8 @@ type Props = {
   pageIndex: number;
   highlights: {[index: number]: Highlight};
   changeClipPosition: (id: number) => void;
-  setScrubClip: (data: {clip: number, progress: number} | null) => void;
+  setScrubClip: (data: {highlight: number, clip: number, progress: number} | null) => void;
+  playedHistory: {[id: number]: {isPlayed: boolean, captions: Array<number>}};
 };
 
 /*
@@ -21,7 +22,8 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     pageIndex, 
     highlights,
     changeClipPosition,
-    setScrubClip
+    setScrubClip,
+    playedHistory,
 }: Props) => {
   const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
@@ -100,7 +102,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     var position = e.pageY - rect.top;
     if(position < 0) position = 0;
     var progress = position / rect.height;
-    setScrubClip({clip: parseInt(highlights[id].clip), progress: progress});
+    setScrubClip({highlight: id, clip: parseInt(highlights[id].clip), progress: progress});
   }
 
   function onMouseOutSidebar () {
@@ -116,9 +118,9 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
           const props = {
             ...prop,
             id: prop.id,
-            className: 'reader_highlight_color-' + parseInt(highlights[prop.id].clip) % 7,
+            className: 'reader_sidebar_color-' + parseInt(highlights[prop.id].clip) % 7,
             // Set isHighlighted to true for highlighted styling
-            isHighlighted: true,
+            isHighlighted: playedHistory[highlights[prop.id].clip].isPlayed,
             key: prop.id+"-"+j,
             onClick: onClickSidebar,
             onMouseMove: onMoveInSidebar,

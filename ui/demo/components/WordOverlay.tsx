@@ -6,7 +6,7 @@ type Props = {
   pageIndex: number;
   clips: {[index: number]: Clip};
   highlights: {[index: number]: Highlight};
-  playedHistory: {[index: number]: Array<number>};
+  playedHistory: {[index: number]: {isPlayed: boolean, captions: Array<number>}};
 };
 
 const colors = [
@@ -45,15 +45,15 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
         return [];
       }
       var clipText = clip.captions.map((caption, i) => {
-        return playedHistory[clipId].includes(i) ? caption.caption.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "") : "";
+        return playedHistory[clipId]['captions'].includes(i) ? caption.caption.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "") : "";
       }).reduce((prev: string, curr: string) => {
         return prev + " " + curr;
       });
       var clipWords = clipText.split(" ");
       
       return highlight['tokens'].filter((token) => {
-        var tokenText= token.text.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "");
-        return token.page == pageIndex && !stopwords.includes(tokenText) && clipWords.includes(tokenText);
+        var tokenText = token.text.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "");
+        return token.page == pageIndex && tokenText.length > 0 && !stopwords.includes(tokenText) && clipWords.includes(tokenText);
       }).map((token) => {
         return {...token, clip: clipId};
       });

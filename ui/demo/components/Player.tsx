@@ -25,7 +25,7 @@ interface Props {
   toggleAltHighlights?: (clipId: number, isShow: boolean) => void;
   scrubPosition: number;
   videoWidth: number;
-  history: Array<number>;
+  playedHistory: {[index: number]: {isPlayed: boolean, captions: Array<number>}};
   updatePlayedHistory: (clipId: number, captionIdx: number) => void;
 }
 
@@ -55,7 +55,7 @@ export function Player({
   toggleAltHighlights,
   scrubPosition,
   videoWidth,
-  history,
+  playedHistory,
   updatePlayedHistory,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
@@ -204,7 +204,7 @@ export function Player({
     >
       <div className="video__note-supercontainer">
         <div>
-          <PlayerTimeline id={id} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper}/>
+          <PlayerTimeline id={id} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper} playedHistory={playedHistory}/>
           <div className="video__note-container" style={{width: videoWidth+"px", borderColor: color}}>
             <div style={{height: videoHeight+"px"}}>
                 <ReactPlayer 
@@ -218,6 +218,7 @@ export function Player({
                     onPause={handlePause}
                     onEnded={handleEnd}
                     width="100%" height="100%"
+                    light={true}
                 />
             </div>
             <div className="video__note-captions" onClick={handleCaptionClick}>
@@ -229,7 +230,7 @@ export function Player({
                     return (
                       <span 
                         key={i} 
-                        style={history.includes(i) ? {backgroundColor: color+"22", borderRadius: "2px"} : {}}
+                        style={playedHistory[id]['captions'].includes(i) ? {backgroundColor: color+"22", borderRadius: "2px"} : {}}
                       >{caption.caption}&nbsp;</span>
                     );
                   })}

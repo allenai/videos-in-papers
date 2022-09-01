@@ -26,9 +26,9 @@ type Props = {
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
   toggleCaptions: (clipId: number, isExpand: boolean) => void;
   toggleAltHighlights: (clipId: number, isShow: boolean) => void;
-  scrubClip: {clip: number, progress: number};
+  scrubClip: {highlight: number, clip: number, progress: number};
   videoWidth: number;
-  playedHistory: {[id: number]: Array<number>};
+  playedHistory: {[id: number]: {isPlayed: boolean, captions: Array<number>}};
   updatePlayedHistory: (clipId: number, captionIdx: number) => void;
 };
 
@@ -84,6 +84,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
         isOverlay={false} 
         isPhantom={true}
         videoWidth={videoWidth}
+        playedHistory={playedHistory}
       />      
     )
   }
@@ -120,9 +121,9 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
               navigateToPosition={navigateToPosition}
               toggleCaptions={toggleCaptions}
               toggleAltHighlights={toggleAltHighlights}
-              scrubPosition={scrubClip != null && scrubClip.clip == id ? scrubClip.progress : -1}
+              scrubPosition={(scrubClip != null && scrubClip.clip == id && scrubClip.highlight == clip.highlights[clip.position]) ? scrubClip.progress : -1}
               videoWidth={videoWidth}
-              history={playedHistory[id]}
+              playedHistory={playedHistory}
               updatePlayedHistory={updatePlayedHistory}
           />
       )
