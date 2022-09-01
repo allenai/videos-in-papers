@@ -3,14 +3,18 @@ import * as React from 'react';
 
 import { BoundingBox as BoundingBoxType, TransformContext, DocumentContext, computeBoundingBoxStyle } from '@allenai/pdf-components';
 
-export type Props = {
+type Bar = BoundingBoxType & {
+  id: number;
+}
+
+export type Props = Bar & {
   className?: string;
   id?: string;
   isHighlighted?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   onMouseMove?: (e: React.MouseEvent) => void;
   onMouseOut?: () => void;
-} & BoundingBoxType;
+};
 
 /*
  * Adapting BoundingBox elements from the library to be used as Sidebars

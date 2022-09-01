@@ -2,13 +2,12 @@ import * as React from 'react';
 import {
   DocumentContext,
 } from '@allenai/pdf-components';
-import { Highlight, Clip, Caption } from '../types/annotations';
+import { Highlight, Clip } from '../types/clips';
 import _ReactPlayer, { ReactPlayerProps } from 'react-player';
 const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
 interface Props {
   id: number;
-  clip: Clip;
   clips: Array<Clip>;
   width: number;
   handleNavigate: (fromId: number, toId: number) => void;
@@ -20,7 +19,6 @@ const colors = [
 
 export function PlayerTimeline({
   id,
-  clip,
   clips,
   width,
   handleNavigate,
@@ -32,12 +30,14 @@ export function PlayerTimeline({
   }, [width]);
 
   const handleClick = (e: React.MouseEvent) => {
-    handleNavigate(id, parseInt(e.currentTarget.getAttribute('data-id')));
+    if(e.currentTarget.getAttribute('data-id') == null) return;
+    var toId: string = e.currentTarget.getAttribute('data-id') == null ? "-1" : e.currentTarget.getAttribute('data-id');
+    handleNavigate(id, parseInt(toId));
   }
 
   return (
     <div className="video__note-timeline">
-        {clips.map((clip, i) => {
+        {clips.map((clip: Clip, i: number) => {
             var isCurrentClip = clip.id == id;
             var isStart = i == 0;
             var isEnd = i == clips.length - 1;

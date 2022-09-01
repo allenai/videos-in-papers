@@ -20,6 +20,7 @@ import { HighlightOverlayDemo } from './HighlightOverlayDemo';
 import { Outline } from './Outline';
 import { ScrollToDemo } from './ScrollToDemo';
 import { SidebarOverlay } from './SidebarOverlay';
+import { WordOverlay } from './WordOverlay';
 import { VideoNotes } from './VideoNotes';
 
 import { Highlight, Clip } from '../types/clips';
@@ -56,6 +57,14 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ videoWidth, setVideoWidth ] = React.useState(pageDimensions * 0.25 / 9 * 16);
 
   const [ scrubClip, setScrubClip ] = React.useState(null);
+
+  var history: {[id: number]: Array<number>} = {};
+  var clipIds: Array<string> = Object.keys(clips);
+  for(var i = 0; i < clipIds.length; i++) { 
+    var id: number = parseInt(clipIds[i])
+    history[id] = [];
+  }
+  const [ playedHistory, setPlayedHistory ] = React.useState<{[id: number]: Array<number>}>(history);
 
   const {
     isShowingHighlightOverlay,
@@ -174,6 +183,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].top = highlights[highlightId].rects[0].top;
     newClips[clipId].page = highlights[highlightId].rects[0].page;
     setClips(newClips);
+    
+    var copyHistory = {...playedHistory};
+    copyHistory[clipId] = [];
+    setPlayedHistory(copyHistory);
   }
 
   // Navigate with clip to the position of another paper highlight
@@ -210,6 +223,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         scrollTo -= 1000
     }
     setClips(newClips);
+
+    var copyHistory = {...playedHistory};
+    copyHistory[clipId] = [];
+    setPlayedHistory(copyHistory);
     
     setNavigating({ fromId: -1, toId: clipId, fromTop, toTop, scrollTo, position: highlightIdx });
   }
@@ -227,6 +244,14 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
     newClips[clipId]['alternatives'] = isShow;
     setClips(newClips);
+  }
+
+  const updatePlayedHistory = (clipId: number, captionIdx: number) => {
+    var copyHistory = {...playedHistory};
+    if(copyHistory[clipId].includes(captionIdx)) return;
+    copyHistory[clipId].push(captionIdx);
+    console.log(clipId, captionIdx);
+    setPlayedHistory(copyHistory);
   }
 
   return (
@@ -250,6 +275,12 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                 {Array.from({ length: numPages }).map((_, i) => (
                   <PageWrapper key={i} pageIndex={i}>
                     <Overlay>
+                      <WordOverlay
+                        pageIndex={i}
+                        clips={clips}
+                        highlights={highlights}
+                        playedHistory={playedHistory}
+                      />
                       <SidebarOverlay 
                         pageIndex={i} 
                         highlights={highlights} 
@@ -271,6 +302,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                 toggleAltHighlights={toggleAltHighlights}
                 scrubClip={scrubClip}
                 videoWidth={videoWidth}
+                playedHistory={playedHistory}
+                updatePlayedHistory={updatePlayedHistory}
               />
             </div>
             {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}

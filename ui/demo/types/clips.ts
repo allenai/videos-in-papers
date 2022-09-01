@@ -5,6 +5,7 @@ export type Highlight = {
     type: string,
     rects: Array<BoundingBoxType>,
     clip: string,
+    tokens: Array<Token>,
 }
 
 export type Caption = {
@@ -24,4 +25,9 @@ export type Clip = {
     captions: Array<Caption>;
     expanded?: boolean;
     alternatives?: boolean;
+}
+
+export type Token = BoundingBoxType & {
+    id: number,
+    text: string,
 }

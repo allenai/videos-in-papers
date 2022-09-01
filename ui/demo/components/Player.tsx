@@ -3,7 +3,7 @@ import {
   DocumentContext,
   TransformContext,
 } from '@allenai/pdf-components';
-import { Highlight, Clip, Caption } from '../types/annotations';
+import { Highlight, Clip, Caption } from '../types/clips';
 import _ReactPlayer, { ReactPlayerProps } from 'react-player';
 const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
@@ -23,8 +23,10 @@ interface Props {
   navigateToPosition?: (clipId: number, highlightIdx: number) => void;
   toggleCaptions?: (clipId: number, isExpand: boolean) => void;
   toggleAltHighlights?: (clipId: number, isShow: boolean) => void;
-  scrubClip: {clip: number, progress: number};
+  scrubPosition: number;
   videoWidth: number;
+  history: Array<number>;
+  updatePlayedHistory: (clipId: number, captionIdx: number) => void;
 }
 
 const colors = [
@@ -51,8 +53,10 @@ export function Player({
   navigateToPosition,
   toggleCaptions,
   toggleAltHighlights,
-  scrubClip,
+  scrubPosition,
   videoWidth,
+  history,
+  updatePlayedHistory,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -69,6 +73,16 @@ export function Player({
     if(videoRef.current && isPlaying) {
       var currentTime = e.playedSeconds;
       setProgress(currentTime);
+
+      var clipStart = clip.start;
+      var actualTime = currentTime + clipStart;
+
+      for(var i = 0; i < clip.captions.length; i++) {
+        var caption = clip.captions[i];
+        if(caption.start/1000 <= actualTime && actualTime <= caption.end/1000) { 
+          updatePlayedHistory(id, i);
+        }
+      }
     }
   }
 
@@ -89,10 +103,10 @@ export function Player({
   }, [playingClip]);
 
   React.useEffect(() => {
-    if(scrubClip && scrubClip.clip == id) {
-      videoRef.current.seekTo(scrubClip.progress, 'fraction')
+    if(scrubPosition != -1 && !isPlaying) {
+      videoRef.current.seekTo(scrubPosition, 'fraction')
     }
-  }, [scrubClip]);
+  }, [scrubPosition]);
 
   function handleNavigateWrapper(fromId: number, toId: number) {
     if(handleNavigate) {
@@ -123,11 +137,12 @@ export function Player({
 
   // When clip finishes, autoplay the next one
   function handleEnd() {
-    var fromIdx = clips.findIndex((c) => c.id == id);
-    if(fromIdx == clips.length - 1) return;
-    var toId = clips[fromIdx + 1].id;
-    if(handleNavigate)
-      handleNavigate(id, toId, true);
+    return;
+    // var fromIdx = clips.findIndex((c) => c.id == id);
+    // if(fromIdx == clips.length - 1) return;
+    // var toId = clips[fromIdx + 1].id;
+    // if(handleNavigate)
+    //   handleNavigate(id, toId, true);
   }
 
   function handlePlay() {
@@ -152,9 +167,8 @@ export function Player({
     "The idea for OVRlap came from considering why people can only be in one place at a time, and how virtual reality could allow people to be in multiple places at once.",
     "The OVRlap technique allows users to see and interact with multiple distinct and distant locations from a first-person perspective."
   ]
-  var caption_text = clip['captions'].map((c: Caption) => c['caption'].trim()).join(" ");
 
-  var otherHighlights = [];
+  var otherHighlights: Array<React.ReactElement> = [];
   if(clip['alternatives']) {
     for(var i = 0; i < highlights.length; i++) {
       var highlight = highlights[i];
@@ -174,6 +188,7 @@ export function Player({
     }
   }
 
+  var color = colors[id % 7];
   return (
     <div 
       id={"video__note-" + id}
@@ -189,8 +204,8 @@ export function Player({
     >
       <div className="video__note-supercontainer">
         <div>
-          <PlayerTimeline id={id} clip={clip} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper}/>
-          <div className="video__note-container" style={{width: videoWidth+"px", borderColor: colors[id % 7]}}>
+          <PlayerTimeline id={id} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper}/>
+          <div className="video__note-container" style={{width: videoWidth+"px", borderColor: color}}>
             <div style={{height: videoHeight+"px"}}>
                 <ReactPlayer 
                     ref={videoRef}
@@ -206,8 +221,20 @@ export function Player({
                 />
             </div>
             <div className="video__note-captions" onClick={handleCaptionClick}>
-              <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : caption_text.split(".")[0]}
-              {!!clip.expanded ? [<br/>, <span><b>Transcript</b>&nbsp;&nbsp;{caption_text}</span>] : ""}
+              <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}
+              {!!clip.expanded ? 
+                <div>
+                  <b>Transcript</b>&nbsp;&nbsp;
+                  {clip['captions'].map((caption: Caption, i: number) => {
+                    return (
+                      <span 
+                        key={i} 
+                        style={history.includes(i) ? {backgroundColor: color+"22", borderRadius: "2px"} : {}}
+                      >{caption.caption}&nbsp;</span>
+                    );
+                  })}
+                </div> : ""
+              }
               <div style={{textAlign: "center", color: "#999"}}>
                 <i className={"fa fa-" + (clip.expanded ? "minus" : "plus")}></i>
               </div>

@@ -33,11 +33,6 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, highl
     return results;
   }
 
-  function onClickHighlight (e: React.MouseEvent) {
-    e.stopPropagation();
-    var id = e.currentTarget.getAttribute('id');
-  }
-
   function renderHighlightedBoundingBoxes(): Array<React.ReactElement> {
     const boxes: Array<React.ReactElement> = [];
     getBoundingBoxProps().map((rect, i) => {
@@ -46,12 +41,11 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, highl
         if (prop.page === pageIndex) {
           const props = {
             ...prop,
-            id: highlights[i].id,
+            id: "" + highlights[i].id,
             className: 'reader_highlight_color-' + parseInt(highlights[i].clip) % 7,
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
             key: i+"-"+j,
-            onClick: onClickHighlight,
           };
 
           boxes.push(<BoundingBox {...props} />);

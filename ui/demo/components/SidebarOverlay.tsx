@@ -54,10 +54,24 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         for(var k = 0; k < rects.length; k++) {
             if(rects[k].page !== page) continue;
             var bbox = scaleRawBoundingBox(rects[k], pageDimensions.height, pageDimensions.width);
-            if(bbox.top < top) top = bbox.top;
-            if(bbox.height+bbox.top > bottom) bottom = bbox.height + bbox.top;
-            totalCenters += bbox.left + bbox.width/2;
-            num_rects += 1
+            var currCenter = bbox.left + bbox.width/2;
+            var avgCenter = totalCenters / num_rects;
+            if(totalCenters != 0 && (currCenter < avgCenter - bbox.width || avgCenter + bbox.width < currCenter)) {
+              if(avgCenter > pageDimensions.width/2) {
+                left = pageDimensions.width - left - width;
+              }
+              sidebars.push({id: id, top, height: bottom - top, width, left, page});
+              top = bbox.top;
+              bottom = bbox.height + bbox.top;
+              left = 48;
+              totalCenters = currCenter;
+              num_rects = 1;
+            } else {
+              if(bbox.top < top) top = bbox.top;
+              if(bbox.height+bbox.top > bottom) bottom = bbox.height + bbox.top;
+              totalCenters += bbox.left + bbox.width/2;
+              num_rects += 1
+            }
         }
         var avgCenter = totalCenters / num_rects;
         if(avgCenter > pageDimensions.width/2) {
@@ -75,13 +89,13 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
   // Click sidebar to move clip to this position
   function onClickSidebar (e: React.MouseEvent) {
     e.stopPropagation();
-    var id = parseInt(e.currentTarget.getAttribute('id'));
-    changeClipPosition(id);
+    var id: string = e.currentTarget.getAttribute('id')
+    changeClipPosition(parseInt(id));
   }
 
   // Move in sidebar to scrub through video
   function onMoveInSidebar (e: React.MouseEvent) {
-    var id = e.currentTarget.getAttribute('id');
+    var id: number = parseInt(e.currentTarget.getAttribute('id'));
     var rect = e.currentTarget.getBoundingClientRect();
     var position = e.pageY - rect.top;
     if(position < 0) position = 0;
@@ -95,9 +109,9 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
 
   function renderSidebars(): Array<React.ReactElement> {
     const boxes: Array<React.ReactElement> = [];
-    getSidebarProps().map((bars) => {
+    getSidebarProps().map((bars: Array<Bar>) => {
       // Only render this BoundingBox if it belongs on the current page
-      bars.map((prop, j) => {
+      bars.map((prop: Bar, j: number) => {
         if (prop.page === pageIndex) {
           const props = {
             ...prop,

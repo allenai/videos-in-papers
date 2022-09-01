@@ -28,6 +28,8 @@ type Props = {
   toggleAltHighlights: (clipId: number, isShow: boolean) => void;
   scrubClip: {clip: number, progress: number};
   videoWidth: number;
+  playedHistory: {[id: number]: Array<number>};
+  updatePlayedHistory: (clipId: number, captionIdx: number) => void;
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -41,10 +43,12 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     toggleAltHighlights,
     scrubClip,
     videoWidth,
+    playedHistory,
+    updatePlayedHistory,
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
-  const [ processedClips, setProcessedClips ] = React.useState({});
+  const [ processedClips, setProcessedClips ] = React.useState<{[index: number]: Clip}>({});
 
   // ID of the clip that is currently playing
   const [ playingClip, setPlayingClip ] = React.useState(-1);
@@ -74,7 +78,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
         top={top}
         clip={clip} 
         clips={timeOrderedClips}
-        highlights={clip['highlights'].map((id) => highlights[id])}
+        highlights={clip['highlights'].map((id: number) => highlights[id])}
         url={url} 
         numClips={Object.keys(clips).length}
         isOverlay={false} 
@@ -88,39 +92,45 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   function renderClips(): Array<React.ReactElement> {
     var timeOrderedClips = Object.values(clips);
     timeOrderedClips.sort((a, b) => a['start'] - b['start']);
-    return [Object.keys(processedClips).map((i) => {
-        var id = parseInt(i);
-        var clip = processedClips[id];
-        var top = (clip.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
-        var isOverlay = false;
-        var isPhantom = false;
-        if(navigating !== null && navigating.fromId == id) {
-            isPhantom = true;
-        } else if(navigating !== null && navigating.toId == id) {
-            top = navigating.fromTop;
-            isOverlay = true;
-        }
-        return (
-            <Player 
-                key={id} 
-                id={id} 
-                top={top}
-                clip={clip} 
-                clips={timeOrderedClips}
-                highlights={clip['highlights'].map((id) => highlights[id])}
-                playingClip={playingClip}
-                setPlayingClip={setPlayingClip}
-                isOverlay={isOverlay} 
-                isPhantom={isPhantom}
-                handleNavigate={handleNavigateWrapper}
-                navigateToPosition={navigateToPosition}
-                toggleCaptions={toggleCaptions}
-                toggleAltHighlights={toggleAltHighlights}
-                scrubClip={scrubClip}
-                videoWidth={videoWidth}
-            />
-        )
-    }), navigating != null && navigating.position == null && renderPhantom(timeOrderedClips)];
+    var clipsHTML = Object.keys(processedClips).map((i: string) => {
+      var id = parseInt(i);
+      var clip = processedClips[id];
+      var top = (clip.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
+      var isOverlay = false;
+      var isPhantom = false;
+      if(navigating !== null && navigating.fromId == id) {
+          isPhantom = true;
+      } else if(navigating !== null && navigating.toId == id) {
+          top = navigating.fromTop;
+          isOverlay = true;
+      }
+      return (
+          <Player 
+              key={id} 
+              id={id} 
+              top={top}
+              clip={clip} 
+              clips={timeOrderedClips}
+              highlights={clip['highlights'].map((id: number) => highlights[id])}
+              playingClip={playingClip}
+              setPlayingClip={setPlayingClip}
+              isOverlay={isOverlay} 
+              isPhantom={isPhantom}
+              handleNavigate={handleNavigateWrapper}
+              navigateToPosition={navigateToPosition}
+              toggleCaptions={toggleCaptions}
+              toggleAltHighlights={toggleAltHighlights}
+              scrubPosition={scrubClip != null && scrubClip.clip == id ? scrubClip.progress : -1}
+              videoWidth={videoWidth}
+              history={playedHistory[id]}
+              updatePlayedHistory={updatePlayedHistory}
+          />
+      )
+    });
+    if(navigating != null && navigating.position == null) {
+      clipsHTML.push(renderPhantom(timeOrderedClips));
+    }
+    return clipsHTML;
   }
 
   return (
