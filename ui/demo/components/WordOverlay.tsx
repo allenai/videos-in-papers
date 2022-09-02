@@ -27,8 +27,6 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
   const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
 
-  console.log(hoveredWord);
-
   if (!isShowingTextHighlight) {
     return null;
   }

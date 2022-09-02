@@ -76,18 +76,15 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setIsShowingOutline,
     setIsShowingTextHighlight,
   } = React.useContext(UiContext);
-
+  
   React.useEffect(() => {
+    setIsShowingTextHighlight(true);
     fetch('/public/annotation/3491102.3501873.json')
       .then((res) => res.json())
       .then((data) => {
         setClips(data['clips']);
         setHighlights(data['highlights']);
       });
-  })
-
-  React.useEffect(() => {
-    setIsShowingTextHighlight(true);
   }, []);
 
   React.useEffect(() => {
@@ -246,64 +243,70 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     }
   }
 
-  return (
-    <BrowserRouter>
-      <Route path="/">
-        <Header />
-        <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
-          <DocumentWrapper 
-            className="reader__main"
-            file={samplePdfUrl} 
-            inputRef={pdfContentRef} 
-          >
-            {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}
-            <div className="reader__main-inner">
-              <Outline parentRef={pdfContentRef} />
-              <div className="reader__page-list" ref={pdfScrollableRef}>
-                {Array.from({ length: numPages }).map((_, i) => (
-                  <PageWrapper key={i} pageIndex={i}>
-                    <Overlay>
-                      <WordOverlay
-                        pageIndex={i}
-                        clips={clips}
-                        highlights={highlights}
-                        hoveredWord={hoveredWord}
-                      />
-                      <SidebarOverlay 
-                        pageIndex={i} 
-                        highlights={highlights} 
-                        clips={clips}
-                        changeClipPosition={changeClipPosition}
-                        setScrubClip={setScrubClip}
-                        focusId={focusId}
-                        playedHistory={playedHistory}
-                      />
-                    </Overlay>
-                  </PageWrapper>
-                ))}
+  if(Object.keys(clips).length == 0) {
+    return (
+      "Loading..."
+    )
+  } else {
+    return (
+      <BrowserRouter>
+        <Route path="/">
+          <Header />
+          <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
+            <DocumentWrapper 
+              className="reader__main"
+              file={samplePdfUrl} 
+              inputRef={pdfContentRef} 
+            >
+              {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}
+              <div className="reader__main-inner">
+                <Outline parentRef={pdfContentRef} />
+                <div className="reader__page-list" ref={pdfScrollableRef}>
+                  {Array.from({ length: numPages }).map((_, i) => (
+                    <PageWrapper key={i} pageIndex={i}>
+                      <Overlay>
+                        <WordOverlay
+                          pageIndex={i}
+                          clips={clips}
+                          highlights={highlights}
+                          hoveredWord={hoveredWord}
+                        />
+                        <SidebarOverlay 
+                          pageIndex={i} 
+                          highlights={highlights} 
+                          clips={clips}
+                          changeClipPosition={changeClipPosition}
+                          setScrubClip={setScrubClip}
+                          focusId={focusId}
+                          playedHistory={playedHistory}
+                        />
+                      </Overlay>
+                    </PageWrapper>
+                  ))}
+                </div>
+                <VideoNotes 
+                  url={videoUrl} 
+                  clips={clips} 
+                  highlights={highlights}
+                  focusId={focusId}
+                  navigating={navigating} 
+                  handleNavigate={handleNavigate}
+                  navigateToPosition={navigateToPosition}
+                  toggleCaptions={toggleCaptions}
+                  toggleAltHighlights={toggleAltHighlights}
+                  scrubClip={scrubClip}
+                  videoWidth={videoWidth}
+                  playedHistory={playedHistory}
+                  updatePlayedHistory={updatePlayedHistory}
+                  setFocusId={setFocusId}
+                  setHoveredWord={setHoveredWord}
+                />
               </div>
-              <VideoNotes 
-                url={videoUrl} 
-                clips={clips} 
-                highlights={highlights}
-                focusId={focusId}
-                navigating={navigating} 
-                handleNavigate={handleNavigate}
-                navigateToPosition={navigateToPosition}
-                toggleCaptions={toggleCaptions}
-                toggleAltHighlights={toggleAltHighlights}
-                scrubClip={scrubClip}
-                videoWidth={videoWidth}
-                playedHistory={playedHistory}
-                updatePlayedHistory={updatePlayedHistory}
-                setFocusId={setFocusId}
-                setHoveredWord={setHoveredWord}
-              />
-            </div>
-            {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}
-          </DocumentWrapper>
-        </div>
-      </Route>
-    </BrowserRouter>
-  );
+              {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}
+            </DocumentWrapper>
+          </div>
+        </Route>
+      </BrowserRouter>
+    );
+  }
 };

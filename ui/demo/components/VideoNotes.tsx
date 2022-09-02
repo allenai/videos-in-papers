@@ -115,7 +115,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           top = navigating.fromTop;
           isOverlay = true;
       }
-      console.log(focusId);
+      
       return (
           <Player 
               key={id} 
