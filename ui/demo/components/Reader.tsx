@@ -154,8 +154,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // Scroll from video clip to video clip
   const handleNavigate = (fromId: number, toId: number) => {
     if(fromId == toId) return;
-    var container = document.getElementsByClassName("reader__main")[0];
-
     arrangeAndNavigate(clips, fromId, toId, null);
   }
 

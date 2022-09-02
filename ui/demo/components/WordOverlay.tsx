@@ -47,7 +47,7 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
     
     return tokens.filter((token) => {
       return token.page == pageIndex && processText(token.text) == processText(hoveredWord.text);
-    })
+    });
   }
 
   function renderHighlightedBoundingBoxes(): Array<React.ReactElement> {
@@ -59,7 +59,7 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
         const props = {
             ...bbox,
             id: pageIndex+'-'+token.id,
-            className: 'reader_highlight_color-' + (token.clip ? token.clip % 7 : 0),
+            className: 'reader_highlight_color-' + (hoveredWord ? hoveredWord.clipId % 7 : 0),
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
             key: pageIndex+'-'+token.id,

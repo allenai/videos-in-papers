@@ -111,7 +111,13 @@ export function Player({
   }, [playingClip]);
 
   React.useEffect(() => {
-    if(scrubPosition != -1 && !isPlaying && videoRef.current) {
+    if(isFocus && videoRef.current) {
+      videoRef.current.seekTo(0, 'fraction')
+    }
+  }, [isFocus]);
+
+  React.useEffect(() => {
+    if(scrubPosition != -1 && !isFocus && !isPlaying && videoRef.current) {
       videoRef.current.seekTo(scrubPosition, 'fraction')
     }
   }, [scrubPosition]);
@@ -246,11 +252,12 @@ export function Player({
             <b>Transcript</b>&nbsp;&nbsp;
             {clip['captions'].map((caption: Caption, i: number) => {
               var words = caption.caption.split(" ");
+              var passed = caption.start/1000 < (clip.start + progress);
               return (
                 words.map((text, j) => {
                   return (
                     <span 
-                      key={j} style={hoveredWordId == i+'-'+j ? {backgroundColor: color + "33"} : {}}
+                      key={j} style={{backgroundColor: color + (hoveredWordId == i+'-'+j ? "99" : (passed ? "33" : "00"))}}
                       onMouseEnter={() => handleWordEnter(i+'-'+j, text)} onMouseLeave={handleWordLeave}
                     >
                       {text}&nbsp;

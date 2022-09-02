@@ -3,11 +3,7 @@ import * as React from 'react';
 
 import { BoundingBoxType, TransformContext, DocumentContext, computeBoundingBoxStyle } from '@allenai/pdf-components';
 
-type Bar = BoundingBoxType & {
-  id: number;
-}
-
-export type Props = Bar & {
+export type Props = BoundingBoxType & {
   className?: string;
   id?: string;
   isCurrent: boolean;

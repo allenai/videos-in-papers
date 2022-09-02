@@ -51,6 +51,8 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         pages.push(rects[j].page);
       }
 
+      var clipId = parseInt(highlights[parseInt(id)].clip);
+
       for(var j = 0; j < pages.length; j++) {
         var page = pages[j];
         var top = 1000000;
@@ -68,7 +70,11 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
               if(avgCenter > pageDimensions.width/2) {
                 left = pageDimensions.width - left - 12;
               }
-              sidebars.push({id: id, top, height: bottom - top, width, left, page});
+              sidebars.push({
+                id: parseInt(id), top, height: bottom - top, width, left, page,
+                isCurrent: clips[clipId].highlights[clips[clipId].position] == parseInt(id),
+                isHighlighted: focusId == clipId
+              });
               top = bbox.top;
               bottom = bbox.height + bbox.top;
               left = 48;
@@ -88,7 +94,6 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             left = pageDimensions.width - left - 12;
         }
 
-        var clipId = parseInt(highlights[parseInt(id)].clip);
         sidebars.push({
           id: parseInt(id), top, height: bottom - top, width, left, page, 
           isCurrent: clips[clipId].highlights[clips[clipId].position] == parseInt(id),
@@ -132,7 +137,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         if (prop.page === pageIndex) {
           const props = {
             ...prop,
-            id: prop.id+"",
+            id: ""+prop.id,
             className: 'reader_sidebar_color-' + parseInt(highlights[prop.id].clip) % 7,
             // Set isHighlighted to true for highlighted styling
             isHighlighted: prop.isHighlighted,
