@@ -17,6 +17,7 @@ interface Props {
   highlights: Array<Highlight>;
   playingClip: number;
   setPlayingClip: (id: number) => void;
+  isFocus: boolean;
   isOverlay: boolean;
   isPhantom: boolean;
   handleNavigate?: (fromId: number, toId: number, isPlay: boolean) => void;
@@ -27,6 +28,7 @@ interface Props {
   videoWidth: number;
   playedHistory: {[index: number]: {isPlayed: boolean, captions: Array<number>}};
   updatePlayedHistory: (clipId: number, captionIdx: number) => void;
+  setFocusId?: (clipId: number) => void;
 }
 
 const colors = [
@@ -47,6 +49,7 @@ export function Player({
   highlights,
   playingClip, 
   setPlayingClip,
+  isFocus,
   isOverlay,
   isPhantom,
   handleNavigate,
@@ -57,6 +60,7 @@ export function Player({
   videoWidth,
   playedHistory,
   updatePlayedHistory,
+  setFocusId
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -152,15 +156,6 @@ export function Player({
     setPlayingClip(-1);
   }
 
-  var left = 20;
-  var videoHeight = videoWidth / 16 * 9;
-  
-  // If clip is navigating, adjust the positions to be relative
-  if(isOverlay) {
-      var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
-      left = container.left + 20;
-  }
-
   var testSummaries = [
     "This is a presentation of OVRlap.",
     "The OVRlap technique allows users to see multiple viewpoints from a first-person perspective.",
@@ -168,24 +163,83 @@ export function Player({
     "The OVRlap technique allows users to see and interact with multiple distinct and distant locations from a first-person perspective."
   ]
 
-  var otherHighlights: Array<React.ReactElement> = [];
-  if(clip['alternatives']) {
-    for(var i = 0; i < highlights.length; i++) {
-      var highlight = highlights[i];
-      if(i%2 == 0) {
-        otherHighlights.push([]);
-      } 
-      otherHighlights[Math.floor(i/2)].push(
-        <div 
-          key={i}
-          className="video__note-navigator-link"
-          data-idx={i} onClick={handleSideClick}
-          style={{opacity: i == clip.position ? "1" : "0.6"}}
-        >
-          <b>{highlight.id}</b> Example Test
-        </div>
-      );
+  function renderHighlightNavigator() {
+    if(!isFocus || highlights.length <= 1) return "";
+
+    var otherHighlights: Array<React.ReactElement> = [];
+    if(clip['alternatives']) {
+      for(var i = 0; i < highlights.length; i++) {
+        var highlight = highlights[i];
+        if(i%2 == 0) {
+          otherHighlights.push([]);
+        } 
+        otherHighlights[Math.floor(i/2)].push(
+          <div 
+            key={i}
+            className="video__note-navigator-link"
+            data-idx={i} onClick={handleSideClick}
+            style={{opacity: i == clip.position ? "1" : "0.6"}}
+          >
+            <b>{highlight.id}</b> Example Test
+          </div>
+        );
+      }
     }
+
+    return (
+      <div className="video__note-navigator">
+        <div 
+          className="video__note-navigator-row" 
+          style={{fontSize: "18px", color: "rgba(0, 0, 0, 0.3)", cursor: "pointer"}}
+          onClick={handleAltClick}
+        >
+          <i className={"fa fa-chevron-" + (clip.alternatives ? "up" : "down")}></i>
+        </div>
+        {otherHighlights.map((row, i) => {
+          return (
+            <div key={"row-" + i} className="video__note-navigator-row">
+              {row}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  function renderCaptions() {
+    return (
+      <div className="video__note-captions" onClick={handleCaptionClick}>
+        <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}
+        {isFocus && !!clip.expanded ? 
+          <div>
+            <b>Transcript</b>&nbsp;&nbsp;
+            {clip['captions'].map((caption: Caption, i: number) => {
+              return (
+                <span 
+                  key={i} 
+                  style={playedHistory[id]['captions'].includes(i) ? {backgroundColor: color+"22", borderRadius: "2px"} : {}}
+                >{caption.caption}&nbsp;</span>
+              );
+            })}
+          </div> : ""
+        }
+        {isFocus ? 
+          <div style={{textAlign: "center", color: "#999"}}>
+            <i className={"fa fa-" + (clip.expanded ? "minus" : "plus")}></i>
+          </div> : ""
+        }
+      </div>
+    )
+  }
+
+  var left = 20;
+  var adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.7)
+  var videoHeight = adjustedVideoWidth / 16 * 9;
+
+  // If clip is navigating, adjust the positions to be relative
+  if(isOverlay) {
+      var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
+      left = container.left + 20;
   }
 
   var color = colors[id % 7];
@@ -204,62 +258,27 @@ export function Player({
     >
       <div className="video__note-supercontainer">
         <div>
-          <PlayerTimeline id={id} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper} playedHistory={playedHistory}/>
-          <div className="video__note-container" style={{width: videoWidth+"px", borderColor: color}}>
-            <div style={{height: videoHeight+"px"}}>
-                <ReactPlayer 
-                    ref={videoRef}
-                    url={'public/clips/'+id+'.mp4'} 
-                    playing={isPlaying}
-                    controls={true}
-                    onReady={(e) => {videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration())}}
-                    onProgress={(e) => {updateProgress(e)}}
-                    onPlay={handlePlay}
-                    onPause={handlePause}
-                    onEnded={handleEnd}
-                    width="100%" height="100%"
-                    light={false}
-                />
+          {isFocus ? <PlayerTimeline id={id} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper} playedHistory={playedHistory}/> : ""}
+          <div className="video__note-container" style={{width: adjustedVideoWidth+"px", borderColor: color}}>
+            <div style={{height: videoHeight+"px"}} onClick={() => setFocusId(id)}>
+              {!isFocus ? <div className="video__note-timestamp" style={{backgroundColor: color}}>{timeToStr(duration)}</div> : ""}
+              <ReactPlayer 
+                  ref={videoRef}
+                  url={'public/clips/'+id+'.mp4'} 
+                  playing={isPlaying}
+                  controls={isFocus}
+                  onReady={(e) => {videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration())}}
+                  onProgress={(e) => {updateProgress(e)}}
+                  onPlay={handlePlay}
+                  onPause={handlePause}
+                  onEnded={handleEnd}
+                  width="100%" height="100%"
+                  light={false}
+              />
             </div>
-            <div className="video__note-captions" onClick={handleCaptionClick}>
-              <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}
-              {!!clip.expanded ? 
-                <div>
-                  <b>Transcript</b>&nbsp;&nbsp;
-                  {clip['captions'].map((caption: Caption, i: number) => {
-                    return (
-                      <span 
-                        key={i} 
-                        style={playedHistory[id]['captions'].includes(i) ? {backgroundColor: color+"22", borderRadius: "2px"} : {}}
-                      >{caption.caption}&nbsp;</span>
-                    );
-                  })}
-                </div> : ""
-              }
-              <div style={{textAlign: "center", color: "#999"}}>
-                <i className={"fa fa-" + (clip.expanded ? "minus" : "plus")}></i>
-              </div>
-            </div>
+            {renderCaptions()}
           </div>
-          {highlights.length > 1 ?
-            <div className="video__note-navigator">
-              <div 
-                className="video__note-navigator-row" 
-                style={{fontSize: "18px", color: "rgba(0, 0, 0, 0.3)", cursor: "pointer"}}
-                onClick={handleAltClick}
-              >
-                <i className={"fa fa-chevron-" + (clip.alternatives ? "up" : "down")}></i>
-              </div>
-              {otherHighlights.map((row, i) => {
-                return (
-                  <div key={"row-" + i} className="video__note-navigator-row">
-                    {row}
-                  </div>
-                )
-              })}
-            </div> :
-            ""
-          }
+          {renderHighlightNavigator()}
         </div>
       </div>
     </div>

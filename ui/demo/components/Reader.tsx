@@ -59,6 +59,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [ scrubClip, setScrubClip ] = React.useState(null);
 
+  const [ focusId, setFocusId ] = React.useState(-1);
+
   var history: {[id: number]: {isPlayed: boolean, captions: Array<number>}} = {};
   var clipIds: Array<string> = Object.keys(clips);
   for(var i = 0; i < clipIds.length; i++) { 
@@ -148,6 +150,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     }
 
     setNavigating({ fromId, toId, fromTop, toTop, scrollTo, position: null });
+    setFocusId(toId);
   }
 
   const handleScroll = (e: any) => {
@@ -183,6 +186,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].position = newPosition;
     newClips[clipId].top = highlights[highlightId].rects[0].top;
     newClips[clipId].page = highlights[highlightId].rects[0].page;
+    setFocusId(clipId);
     setClips(newClips);
 
     var copyHistory = {...playedHistory};
@@ -300,6 +304,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                 url={videoUrl} 
                 clips={clips} 
                 highlights={highlights}
+                focusId={focusId}
                 navigating={navigating} 
                 handleNavigate={handleNavigate}
                 navigateToPosition={navigateToPosition}
@@ -309,6 +314,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                 videoWidth={videoWidth}
                 playedHistory={playedHistory}
                 updatePlayedHistory={updatePlayedHistory}
+                setFocusId={setFocusId}
               />
             </div>
             {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}

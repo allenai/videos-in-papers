@@ -14,6 +14,7 @@ type Props = {
   url: string;
   clips: {[index: number]: Clip};
   highlights: {[index: number]: Highlight};
+  focusId: number;
   navigating: {
     fromId: number;
     toId: number;
@@ -30,6 +31,7 @@ type Props = {
   videoWidth: number;
   playedHistory: {[id: number]: {isPlayed: boolean, captions: Array<number>}};
   updatePlayedHistory: (clipId: number, captionIdx: number) => void;
+  setFocusId: (clipId: number) => void;
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -37,6 +39,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     clips,
     highlights,
     navigating,
+    focusId,
     handleNavigate,
     navigateToPosition,
     toggleCaptions,
@@ -45,6 +48,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     videoWidth,
     playedHistory,
     updatePlayedHistory,
+    setFocusId,
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -56,7 +60,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   // On load, find top positions of clips so that they are spread out
   React.useEffect(() => {
     if(pageDimensions.height == 0 || videoWidth == 0) return;
-    setProcessedClips(spreadOutClips(clips, videoWidth, pageDimensions.height * scale));
+    setProcessedClips(spreadOutClips(clips, focusId, videoWidth, pageDimensions.height * scale));
   }, [pageDimensions, clips, videoWidth]);
 
   // Navigate and change playingClip if autoplaying
@@ -81,6 +85,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
         highlights={clip['highlights'].map((id: number) => highlights[id])}
         url={url} 
         numClips={Object.keys(clips).length}
+        isFocus={focusId == id}
         isOverlay={false} 
         isPhantom={true}
         videoWidth={videoWidth}
@@ -105,6 +110,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           top = navigating.fromTop;
           isOverlay = true;
       }
+      console.log(focusId);
       return (
           <Player 
               key={id} 
@@ -115,6 +121,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
               highlights={clip['highlights'].map((id: number) => highlights[id])}
               playingClip={playingClip}
               setPlayingClip={setPlayingClip}
+              isFocus={focusId == id}
               isOverlay={isOverlay} 
               isPhantom={isPhantom}
               handleNavigate={handleNavigateWrapper}
@@ -125,6 +132,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
               videoWidth={videoWidth}
               playedHistory={playedHistory}
               updatePlayedHistory={updatePlayedHistory}
+              setFocusId={setFocusId}
           />
       )
     });

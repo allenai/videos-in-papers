@@ -1,6 +1,6 @@
 import { Clip } from '../types/clips';
 
-const CHAR_WIDTH = 6;
+const CHAR_WIDTH = 6.5;
 
 // Approximate the height of the caption text
 function getTextLineNum(text: string, videoWidth: number) {
@@ -40,24 +40,30 @@ export function checkOverlap(clips: Array<Clip>, heights: {[id: number]: number}
 }
 
 // Spread out clips in page so that they don't overlap
-export function spreadOutClips(clips: {[index: number]: Clip}, videoWidth: number, scaledPageHeight: number) {
+export function spreadOutClips(clips: {[index: number]: Clip}, focusId: number, videoWidth: number, scaledPageHeight: number) {
     var sortedClips = Object.values(clips);
     sortedClips.sort((a, b) => (a.page + a.top) - (b.page + b.top));
 
     // Approximate the height of each video clip
-    var videoHeight = videoWidth / 16 * 9;
-    var base_spacing = videoHeight + 36 + 8 + 16;  // timeline + border width + caption padding
     var heights: {[id: number]: number} = {};
     for(var i = 0; i < sortedClips.length; i++) {
         var clip = sortedClips[i];
-        var caption_text = "Transcript  " + clip['captions'].map((c) => c['caption'].trim()).join(' ');
-        var summary_text = "Summary  " + caption_text.split(".")[0];
-        var num_lines = getTextLineNum(summary_text, videoWidth) + 1;
-        if(clip.expanded)
-            num_lines += getTextLineNum(caption_text, videoWidth);
-        var curr_spacing = base_spacing + (num_lines * 19);
+        var isFocus = clip.id == focusId;
 
-        if(clip['highlights'].length > 1) {
+        var adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.7);
+        var videoHeight = adjustedVideoWidth / 16 * 9;
+        var curr_spacing = videoHeight + 8 + 16 + (isFocus ? 36 : 0);  // timeline + border width + caption padding
+
+        var caption_text = "Transcript   " + clip['captions'].map((c) => c['caption'].trim()).join(' ');
+        var summary_text = "Summary   " + caption_text.split(".")[0];
+        var num_lines = getTextLineNum(summary_text, adjustedVideoWidth) + (isFocus ? 1 : 0);
+        if(isFocus && clip.expanded) {
+            num_lines += getTextLineNum(caption_text, adjustedVideoWidth);
+        }
+        
+        curr_spacing = curr_spacing + (num_lines * 19);
+
+        if(isFocus && clip['highlights'].length > 1) {
             curr_spacing += 8 + 18;
             if(clip['alternatives']) {
                 curr_spacing += Math.ceil(clip['highlights'].length / 2)*(8+33);
