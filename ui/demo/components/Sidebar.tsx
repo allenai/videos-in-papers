@@ -26,6 +26,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   width,
   className,
   id,
+  isCurrent,
   isHighlighted,
   onClick,
   onMouseMove,
@@ -37,7 +38,8 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   const boxSize = { top, left, height, width };
   const componentClassName = classNames(
     'reader__page-overlay__sidebar',
-    isHighlighted !== true ? 'reader__page-overlay__sidebar-unhighlighted' : '',
+    isCurrent == true ? '' : 'reader__page-overlay__sidebar-notcurrent',
+    isHighlighted === true ? 'reader__page-overlay__sidebar-highlighted' : '',
     className
   );
 

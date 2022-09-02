@@ -17,6 +17,7 @@ import { Annotations, generateCitations, PageToAnnotationsMap } from '../types/a
 import { RawCitation } from '../types/citations';
 import { CitationsDemo } from './CitationsDemo';
 import { HighlightOverlayDemo } from './HighlightOverlayDemo';
+import { Header } from './Header';
 import { Outline } from './Outline';
 import { ScrollToDemo } from './ScrollToDemo';
 import { SidebarOverlay } from './SidebarOverlay';
@@ -250,17 +251,19 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     var copyHistory = {...playedHistory};
     if(copyHistory[clipId]['captions'].includes(captionIdx)) return;
     copyHistory[clipId]['isPlayed'] = true;
-    copyHistory[clipId]['captions'].push(captionIdx);
+    if(false && copyHistory[clipId]['captions'].length > 3) {
+      copyHistory[clipId]['captions'].shift();
+      copyHistory[clipId]['captions'].push(captionIdx);
+    } else {
+      copyHistory[clipId]['captions'].push(captionIdx);
+    }
     setPlayedHistory(copyHistory);
   }
 
   return (
     <BrowserRouter>
       <Route path="/">
-        <div className="reader__header">
-          <ZoomOutButton/>
-          <ZoomInButton/>
-        </div>
+        <Header />
         <div className="reader__container">
           <DocumentWrapper 
             className="reader__main"
@@ -284,6 +287,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                       <SidebarOverlay 
                         pageIndex={i} 
                         highlights={highlights} 
+                        clips={clips}
                         changeClipPosition={changeClipPosition}
                         setScrubClip={setScrubClip}
                         playedHistory={playedHistory}

@@ -218,7 +218,7 @@ export function Player({
                     onPause={handlePause}
                     onEnded={handleEnd}
                     width="100%" height="100%"
-                    light={true}
+                    light={false}
                 />
             </div>
             <div className="video__note-captions" onClick={handleCaptionClick}>

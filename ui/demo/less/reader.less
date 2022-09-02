@@ -41,6 +41,11 @@ body {
 }
 
 .reader__header{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 8px;
   text-align: center;
   background-color: #333;
@@ -50,6 +55,8 @@ body {
   width: 100%;
   top: 0;
   left: 0;
+  font-size: 16px;
+  color: #1890ff;
 
   .header-control {
     display: inline-block;
@@ -142,44 +149,53 @@ body {
 
 .reader__page-overlay__sidebar {
   position: absolute;
-  opacity: 0.4;
+  opacity: 0.3;
   border-radius: 6px;
   z-index: @z-index-bounding-box-overlay;
   cursor: pointer;
+  border: solid 2px;
+  &:hover {
+    opacity: 0.6;
+  }
+}
+
+.reader__page-overlay__sidebar-notcurrent {
+  background-color: #00000000 !important;
+}
+
+.reader__page-overlay__sidebar-highlighted {
+  opacity: 1;
+  border: solid 3px;
   &:hover {
     opacity: 1;
   }
 }
 
-.reader__page-overlay__sidebar-unhighlighted {
-  background-color: #00000000 !important;
-}
-
 .reader_sidebar_color-0 {
   background-color: #cb725e;
-  border: solid 3px #cb725e;
+  border-color: #cb725e;
 }
 .reader_sidebar_color-1 {
   background-color: #d9a460;
-  border: solid 3px #d9a460;
+  border-color: #d9a460;
 }
 .reader_sidebar_color-2 {
   background-color: #3e9d29;
-  border: solid 3px #3e9d29;
+  border-color: #3e9d29;
 }
 .reader_sidebar_color-3 {
   background-color: #306ed3;
-  border: solid 3px #306ed3;
+  border-color: #306ed3;
 }
 .reader_sidebar_color-4 {
   background-color: #07cead;
-  border: solid 3px #07cead;
+  border-color: #07cead;
 }
 .reader_sidebar_color-5 {
   background-color: #9d58e1;
-  border: solid 3px #9d58e1;
+  border-color: #9d58e1;
 }
 .reader_sidebar_color-6 {
   background-color: #dd59ba;
-  border: solid 3px #dd59ba;
+  border-color: #dd59ba;
 }

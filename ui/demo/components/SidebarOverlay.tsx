@@ -1,15 +1,17 @@
 import { BoundingBoxType, UiContext, DocumentContext, scaleRawBoundingBox } from '@allenai/pdf-components';
 import { Sidebar } from './Sidebar';
-import { Highlight } from '../types/clips';
+import { Highlight, Clip } from '../types/clips';
 import * as React from 'react';
 
 type Bar = BoundingBoxType & {
   id: number;
+  isHighlighter: boolean;
 }
 
 type Props = {
   pageIndex: number;
   highlights: {[index: number]: Highlight};
+  clips: {[index: number]: Clip};
   changeClipPosition: (id: number) => void;
   setScrubClip: (data: {highlight: number, clip: number, progress: number} | null) => void;
   playedHistory: {[id: number]: {isPlayed: boolean, captions: Array<number>}};
@@ -21,6 +23,7 @@ type Props = {
 export const SidebarOverlay: React.FunctionComponent<Props> = ({ 
     pageIndex, 
     highlights,
+    clips,
     changeClipPosition,
     setScrubClip,
     playedHistory,
@@ -79,7 +82,13 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         if(avgCenter > pageDimensions.width/2) {
             left = pageDimensions.width - left - width;
         }
-        sidebars.push({id: id, top, height: bottom - top, width, left, page});
+
+        var clipId = highlights[id].clip;
+        sidebars.push({
+          id: id, top, height: bottom - top, width, left, page, 
+          isCurrent: clips[clipId].highlights[clips[clipId].position] == parseInt(id),
+          isHighlighted: playedHistory[clipId].isPlayed
+        });
       }
 
       results.push(sidebars);
@@ -120,7 +129,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             id: prop.id,
             className: 'reader_sidebar_color-' + parseInt(highlights[prop.id].clip) % 7,
             // Set isHighlighted to true for highlighted styling
-            isHighlighted: playedHistory[highlights[prop.id].clip].isPlayed,
+            isHighlighted: prop.isHighlighted,
             key: prop.id+"-"+j,
             onClick: onClickSidebar,
             onMouseMove: onMoveInSidebar,
