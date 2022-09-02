@@ -10,6 +10,7 @@ type Bar = BoundingBoxType & {
 export type Props = Bar & {
   className?: string;
   id?: string;
+  isCurrent: boolean;
   isHighlighted?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   onMouseMove?: (e: React.MouseEvent) => void;

@@ -32,6 +32,7 @@ export function PlayerTimeline({
   }, [width]);
 
   const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     var temp = e.currentTarget.getAttribute('data-id');
     var toId: string = temp == null ? "-1" : temp;
     handleNavigate(id, parseInt(toId));

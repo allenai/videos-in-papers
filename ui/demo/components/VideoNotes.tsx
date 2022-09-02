@@ -32,7 +32,7 @@ type Props = {
   playedHistory: Array<number>;
   updatePlayedHistory: (clipId: number) => void;
   setFocusId: (clipId: number) => void;
-  setHoveredWord: ({data: {clipId: number, text: string} | null}) => void;
+  setHoveredWord: (data: {clipId: number, text: string} | null) => void;
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({

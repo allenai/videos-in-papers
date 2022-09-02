@@ -25,8 +25,6 @@ import { WordOverlay } from './WordOverlay';
 import { VideoNotes } from './VideoNotes';
 
 import { Highlight, Clip } from '../types/clips';
-
-import data from '../data/annotations/3491102.3501873.json';
 import { spreadOutClips } from '../utils/positioning';
 
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
@@ -59,8 +57,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // Load data
   const samplePdfUrl = 'public/pdf/3491102.3501873.pdf';
   const videoUrl = 'https://www.youtube.com/watch?v=brCo42DoMu0';
-  const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
-  const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
+  const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>({});
+  const [ clips, setClips ] = React.useState<{[index: number]: Clip}>({});
 
   const [ videoWidth, setVideoWidth ] = React.useState(pageDimensions.height * 0.25 / 9 * 16);
 
@@ -69,7 +67,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ focusId, setFocusId ] = React.useState(-1);
 
   const [ playedHistory, setPlayedHistory ] = React.useState<Array<number>>([]);
-  const [ hoveredWord, setHoveredWord ] = React.useState<{clip: number, text: string} | null>(null);
+  const [ hoveredWord, setHoveredWord ] = React.useState<{clipId: number, text: string} | null>(null);
 
   const {
     isShowingHighlightOverlay,
@@ -78,6 +76,15 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setIsShowingOutline,
     setIsShowingTextHighlight,
   } = React.useContext(UiContext);
+
+  React.useEffect(() => {
+    fetch('/public/annotation/3491102.3501873.json')
+      .then((res) => res.json())
+      .then((data) => {
+        setClips(data['clips']);
+        setHighlights(data['highlights']);
+      });
+  })
 
   React.useEffect(() => {
     setIsShowingTextHighlight(true);
@@ -243,7 +250,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     <BrowserRouter>
       <Route path="/">
         <Header />
-        <div className="reader__container" onScroll={handleScroll}>
+        <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
           <DocumentWrapper 
             className="reader__main"
             file={samplePdfUrl} 

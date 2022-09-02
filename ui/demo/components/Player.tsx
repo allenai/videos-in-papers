@@ -127,6 +127,7 @@ export function Player({
 
   // Navigate to another highlight in the paper
   function handleSideClick(e: React.MouseEvent) {
+    e.stopPropagation();
     var temp = e.currentTarget.getAttribute("data-idx");
     var idx = temp == null ? -1: parseInt(temp);
     if(navigateToPosition)
@@ -135,6 +136,7 @@ export function Player({
 
   // Expand or contract the captions
   function handleCaptionClick(e: React.MouseEvent) {
+    e.stopPropagation();
     if(!isFocus) {
       if(setFocusId) {
         setFocusId(id);
@@ -146,6 +148,7 @@ export function Player({
 
   // Show or hide the alternative highlights
   function handleAltClick(e: React.MouseEvent) {
+    e.stopPropagation();
     if(toggleAltHighlights)
     toggleAltHighlights(id,  !clip['alternatives']);
   }
@@ -267,6 +270,13 @@ export function Player({
     )
   }
 
+  function handleClickNote(e: React.MouseEvent) {
+    e.stopPropagation();
+    if(setFocusId) {
+      setFocusId(id);
+    }
+  }
+
   var left = 20;
   var adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.7)
   var videoHeight = adjustedVideoWidth / 16 * 9;
@@ -295,7 +305,7 @@ export function Player({
         <div>
           {isFocus ? <PlayerTimeline id={id} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper} playedHistory={playedHistory}/> : ""}
           <div className="video__note-container" style={{width: adjustedVideoWidth+"px", borderColor: color}}>
-            <div style={{height: videoHeight+"px"}} onClick={() => setFocusId ? setFocusId(id) : null}>
+            <div style={{height: videoHeight+"px"}} onClick={handleClickNote}>
               {!isFocus ? <div className="video__note-timestamp" style={{backgroundColor: color}}>{timeToStr(duration)}</div> : ""}
               <ReactPlayer 
                   ref={videoRef}

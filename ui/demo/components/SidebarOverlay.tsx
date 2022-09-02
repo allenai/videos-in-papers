@@ -5,7 +5,8 @@ import * as React from 'react';
 
 type Bar = BoundingBoxType & {
   id: number;
-  isHighlighter: boolean;
+  isHighlighted: boolean;
+  isCurrent: boolean;
 }
 
 type Props = {
@@ -87,9 +88,9 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             left = pageDimensions.width - left - 12;
         }
 
-        var clipId = highlights[id].clip;
+        var clipId = parseInt(highlights[parseInt(id)].clip);
         sidebars.push({
-          id: id, top, height: bottom - top, width, left, page, 
+          id: parseInt(id), top, height: bottom - top, width, left, page, 
           isCurrent: clips[clipId].highlights[clips[clipId].position] == parseInt(id),
           isHighlighted: focusId == clipId
         });
@@ -104,13 +105,14 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
   // Click sidebar to move clip to this position
   function onClickSidebar (e: React.MouseEvent) {
     e.stopPropagation();
-    var id: string = e.currentTarget.getAttribute('id')
-    changeClipPosition(parseInt(id));
+    var id: string | null = e.currentTarget.getAttribute('id')
+    changeClipPosition(id == null ? 0 : parseInt(id));
   }
 
   // Move in sidebar to scrub through video
   function onMoveInSidebar (e: React.MouseEvent) {
-    var id: number = parseInt(e.currentTarget.getAttribute('id'));
+    var temp = e.currentTarget.getAttribute('id');
+    var id: number = temp == null ? 0 : parseInt(temp);
     var rect = e.currentTarget.getBoundingClientRect();
     var position = e.pageY - rect.top;
     if(position < 0) position = 0;
@@ -130,7 +132,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         if (prop.page === pageIndex) {
           const props = {
             ...prop,
-            id: prop.id,
+            id: prop.id+"",
             className: 'reader_sidebar_color-' + parseInt(highlights[prop.id].clip) % 7,
             // Set isHighlighted to true for highlighted styling
             isHighlighted: prop.isHighlighted,
