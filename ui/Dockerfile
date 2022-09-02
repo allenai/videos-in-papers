@@ -4,28 +4,32 @@
 # server that's distributed with the UI build tools is used.
 FROM node:12.22.6
 
+WORKDIR /usr/local/src/skiff/app/ui
+COPY ./allenai-pdf-components-0.2.8.tgz ./
+
 # Install dependencies for demo and create a link to the demo's react dependency
 WORKDIR /usr/local/src/skiff/app/ui/demo
 COPY ./demo/package.json ./demo/yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Install dependencies for library and point library to demo react link
-WORKDIR /usr/local/src/skiff/app/ui/library
-COPY ./pdf-component-library/ui/library/package.json ./pdf-component-library/ui/library/yarn.lock ./
-RUN yarn install --frozen-lockfile
+# WORKDIR /usr/local/src/skiff/app/ui/library
+# COPY ./pdf-component-library/ui/library/package.json ./pdf-component-library/ui/library/yarn.lock ./
+# RUN yarn install --frozen-lockfile
 
 # Copy in all of the source code for both the library and the demo
-WORKDIR /usr/local/src/skiff/app/ui
-COPY . .
-WORKDIR /usr/local/src/skiff/app/ui/library
-COPY ./pdf-component-library/ui/library .
+WORKDIR /usr/local/src/skiff/app/ui/demo
+COPY ./demo .
+
+# WORKDIR /usr/local/src/skiff/app/ui/library
+# COPY ./pdf-component-library/ui/library .
 
 # link the demo 'react' dependency to the 'library' to fulfill the peer dependency
 # and build the library and create a link for it
-RUN cd ../demo && yarn link:react \
-    && cd ../library && yarn link:react \
-    && yarn build && yarn link:lib \
-    && cd ../demo && yarn link:lib
+# RUN cd ../demo && yarn link:react \
+#     && cd ../library && yarn link:react \
+#     && yarn build && yarn link:lib \
+#     && cd ../demo && yarn link:lib
 
 WORKDIR /usr/local/src/skiff/app/ui/demo
 

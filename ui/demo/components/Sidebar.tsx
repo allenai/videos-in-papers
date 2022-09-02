@@ -35,7 +35,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
-  const boxSize = { top, left, height, 12 };
+  const boxSize = { top, left, height, width: 12 };
   const componentClassName = classNames(
     'reader__page-overlay__sidebar',
     isCurrent == true ? '' : 'reader__page-overlay__sidebar-notcurrent',
