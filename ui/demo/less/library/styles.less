@@ -1,0 +1,116 @@
+@bounding-box-border: 2px dotted @initial-blue;
+
+.reader__page {
+  background: @pdflib-page-background center center / cover no-repeat;
+  margin: 24px;
+  box-shadow: 0px 4px 14px fade(@pdflib-page-shadow, 20%);
+  flex: 1 0 auto;
+  position: relative;
+}
+
+.reader__page-overlay {
+  position: absolute;
+}
+
+.reader__page-overlay__bounding-box {
+  position: absolute;
+  z-index: @z-index-bounding-box-overlay;
+}
+
+.reader__page-overlay__bounding-box-highlighted {
+  background-color: @initial-blue;
+  mix-blend-mode: screen;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &:hover, &.selected  {
+    background-color: @hover-active-blue;
+    mix-blend-mode: screen;
+  }
+
+}
+
+.reader__page-overlay__bounding-box-underline {
+  pointer-events: none;
+  position: absolute;
+  z-index: @z-index-bounding-box-overlay;
+
+  &.rotate0 {
+    border-bottom: @bounding-box-border;
+  }
+  &.rotate90 {
+    border-left: @bounding-box-border;
+  }
+
+  &.rotate180 {
+    border-top: @bounding-box-border;
+  }
+
+  &.rotate270 {
+    border-right: @bounding-box-border;
+  }
+}
+
+.reader__page--is-building-page-image {
+  outline: 2px solid @loading-outline-yellow;
+}
+
+.reader__page--is-loading-image {
+  align-items: center;
+  background-color: @loading-outline-yellow;
+  justify-content:center;
+  height: 24px;
+  margin: 0 auto;
+  padding: 0px 12px;
+  text-align: center;
+  top: 0;
+  width: 125px;
+}
+
+.reader__page-highlight-overlay {
+  pointer-events: none;
+  position: absolute;
+  z-index: @z-index-bounding-box-overlay;
+}
+
+.reader__page__outline-target {
+  position: absolute;
+  visibility: hidden;
+}
+
+.react-pdf__Page {
+  height: 100%;
+}
+
+// HACK: avoid mis-alignment of selected texts
+.react-pdf__Page__textContent>span {
+  height: 0em!important;
+}
+
+.reader__download-btn {
+  align-items: center;
+  display: flex;
+}
+
+.reader__page-number-control__current-page[type="number"]  {
+  border-radius: 3px;
+  height: 24px;
+  -moz-appearance: textfield;
+  text-align: center;
+  width: 24px;
+}
+
+.reader__page-number-control__total-pages {
+  border: none;
+}
+
+.reader__page-number-control__separator {
+  padding: 5px;
+}
+
+.reader__page-number-control__current-page::-webkit-inner-spin-button,
+.reader__page-number-control__current-page::-webkit-outer-spin-button { 
+	-webkit-appearance: none;
+}
