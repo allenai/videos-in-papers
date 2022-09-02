@@ -26,6 +26,7 @@ services:
             - ./ui/demo/data:/usr/local/src/skiff/app/ui/demo/data
             - ./ui/demo/utils:/usr/local/src/skiff/app/ui/demo/utils
             - ./ui/demo/public:/usr/local/src/skiff/app/ui/demo/public
+            - ./ui/pdf-component-library/ui/library:/usr/local/src/skiff/app/ui/pdf-component-library/ui/library
         environment:
             - NODE_ENV=development
     proxy:
