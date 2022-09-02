@@ -1,4 +1,4 @@
-import { Clip } from '../types/clips';
+import { Highlight, Clip } from '../types/clips';
 
 const CHAR_WIDTH = 7;
 
@@ -94,4 +94,10 @@ export function spreadOutClips(clips: {[index: number]: Clip}, focusId: number, 
         overlaps = checkOverlap(sortedClips, heights);
     }
     return clips;
+}
+
+export function positionSingleClip(clip: Clip, clips: {[index: number]: Clip}, highlights: {[index: number]: Highlight}, videoWidth: number) {
+    var highlightId = clip.highlights[clip.position];
+    var highlight = highlights[highlightId];
+    return {top: 0, left: 0};
 }

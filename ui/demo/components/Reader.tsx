@@ -23,6 +23,7 @@ import { ScrollToDemo } from './ScrollToDemo';
 import { SidebarOverlay } from './SidebarOverlay';
 import { WordOverlay } from './WordOverlay';
 import { VideoNotes } from './VideoNotes';
+import { VideoPopup } from './VideoPopup';
 
 import { Highlight, Clip } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
@@ -247,6 +248,66 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         Loading...
       </div>
     )
+  } else if (videoWidth > 150) {
+    return (
+      <BrowserRouter>
+        <Route path="/">
+          <Header />
+          <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
+            <DocumentWrapper 
+              className="reader__main"
+              file={samplePdfUrl} 
+              inputRef={pdfContentRef} 
+            >
+              {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}
+              <div className="reader__main-inner">
+                <Outline parentRef={pdfContentRef} />
+                <div className="reader__page-list" ref={pdfScrollableRef}>
+                  {Array.from({ length: numPages }).map((_, i) => (
+                    <PageWrapper key={i} pageIndex={i}>
+                      <Overlay>
+                        <WordOverlay
+                          pageIndex={i}
+                          clips={clips}
+                          highlights={highlights}
+                          hoveredWord={hoveredWord}
+                        />
+                        <SidebarOverlay 
+                          pageIndex={i} 
+                          highlights={highlights} 
+                          clips={clips}
+                          changeClipPosition={changeClipPosition}
+                          setScrubClip={setScrubClip}
+                          focusId={focusId}
+                          playedHistory={playedHistory}
+                        />
+                      </Overlay>
+                    </PageWrapper>
+                  ))}
+                </div>
+                <VideoNotes  
+                  clips={clips} 
+                  highlights={highlights}
+                  focusId={focusId}
+                  navigating={navigating} 
+                  handleNavigate={handleNavigate}
+                  navigateToPosition={navigateToPosition}
+                  toggleCaptions={toggleCaptions}
+                  toggleAltHighlights={toggleAltHighlights}
+                  scrubClip={scrubClip}
+                  videoWidth={videoWidth}
+                  playedHistory={playedHistory}
+                  updatePlayedHistory={updatePlayedHistory}
+                  setFocusId={setFocusId}
+                  setHoveredWord={setHoveredWord}
+                />
+              </div>
+              {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}
+            </DocumentWrapper>
+          </div>
+        </Route>
+      </BrowserRouter>
+    );
   } else {
     return (
       <BrowserRouter>
@@ -284,8 +345,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                     </PageWrapper>
                   ))}
                 </div>
-                <VideoNotes 
-                  url={videoUrl} 
+                <VideoPopup 
                   clips={clips} 
                   highlights={highlights}
                   focusId={focusId}

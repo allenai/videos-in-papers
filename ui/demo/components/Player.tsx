@@ -12,6 +12,7 @@ import { PlayerTimeline } from './PlayerTimeline';
 interface Props {
   id: number;
   top: number;
+  left?: number;
   clip: Clip;
   clips: Array<Clip>;
   highlights: Array<Highlight>;
@@ -45,6 +46,7 @@ function timeToStr(time: number) {
 export function Player({
   id,
   top,
+  left,
   clip,
   clips,
   highlights,
@@ -284,14 +286,14 @@ export function Player({
     }
   }
 
-  var left = 20;
+  var newLeft = left ? left: 20;
   var adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.7)
   var videoHeight = adjustedVideoWidth / 16 * 9;
 
   // If clip is navigating, adjust the positions to be relative
-  if(isOverlay) {
+  if(isOverlay && !left) {
       var container = document.getElementsByClassName('video__note-list')[0].getBoundingClientRect();
-      left = container.left + 20;
+      newLeft = container.left + 20;
   }
 
   var color = colors[id % 7];

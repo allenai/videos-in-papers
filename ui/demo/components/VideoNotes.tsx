@@ -11,7 +11,6 @@ import { Highlight, Clip } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
 
 type Props = {
-  url: string;
   clips: {[index: number]: Clip};
   highlights: {[index: number]: Highlight};
   focusId: number;
@@ -36,7 +35,6 @@ type Props = {
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
-    url,
     clips,
     highlights,
     navigating,
@@ -115,7 +113,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           top = navigating.fromTop;
           isOverlay = true;
       }
-      
+
       return (
           <Player 
               key={id} 

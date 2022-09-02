@@ -42,7 +42,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
   function getSidebarProps() {
     var results : Array<Array<Bar>> = [];
     for(var i = 0; i < Object.keys(highlights).length; i++) {
-      var id = Object.keys(highlights)[i];
+      var id = parseInt(Object.keys(highlights)[i]);
       var sidebars: Array<Bar> = [];
       var rects = highlights[id].rects;
       var pages: Array<number> = []
@@ -51,7 +51,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         pages.push(rects[j].page);
       }
 
-      var clipId = parseInt(highlights[parseInt(id)].clip);
+      var clipId = parseInt(highlights[id].clip);
 
       for(var j = 0; j < pages.length; j++) {
         var page = pages[j];
@@ -71,8 +71,8 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
                 left = pageDimensions.width - left - 12;
               }
               sidebars.push({
-                id: parseInt(id), top, height: bottom - top, width, left, page,
-                isCurrent: clips[clipId].highlights[clips[clipId].position] == parseInt(id),
+                id: id, top, height: bottom - top, width, left, page,
+                isCurrent: clips[clipId].highlights[clips[clipId].position] == id,
                 isHighlighted: focusId == clipId
               });
               top = bbox.top;
@@ -95,8 +95,8 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         }
 
         sidebars.push({
-          id: parseInt(id), top, height: bottom - top, width, left, page, 
-          isCurrent: clips[clipId].highlights[clips[clipId].position] == parseInt(id),
+          id: id, top, height: bottom - top, width, left, page, 
+          isCurrent: clips[clipId].highlights[clips[clipId].position] == id,
           isHighlighted: focusId == clipId
         });
       }
