@@ -16,7 +16,7 @@ interface Props {
   clips: Array<Clip>;
   highlights: Array<Highlight>;
   playingClip: number;
-  setPlayingClip: (id: number) => void;
+  setPlayingClip?: (id: number) => void;
   isFocus: boolean;
   isOverlay: boolean;
   isPhantom: boolean;
@@ -27,8 +27,9 @@ interface Props {
   scrubPosition: number;
   videoWidth: number;
   playedHistory: Array<number>;
-  updatePlayedHistory: (clipId: number) => void;
+  updatePlayedHistory?: (clipId: number) => void;
   setFocusId?: (clipId: number) => void;
+  setHoveredWord?: (data: {clipId: number, text: string} | null) => void;
 }
 
 const colors = [
@@ -60,7 +61,8 @@ export function Player({
   videoWidth,
   playedHistory,
   updatePlayedHistory,
-  setFocusId
+  setFocusId,
+  setHoveredWord
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -69,6 +71,8 @@ export function Player({
   const [progress, setProgress] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
   const [pushable, setPushable] = React.useState(false);
+
+  const [hoveredWordId, setHoveredWordId] = React.useState("");
 
   const videoRef = React.useRef<ReactPlayerProps>(null);
 
@@ -83,7 +87,7 @@ export function Player({
 
       for(var i = 0; i < clip.captions.length; i++) {
         var caption = clip.captions[i];
-        if(caption.start/1000 <= actualTime && actualTime <= caption.end/1000) { 
+        if(caption.start/1000 <= actualTime && actualTime <= caption.end/1000 && updatePlayedHistory) { 
           updatePlayedHistory(id);
         }
       }
@@ -115,8 +119,9 @@ export function Player({
   function handleNavigateWrapper(fromId: number, toId: number) {
     if(handleNavigate) {
       handleNavigate(fromId, toId, false);
-      if(isPlaying)
+      if(isPlaying && setPlayingClip) {
         setPlayingClip(-1);
+      }
     }
   }
 
@@ -130,8 +135,13 @@ export function Player({
 
   // Expand or contract the captions
   function handleCaptionClick(e: React.MouseEvent) {
-    if(toggleCaptions)
+    if(!isFocus) {
+      if(setFocusId) {
+        setFocusId(id);
+      }
+    } else if(toggleCaptions) {
       toggleCaptions(id,  !clip['expanded']);
+    }
   }
 
   // Show or hide the alternative highlights
@@ -151,10 +161,14 @@ export function Player({
   }
 
   function handlePlay() {
-    setPlayingClip(id);
+    if(setPlayingClip) {
+      setPlayingClip(id);
+    }
   }
   function handlePause() {
-    setPlayingClip(-1);
+    if(setPlayingClip) {
+      setPlayingClip(-1);
+    }
   }
 
   var testSummaries = [
@@ -207,19 +221,40 @@ export function Player({
     )
   }
 
+  function handleWordEnter(wordId: string, text: string) {
+    if(setHoveredWord) {
+      setHoveredWord({clipId: id, text: text});
+      setHoveredWordId(wordId);
+    }
+  }
+  function handleWordLeave() {
+    if(setHoveredWord) {
+      setHoveredWord(null);
+      setHoveredWordId("");
+    }
+  }
+
   function renderCaptions() {
     return (
       <div className="video__note-captions" onClick={handleCaptionClick}>
         <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}
         {isFocus && !!clip.expanded ? 
-          <div>
+          <div style={{lineBreak: "anywhere"}}>
             <b>Transcript</b>&nbsp;&nbsp;
             {clip['captions'].map((caption: Caption, i: number) => {
+              var words = caption.caption.split(" ");
               return (
-                <span 
-                  key={i}
-                >{caption.caption}&nbsp;</span>
-              );
+                words.map((text, j) => {
+                  return (
+                    <span 
+                      key={j} style={hoveredWordId == i+'-'+j ? {backgroundColor: color + "33"} : {}}
+                      onMouseEnter={() => handleWordEnter(i+'-'+j, text)} onMouseLeave={handleWordLeave}
+                    >
+                      {text}&nbsp;
+                    </span>
+                  )
+                })
+              )
             })}
           </div> : ""
         }

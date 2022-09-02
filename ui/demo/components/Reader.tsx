@@ -29,15 +29,6 @@ import { Highlight, Clip } from '../types/clips';
 import data from '../data/annotations/3491102.3501873.json';
 import { spreadOutClips } from '../utils/positioning';
 
-type NavigatingType = {
-  fromId: number,
-  toId: number,
-  fromTop: number,
-  toTop: number,
-  scrollTo: number,
-  position: number | null,
-}
-
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -55,7 +46,14 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   // Navigation mode = auto-scrolling between video clips
   // Scroll overflow checks if padding needs to be added to the page
-  const [navigating, setNavigating] = React.useState<NavigatingType | null>(null);
+  const [navigating, setNavigating] = React.useState<{
+    fromId: number,
+    toId: number,
+    fromTop: number,
+    toTop: number,
+    scrollTo: number,
+    position: number | null,
+  } | null>(null);
   const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
   // Load data
@@ -71,6 +69,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ focusId, setFocusId ] = React.useState(-1);
 
   const [ playedHistory, setPlayedHistory ] = React.useState<Array<number>>([]);
+  const [ hoveredWord, setHoveredWord ] = React.useState<{clip: number, text: string} | null>(null);
 
   const {
     isShowingHighlightOverlay,
@@ -244,12 +243,11 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     <BrowserRouter>
       <Route path="/">
         <Header />
-        <div className="reader__container">
+        <div className="reader__container" onScroll={handleScroll}>
           <DocumentWrapper 
             className="reader__main"
             file={samplePdfUrl} 
             inputRef={pdfContentRef} 
-            onScroll={handleScroll}
           >
             {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}
             <div className="reader__main-inner">
@@ -262,6 +260,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         pageIndex={i}
                         clips={clips}
                         highlights={highlights}
+                        hoveredWord={hoveredWord}
                       />
                       <SidebarOverlay 
                         pageIndex={i} 
@@ -291,6 +290,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                 playedHistory={playedHistory}
                 updatePlayedHistory={updatePlayedHistory}
                 setFocusId={setFocusId}
+                setHoveredWord={setHoveredWord}
               />
             </div>
             {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}

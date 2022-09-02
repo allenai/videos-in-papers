@@ -6,6 +6,7 @@ type Props = {
   pageIndex: number;
   clips: {[index: number]: Clip};
   highlights: {[index: number]: Highlight};
+  hoveredWord: {clipId: number, text: string} | null;
 };
 
 const colors = [
@@ -21,48 +22,33 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
     pageIndex, 
     clips,
     highlights,
+    hoveredWord,
 }: Props) => {
   const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
+
+  console.log(hoveredWord);
 
   if (!isShowingTextHighlight) {
     return null;
   }
 
-  function getTokens() {
-    var words = [];
-    
-    var pageHighlights = Object.keys(highlights).filter((key: string) => {
-      var pageRects = highlights[parseInt(key)].rects.filter((rect: BoundingBoxType) => rect.page == pageIndex);
-      return pageRects.length > 0;
-    });
+  function processText(text: string) {
+    return text.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "");
+  }
 
-    var allTokens: Array<Token> = pageHighlights.map((key) => {
-      var highlight: Highlight = highlights[parseInt(key)];
-      var clipId = parseInt(highlight.clip);
-      var clip = clips[clipId];
-      if(clip.highlights[clip.position] != parseInt(key)) {
-        return [];
-      }
-      var clipText = clip.captions.map((caption, i) => {
-        return words.includes(i) ? caption.caption.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "") : "";
-      }).reduce((prev: string, curr: string) => {
-        return prev + " " + curr;
-      });
-      var clipWords = clipText.split(" ");
-      
-      return highlight['tokens'].filter((token) => {
-        var tokenText = token.text.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "");
-        return token.page == pageIndex && tokenText.length > 0 && !stopwords.includes(tokenText) && clipWords.includes(tokenText);
-      }).map((token) => {
-        return {...token, clip: clipId};
-      });
-    })
-    if(allTokens.length == 0) 
+  function getTokens() {
+    if(hoveredWord == null) {
       return [];
+    }
     
-    return allTokens.reduce((prev, curr) => {
-      return prev.concat(curr)
+    var clip = clips[hoveredWord.clipId];
+    var highlightId = clip.highlights[clip.position];
+    var highlight = highlights[highlightId];
+    var tokens = highlight['tokens'];
+    
+    return tokens.filter((token) => {
+      return token.page == pageIndex && processText(token.text) == processText(hoveredWord.text);
     })
   }
 
@@ -75,7 +61,7 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
         const props = {
             ...bbox,
             id: pageIndex+'-'+token.id,
-            className: 'reader_highlight_color-' + (token.clip % 7),
+            className: 'reader_highlight_color-' + (token.clip ? token.clip % 7 : 0),
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
             key: pageIndex+'-'+token.id,

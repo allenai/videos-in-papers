@@ -30,4 +30,6 @@ export type Clip = {
 export type Token = BoundingBoxType & {
     id: number,
     text: string,
+    page: number,
+    clip?: number,
 }

@@ -21,17 +21,18 @@ type Props = {
     fromTop: number;
     toTop: number;
     scrollTo: number;
-    position: number;
-  };
+    position: number | null;
+  } | null;
   handleNavigate: (fromId: number, toId: number) => void;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
   toggleCaptions: (clipId: number, isExpand: boolean) => void;
   toggleAltHighlights: (clipId: number, isShow: boolean) => void;
-  scrubClip: {highlight: number, clip: number, progress: number};
+  scrubClip: {highlight: number, clip: number, progress: number} | null;
   videoWidth: number;
   playedHistory: Array<number>;
   updatePlayedHistory: (clipId: number) => void;
   setFocusId: (clipId: number) => void;
+  setHoveredWord: ({data: {clipId: number, text: string} | null}) => void;
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -49,6 +50,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     playedHistory,
     updatePlayedHistory,
     setFocusId,
+    setHoveredWord
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -72,6 +74,9 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
 
   // Render a phantom clip to act as placeholder for clips during navigation
   function renderPhantom(timeOrderedClips: Array<Clip>): React.ReactElement {
+    if(navigating == null) {
+      return <></>;
+    }
     var clip = processedClips[navigating.toId];
     var id = clip.id
     var top = (clip.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
@@ -80,11 +85,11 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
         key={"phantom-" + id}
         id={id+100000} 
         top={top}
-        clip={clip} 
+        clip={clip}
         clips={timeOrderedClips}
+        playingClip={playingClip}
+        scrubPosition={-1}
         highlights={clip['highlights'].map((id: number) => highlights[id])}
-        url={url} 
-        numClips={Object.keys(clips).length}
         isFocus={focusId == id}
         isOverlay={false} 
         isPhantom={true}
@@ -133,6 +138,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
               playedHistory={playedHistory}
               updatePlayedHistory={updatePlayedHistory}
               setFocusId={setFocusId}
+              setHoveredWord={setHoveredWord}
           />
       )
     });
