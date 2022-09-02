@@ -1,3 +1,4 @@
+import { scaleRawBoundingBox } from '@allenai/pdf-components';
 import { Highlight, Clip } from '../types/clips';
 
 const CHAR_WIDTH = 7;
@@ -96,8 +97,39 @@ export function spreadOutClips(clips: {[index: number]: Clip}, focusId: number, 
     return clips;
 }
 
-export function positionSingleClip(clip: Clip, clips: {[index: number]: Clip}, highlights: {[index: number]: Highlight}, videoWidth: number) {
+export function positionSingleClip(clip: Clip, highlights: {[index: number]: Highlight}, pageHeight: number, pageWidth: number) {
     var highlightId = clip.highlights[clip.position];
     var highlight = highlights[highlightId];
-    return {top: 0, left: 0};
+    var rects = highlight.rects;
+
+    var page = 100000;
+    var top = 100000;
+    var finalBbox = null;
+    for(var k = 0; k < rects.length; k++) {
+        var bbox = rects[k];
+        var currCenter = bbox.left + bbox.width/2;
+        
+        if(page > bbox.page) {
+            page = bbox.page;
+            top = bbox.top;
+            finalBbox = bbox;
+        } else if(page == bbox.page && top > bbox.top) {
+            top = bbox.top;
+            finalBbox = bbox;
+        }
+    }
+
+    if(finalBbox == null) {
+        return {top: 0, left: 0, page: 0};
+    }
+
+    if(finalBbox.width < 0.5) {
+        var left = (0.5 - finalBbox.width)/2;
+        if(finalBbox.left < 0.5) {
+            left = left + 0.5;
+        }
+        return {top: top, left: left, page: finalBbox.page};
+    } else {
+        return {top: finalBbox.top + finalBbox.height, left: finalBbox.left + finalBbox.width / 2, page: finalBbox.page};
+    }
 }

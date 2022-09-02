@@ -248,7 +248,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         Loading...
       </div>
     )
-  } else if (videoWidth > 150) {
+  } else if (pageDimensions.width > 0 && videoWidth > 150) {
     return (
       <BrowserRouter>
         <Route path="/">

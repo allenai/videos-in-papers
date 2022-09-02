@@ -65,14 +65,19 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
 
   // Render all the clips
   function renderClips(): React.ReactElement {
+    if(focusId == -1) {
+        return <></>;
+    }
+
     var timeOrderedClips = Object.values(clips);
     timeOrderedClips.sort((a, b) => a['start'] - b['start']);
 
-    var adjustedVideoWidth = pageDimensions.width * scale * 0.5 + 48;
+    var adjustedVideoWidth = pageDimensions.width * scale * 0.4;
 
     var clip = clips[focusId];
-    var clipPosition = positionSingleClip(clip, clips, highlights, adjustedVideoWidth);
-    var top = (clipPosition.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
+    var clipPosition = positionSingleClip(clip, highlights, pageDimensions.height, pageDimensions.width);
+    console.log(clipPosition);
+    var top = (clipPosition.top + clipPosition.page) * pageDimensions.height * scale + (24 + clip.page * 48);
     var left = (clipPosition.left) * pageDimensions.width * scale + 20;
     var isOverlay = false;
     var isPhantom = false;
@@ -110,7 +115,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
   }
 
   return (
-    <div className="video__note-list" style={{width: videoWidth + 40 + "px"}}>
+    <div className="video__note-popup">
         {renderClips()}
     </div>
   )

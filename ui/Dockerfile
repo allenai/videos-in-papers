@@ -21,6 +21,9 @@ RUN yarn install --frozen-lockfile
 WORKDIR /usr/local/src/skiff/app/ui/demo
 COPY ./demo .
 
+WORKDIR /usr/local/src/skiff/app/ui
+COPY . .
+
 # WORKDIR /usr/local/src/skiff/app/ui/library
 # COPY ./pdf-component-library/ui/library .
 
