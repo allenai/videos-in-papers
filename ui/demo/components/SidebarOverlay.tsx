@@ -14,7 +14,8 @@ type Props = {
   clips: {[index: number]: Clip};
   changeClipPosition: (id: number) => void;
   setScrubClip: (data: {highlight: number, clip: number, progress: number} | null) => void;
-  playedHistory: {[id: number]: {isPlayed: boolean, captions: Array<number>}};
+  playedHistory: Array<number>;
+  focusId: number;
 };
 
 /*
@@ -26,6 +27,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     clips,
     changeClipPosition,
     setScrubClip,
+    focusId,
     playedHistory,
 }: Props) => {
   const { isShowingTextHighlight } = React.useContext(UiContext);
@@ -87,7 +89,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         sidebars.push({
           id: id, top, height: bottom - top, width, left, page, 
           isCurrent: clips[clipId].highlights[clips[clipId].position] == parseInt(id),
-          isHighlighted: playedHistory[clipId].isPlayed
+          isHighlighted: focusId == clipId
         });
       }
 

@@ -6,7 +6,6 @@ type Props = {
   pageIndex: number;
   clips: {[index: number]: Clip};
   highlights: {[index: number]: Highlight};
-  playedHistory: {[index: number]: {isPlayed: boolean, captions: Array<number>}};
 };
 
 const colors = [
@@ -22,7 +21,6 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
     pageIndex, 
     clips,
     highlights,
-    playedHistory,
 }: Props) => {
   const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
@@ -32,6 +30,8 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
   }
 
   function getTokens() {
+    var words = [];
+    
     var pageHighlights = Object.keys(highlights).filter((key: string) => {
       var pageRects = highlights[parseInt(key)].rects.filter((rect: BoundingBoxType) => rect.page == pageIndex);
       return pageRects.length > 0;
@@ -45,7 +45,7 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
         return [];
       }
       var clipText = clip.captions.map((caption, i) => {
-        return playedHistory[clipId]['captions'].includes(i) ? caption.caption.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "") : "";
+        return words.includes(i) ? caption.caption.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "") : "";
       }).reduce((prev: string, curr: string) => {
         return prev + " " + curr;
       });

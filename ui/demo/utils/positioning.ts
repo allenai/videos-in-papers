@@ -1,10 +1,10 @@
 import { Clip } from '../types/clips';
 
-const CHAR_WIDTH = 6.5;
+const CHAR_WIDTH = 7;
 
 // Approximate the height of the caption text
 function getTextLineNum(text: string, videoWidth: number) {
-    var num_lines = Math.ceil((text.length * CHAR_WIDTH) / videoWidth);
+    var num_lines = Math.ceil((text.length * CHAR_WIDTH) / (videoWidth - 24));
     return num_lines;
 }
 
@@ -61,7 +61,7 @@ export function spreadOutClips(clips: {[index: number]: Clip}, focusId: number, 
             num_lines += getTextLineNum(caption_text, adjustedVideoWidth);
         }
         
-        curr_spacing = curr_spacing + (num_lines * 19);
+        curr_spacing = curr_spacing + (num_lines * 22);
 
         if(isFocus && clip['highlights'].length > 1) {
             curr_spacing += 8 + 18;

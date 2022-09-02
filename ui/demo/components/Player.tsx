@@ -26,8 +26,8 @@ interface Props {
   toggleAltHighlights?: (clipId: number, isShow: boolean) => void;
   scrubPosition: number;
   videoWidth: number;
-  playedHistory: {[index: number]: {isPlayed: boolean, captions: Array<number>}};
-  updatePlayedHistory: (clipId: number, captionIdx: number) => void;
+  playedHistory: Array<number>;
+  updatePlayedHistory: (clipId: number) => void;
   setFocusId?: (clipId: number) => void;
 }
 
@@ -84,7 +84,7 @@ export function Player({
       for(var i = 0; i < clip.captions.length; i++) {
         var caption = clip.captions[i];
         if(caption.start/1000 <= actualTime && actualTime <= caption.end/1000) { 
-          updatePlayedHistory(id, i);
+          updatePlayedHistory(id);
         }
       }
     }
@@ -216,8 +216,7 @@ export function Player({
             {clip['captions'].map((caption: Caption, i: number) => {
               return (
                 <span 
-                  key={i} 
-                  style={playedHistory[id]['captions'].includes(i) ? {backgroundColor: color+"22", borderRadius: "2px"} : {}}
+                  key={i}
                 >{caption.caption}&nbsp;</span>
               );
             })}

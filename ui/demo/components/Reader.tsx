@@ -29,6 +29,15 @@ import { Highlight, Clip } from '../types/clips';
 import data from '../data/annotations/3491102.3501873.json';
 import { spreadOutClips } from '../utils/positioning';
 
+type NavigatingType = {
+  fromId: number,
+  toId: number,
+  fromTop: number,
+  toTop: number,
+  scrollTo: number,
+  position: number | null,
+}
+
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -46,7 +55,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   // Navigation mode = auto-scrolling between video clips
   // Scroll overflow checks if padding needs to be added to the page
-  const [navigating, setNavigating] = React.useState(null);
+  const [navigating, setNavigating] = React.useState<NavigatingType | null>(null);
   const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
   // Load data
@@ -61,13 +70,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [ focusId, setFocusId ] = React.useState(-1);
 
-  var history: {[id: number]: {isPlayed: boolean, captions: Array<number>}} = {};
-  var clipIds: Array<string> = Object.keys(clips);
-  for(var i = 0; i < clipIds.length; i++) { 
-    var id: number = parseInt(clipIds[i])
-    history[id] = { isPlayed: false, captions: [] };
-  }
-  const [ playedHistory, setPlayedHistory ] = React.useState<{[id: number]: {isPlayed: boolean, captions: Array<number>}}>(history);
+  const [ playedHistory, setPlayedHistory ] = React.useState<Array<number>>([]);
 
   const {
     isShowingHighlightOverlay,
@@ -120,39 +123,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     container.scrollTo({top: navigating.scrollTo, left: 0, behavior: "smooth"})
   }, [navigating]);
 
-  // Scroll from video clip to video clip
-  const handleNavigate = (fromId: number, toId: number) => {
-    if(fromId == toId) return;
-    var container = document.getElementsByClassName("reader__main")[0];
-
-    var fromVideo = document.getElementById("video__note-" + fromId);
-    var fromTop = 0;
-    if(fromVideo != null)
-      fromTop = fromVideo.getBoundingClientRect().top;
-    
-    var toVideo = document.getElementById("video__note-" + toId);
-    var toTop = 0;
-    if(toVideo != null)
-      toTop = toVideo.getBoundingClientRect().top + container.scrollTop;
-
-    // ScrollTo location = location of toId but adjusted to match relative screen location of fromId
-    var scrollTo = Math.floor(toTop - fromTop);
-
-    // Add padding to the page if scroll overflows beyond the page
-    if(scrollTo < 0) {
-      setScrollOverflow(-1);
-      var container = document.getElementsByClassName("reader__main")[0];
-      scrollTo += 1000
-    } else if (scrollTo + window.innerHeight > container.scrollHeight) {
-      setScrollOverflow(1);
-      if(scrollOverflow == -1)
-        scrollTo -= 1000
-    }
-
-    setNavigating({ fromId, toId, fromTop, toTop, scrollTo, position: null });
-    setFocusId(toId);
-  }
-
   const handleScroll = (e: any) => {
     if(navigating == null) {
       // Remove the padding spaces added to handle overflow
@@ -178,20 +148,12 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     }
   };
 
-  // Move clip to the position of another paper highlight
-  const changeClipPosition = (highlightId: number) => {
-    var clipId = highlights[highlightId]['clip'];
-    var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
-    var newPosition = newClips[clipId].highlights.findIndex((ele) => ele == highlightId);
-    newClips[clipId].position = newPosition;
-    newClips[clipId].top = highlights[highlightId].rects[0].top;
-    newClips[clipId].page = highlights[highlightId].rects[0].page;
-    setFocusId(clipId);
-    setClips(newClips);
+  // Scroll from video clip to video clip
+  const handleNavigate = (fromId: number, toId: number) => {
+    if(fromId == toId) return;
+    var container = document.getElementsByClassName("reader__main")[0];
 
-    var copyHistory = {...playedHistory};
-    copyHistory[clipId]['captions'] = [];
-    setPlayedHistory(copyHistory);
+    arrangeAndNavigate(clips, fromId, toId, null);
   }
 
   // Navigate with clip to the position of another paper highlight
@@ -204,15 +166,19 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].top = highlights[highlightId].rects[0].top;
     newClips[clipId].page = highlights[highlightId].rects[0].page;
 
+    arrangeAndNavigate(newClips, clipId, clipId, highlightIdx);
+  }
+
+  const arrangeAndNavigate = (newClips: {[index: number]: Clip}, fromId: number, toId: number, highlightIdx: number | null) => {
     // Find what the clip's top will be in the new position;
-    var spreadClips = spreadOutClips(newClips, videoWidth, pageDimensions.height * scale);
+    var spreadClips = spreadOutClips(newClips, toId, videoWidth, pageDimensions.height * scale);
     var container = document.getElementsByClassName("reader__main")[0];
-    var fromVideo = document.getElementById("video__note-" + clipId);
+    var fromVideo = document.getElementById("video__note-" + fromId);
     var fromTop = 0;
     if(fromVideo != null)
       fromTop = fromVideo.getBoundingClientRect().top;
 
-    var toTop = (spreadClips[clipId].top + spreadClips[clipId].page) * pageDimensions.height * scale + (24 + spreadClips[clipId].page * 48) + 38;
+    var toTop = (spreadClips[toId].top + spreadClips[toId].page) * pageDimensions.height * scale + (24 + spreadClips[toId].page * 48) + 38;
     if(scrollOverflow == -1)
       toTop += 1000;
 
@@ -229,11 +195,28 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     }
     setClips(newClips);
 
-    var copyHistory = {...playedHistory};
-    copyHistory[clipId]['captions'] = [];
-    setPlayedHistory(copyHistory);
+    if(!playedHistory.includes(toId)) {
+      setPlayedHistory([...playedHistory, toId]);
+    }
+    setFocusId(toId);
     
-    setNavigating({ fromId: -1, toId: clipId, fromTop, toTop, scrollTo, position: highlightIdx });
+    setNavigating({ fromId: fromId != toId ? fromId : -1, toId: toId, fromTop, toTop, scrollTo, position: highlightIdx });
+  }
+
+  // Move clip to the position of another paper highlight
+  const changeClipPosition = (highlightId: number) => {
+    var clipId = highlights[highlightId]['clip'];
+    var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+    var newPosition = newClips[clipId].highlights.findIndex((ele) => ele == highlightId);
+    newClips[clipId].position = newPosition;
+    newClips[clipId].top = highlights[highlightId].rects[0].top;
+    newClips[clipId].page = highlights[highlightId].rects[0].page;
+    setFocusId(clipId);
+    setClips(newClips);
+
+    if(!playedHistory.includes(parseInt(clipId))) {
+      setPlayedHistory([...playedHistory, parseInt(clipId)]);
+    }
   }
 
   // Expand or contract captions
@@ -251,17 +234,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setClips(newClips);
   }
 
-  const updatePlayedHistory = (clipId: number, captionIdx: number) => {
-    var copyHistory = {...playedHistory};
-    if(copyHistory[clipId]['captions'].includes(captionIdx)) return;
-    copyHistory[clipId]['isPlayed'] = true;
-    if(false && copyHistory[clipId]['captions'].length > 3) {
-      copyHistory[clipId]['captions'].shift();
-      copyHistory[clipId]['captions'].push(captionIdx);
-    } else {
-      copyHistory[clipId]['captions'].push(captionIdx);
+  const updatePlayedHistory = (clipId: number) => {
+    if(!playedHistory.includes(clipId)) {
+      setPlayedHistory([...playedHistory, clipId]);
     }
-    setPlayedHistory(copyHistory);
   }
 
   return (
@@ -286,7 +262,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         pageIndex={i}
                         clips={clips}
                         highlights={highlights}
-                        playedHistory={playedHistory}
                       />
                       <SidebarOverlay 
                         pageIndex={i} 
@@ -294,6 +269,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         clips={clips}
                         changeClipPosition={changeClipPosition}
                         setScrubClip={setScrubClip}
+                        focusId={focusId}
                         playedHistory={playedHistory}
                       />
                     </Overlay>

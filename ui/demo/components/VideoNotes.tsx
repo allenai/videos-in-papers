@@ -29,8 +29,8 @@ type Props = {
   toggleAltHighlights: (clipId: number, isShow: boolean) => void;
   scrubClip: {highlight: number, clip: number, progress: number};
   videoWidth: number;
-  playedHistory: {[id: number]: {isPlayed: boolean, captions: Array<number>}};
-  updatePlayedHistory: (clipId: number, captionIdx: number) => void;
+  playedHistory: Array<number>;
+  updatePlayedHistory: (clipId: number) => void;
   setFocusId: (clipId: number) => void;
 };
 
@@ -61,7 +61,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   React.useEffect(() => {
     if(pageDimensions.height == 0 || videoWidth == 0) return;
     setProcessedClips(spreadOutClips(clips, focusId, videoWidth, pageDimensions.height * scale));
-  }, [pageDimensions, clips, videoWidth]);
+  }, [pageDimensions, clips, videoWidth, focusId]);
 
   // Navigate and change playingClip if autoplaying
   function handleNavigateWrapper(fromId: number, toId: number, isPlay: boolean) {

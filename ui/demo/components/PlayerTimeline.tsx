@@ -11,7 +11,7 @@ interface Props {
   clips: Array<Clip>;
   width: number;
   handleNavigate: (fromId: number, toId: number) => void;
-  playedHistory: {[id: number]: {isPlayed: boolean, captions: Array<number>}};
+  playedHistory: Array<number>;
 }
 
 const colors = [
@@ -47,7 +47,7 @@ export function PlayerTimeline({
             var width = ratio * (clip.end - clip.start) + (!isEnd ? -2 : -1);
             var color = isCurrentClip ? colors[id % 7] : "#f6f6f6";
             var borderRadius = isStart ? "4px 0 0 4px" : (isEnd ? "0 4px 4px 0" : "");
-            var opacity = playedHistory[clip.id]['isPlayed'] || isCurrentClip ? "1" : "0.5";
+            var opacity = playedHistory.includes(clip.id) || isCurrentClip ? "1" : "0.5";
             return (
                 <div 
                     key={i}
