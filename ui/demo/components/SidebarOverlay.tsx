@@ -54,8 +54,8 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         var page = pages[j];
         var top = 1000000;
         var bottom = 0;
+        var width = 0
         var left = 48;
-        var width = 12;
         var totalCenters = 0;
         var num_rects = 0
         for(var k = 0; k < rects.length; k++) {
@@ -65,24 +65,26 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             var avgCenter = totalCenters / num_rects;
             if(totalCenters != 0 && (currCenter < avgCenter - bbox.width || avgCenter + bbox.width < currCenter)) {
               if(avgCenter > pageDimensions.width/2) {
-                left = pageDimensions.width - left - width;
+                left = pageDimensions.width - left - 12;
               }
               sidebars.push({id: id, top, height: bottom - top, width, left, page});
               top = bbox.top;
               bottom = bbox.height + bbox.top;
               left = 48;
+              width = bbox.width;
               totalCenters = currCenter;
               num_rects = 1;
             } else {
               if(bbox.top < top) top = bbox.top;
               if(bbox.height+bbox.top > bottom) bottom = bbox.height + bbox.top;
+              if(bbox.width > width) width = bbox.width;
               totalCenters += bbox.left + bbox.width/2;
               num_rects += 1
             }
         }
         var avgCenter = totalCenters / num_rects;
         if(avgCenter > pageDimensions.width/2) {
-            left = pageDimensions.width - left - width;
+            left = pageDimensions.width - left - 12;
         }
 
         var clipId = highlights[id].clip;

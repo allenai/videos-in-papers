@@ -31,8 +31,7 @@
     "react-is": "17.0.2",
     "react-pdf": "5.7.2",
     "react-player": "^2.9.0",
-    "react-router-dom": "5.2.0",
-    "@allenai/pdf-components": "file:~/../../allenai-pdf-components-0.2.8.tgz"
+    "react-router-dom": "5.2.0"
   },
   "devDependencies": {
     "@types/node": "11.9.5",

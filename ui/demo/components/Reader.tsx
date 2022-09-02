@@ -64,9 +64,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>(data['highlights']);
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>(data['clips']);
 
-  const [ videoWidth, setVideoWidth ] = React.useState(pageDimensions * 0.25 / 9 * 16);
+  const [ videoWidth, setVideoWidth ] = React.useState(pageDimensions.height * 0.25 / 9 * 16);
 
-  const [ scrubClip, setScrubClip ] = React.useState(null);
+  const [ scrubClip, setScrubClip ] = React.useState<{highlight: number, clip: number, progress: number} | null>(null);
 
   const [ focusId, setFocusId ] = React.useState(-1);
 
@@ -205,7 +205,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   // Move clip to the position of another paper highlight
   const changeClipPosition = (highlightId: number) => {
-    var clipId = highlights[highlightId]['clip'];
+    var clipId: number = parseInt(highlights[highlightId]['clip']);
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
     var newPosition = newClips[clipId].highlights.findIndex((ele) => ele == highlightId);
     newClips[clipId].position = newPosition;
@@ -214,8 +214,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setFocusId(clipId);
     setClips(newClips);
 
-    if(!playedHistory.includes(parseInt(clipId))) {
-      setPlayedHistory([...playedHistory, parseInt(clipId)]);
+    if(!playedHistory.includes(clipId)) {
+      setPlayedHistory([...playedHistory, clipId]);
     }
   }
 

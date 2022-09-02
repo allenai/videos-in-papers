@@ -107,7 +107,7 @@ export function Player({
   }, [playingClip]);
 
   React.useEffect(() => {
-    if(scrubPosition != -1 && !isPlaying) {
+    if(scrubPosition != -1 && !isPlaying && videoRef.current) {
       videoRef.current.seekTo(scrubPosition, 'fraction')
     }
   }, [scrubPosition]);
@@ -122,7 +122,8 @@ export function Player({
 
   // Navigate to another highlight in the paper
   function handleSideClick(e: React.MouseEvent) {
-    var idx = parseInt(e.currentTarget.getAttribute("data-idx"));
+    var temp = e.currentTarget.getAttribute("data-idx");
+    var idx = temp == null ? -1: parseInt(temp);
     if(navigateToPosition)
       navigateToPosition(clip.id, idx);
   }
@@ -166,7 +167,7 @@ export function Player({
   function renderHighlightNavigator() {
     if(!isFocus || highlights.length <= 1) return "";
 
-    var otherHighlights: Array<React.ReactElement> = [];
+    var otherHighlights: Array<Array<React.ReactElement>> = [];
     if(clip['alternatives']) {
       for(var i = 0; i < highlights.length; i++) {
         var highlight = highlights[i];
@@ -259,7 +260,7 @@ export function Player({
         <div>
           {isFocus ? <PlayerTimeline id={id} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper} playedHistory={playedHistory}/> : ""}
           <div className="video__note-container" style={{width: adjustedVideoWidth+"px", borderColor: color}}>
-            <div style={{height: videoHeight+"px"}} onClick={() => setFocusId(id)}>
+            <div style={{height: videoHeight+"px"}} onClick={() => setFocusId ? setFocusId(id) : null}>
               {!isFocus ? <div className="video__note-timestamp" style={{backgroundColor: color}}>{timeToStr(duration)}</div> : ""}
               <ReactPlayer 
                   ref={videoRef}
