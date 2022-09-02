@@ -76,7 +76,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setIsShowingOutline,
     setIsShowingTextHighlight,
   } = React.useContext(UiContext);
-  
+
   React.useEffect(() => {
     setIsShowingTextHighlight(true);
     fetch('/public/annotation/3491102.3501873.json')
@@ -245,7 +245,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   if(Object.keys(clips).length == 0) {
     return (
-      "Loading..."
+      <div>
+        Loading...
+      </div>
     )
   } else {
     return (
