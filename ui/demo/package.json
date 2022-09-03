@@ -4,7 +4,7 @@
   "license": "UNLICENSED",
   "author": "s2@allenai.org",
   "scripts": {
-    "build": "webpack --mode development",
+    "build": "webpack --mode production",
     "link:lib": "yarn link @allenai/pdf-components",
     "link:react": "cd ./node_modules/react && yarn link && cd ../react-dom && yarn link",
     "lint": "eslint '**/*.{js,ts,tsx,json}' && echo '💫  Lint complete.'",
@@ -32,7 +32,7 @@
     "react-pdf": "5.7.2",
     "react-player": "^2.9.0",
     "react-router-dom": "5.2.0",
-    "@allenai/pdf-components": "file:~/../../allenai-pdf-components-0.2.8.tgz"
+    "@allenai/pdf-components": "file:~/../library/allenai-pdf-components-0.2.8.tgz"
   },
   "devDependencies": {
     "@types/node": "11.9.5",

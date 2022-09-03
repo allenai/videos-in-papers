@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@allenai/pdf-components@file:../allenai-pdf-components-0.2.8.tgz":
+"@allenai/pdf-components@file:library/allenai-pdf-components-0.2.8.tgz":
   version "0.2.8"
-  resolved "file:../allenai-pdf-components-0.2.8.tgz#cbeb4d24f16feb058fdcc8a8ad9037558b2885fe"
+  resolved "file:library/allenai-pdf-components-0.2.8.tgz#cbeb4d24f16feb058fdcc8a8ad9037558b2885fe"
 
 "@ant-design/colors@^6.0.0":
   version "6.0.0"

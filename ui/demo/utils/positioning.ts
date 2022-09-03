@@ -102,12 +102,11 @@ export function positionSingleClip(clip: Clip, highlights: {[index: number]: Hig
     var highlight = highlights[highlightId];
     var rects = highlight.rects;
 
-    var page = 100000;
-    var top = 100000;
-    var finalBbox = null;
-    for(var k = 0; k < rects.length; k++) {
+    var finalBbox = rects[0];
+    var page = finalBbox.page;
+    var top = finalBbox.top;
+    for(var k = 1; k < rects.length; k++) {
         var bbox = rects[k];
-        var currCenter = bbox.left + bbox.width/2;
         
         if(page > bbox.page) {
             page = bbox.page;
@@ -124,9 +123,9 @@ export function positionSingleClip(clip: Clip, highlights: {[index: number]: Hig
     }
 
     if(finalBbox.width < 0.5) {
-        var left = (0.5 - finalBbox.width)/2;
+        var left = finalBbox.left - 0.4 - 0.02
         if(finalBbox.left < 0.5) {
-            left = left + 0.5;
+            left = finalBbox.left + finalBbox.width + 0.01;
         }
         return {top: top, left: left, page: finalBbox.page};
     } else {

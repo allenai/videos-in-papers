@@ -21,12 +21,11 @@ services:
         # We can't mount the entire UI directory, since JavaScript dependencies
         # (`node_modules`) live at that location.
         volumes:
-            - ./ui/demo/components:/usr/local/src/skiff/app/ui/demo/components
-            - ./ui/demo/less:/usr/local/src/skiff/app/ui/demo/less
-            - ./ui/demo/data:/usr/local/src/skiff/app/ui/demo/data
-            - ./ui/demo/utils:/usr/local/src/skiff/app/ui/demo/utils
-            - ./ui/demo/public:/usr/local/src/skiff/app/ui/demo/public
-            - ./ui/pdf-component-library/ui/library:/usr/local/src/skiff/app/ui/library
+            - ./ui/demo/components:/ui/components
+            - ./ui/demo/less:/ui/less
+            - ./ui/demo/data:/ui/data
+            - ./ui/demo/utils:/ui/utils
+            - ./ui/demo/public:/ui/public
         environment:
             - NODE_ENV=development
     proxy:
