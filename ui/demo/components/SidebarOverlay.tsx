@@ -5,6 +5,7 @@ import * as React from 'react';
 
 type Bar = BoundingBoxType & {
   id: number;
+  position: number,
   isHighlighted: boolean;
   isCurrent: boolean;
 }
@@ -14,6 +15,7 @@ type Props = {
   highlights: {[index: number]: Highlight};
   clips: {[index: number]: Clip};
   changeClipPosition: (id: number) => void;
+  scrubClip: {highlight: number, clip: number, progress: number} | null;
   setScrubClip: (data: {highlight: number, clip: number, progress: number} | null) => void;
   playedHistory: Array<number>;
   focusId: number;
@@ -27,6 +29,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     highlights,
     clips,
     changeClipPosition,
+    scrubClip,
     setScrubClip,
     focusId,
     playedHistory,
@@ -70,10 +73,14 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
               if(avgCenter > pageDimensions.width/2) {
                 left = pageDimensions.width - left - 12;
               }
+              var position = -1;
+              if(scrubClip != null && scrubClip['highlight'] == id) {
+                position = scrubClip['progress'];
+              }      
               sidebars.push({
                 id: id, top, height: bottom - top, width, left, page,
                 isCurrent: clips[clipId].highlights[clips[clipId].position] == id,
-                isHighlighted: focusId == clipId
+                isHighlighted: focusId == clipId, position: position
               });
               top = bbox.top;
               bottom = bbox.height + bbox.top;
@@ -94,10 +101,15 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             left = pageDimensions.width - left - 12;
         }
 
+        var position = -1;
+        if(scrubClip != null && scrubClip['highlight'] == id) {
+          position = scrubClip['progress'];
+        }
+
         sidebars.push({
           id: id, top, height: bottom - top, width, left, page, 
           isCurrent: clips[clipId].highlights[clips[clipId].position] == id,
-          isHighlighted: focusId == clipId
+          isHighlighted: focusId == clipId, position: position
         });
       }
 
@@ -121,8 +133,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     var rect = e.currentTarget.getBoundingClientRect();
     var position = e.pageY - rect.top;
     if(position < 0) position = 0;
-    var progress = position / rect.height;
-    setScrubClip({highlight: id, clip: parseInt(highlights[id].clip), progress: progress});
+    setScrubClip({highlight: id, clip: parseInt(highlights[id].clip), progress: position / rect.height});
   }
 
   function onMouseOutSidebar () {

@@ -123,7 +123,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // In navigation mode, scroll to the video clip
   React.useEffect(() => {
     if(navigating == null) return;
-    var container = document.getElementsByClassName("reader__main")[0];
+    var container = document.getElementsByClassName("reader__container")[0];
     container.scrollTo({top: navigating.scrollTo, left: 0, behavior: "smooth"})
   }, [navigating]);
 
@@ -155,7 +155,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // Scroll from video clip to video clip
   const handleNavigate = (fromId: number, toId: number) => {
     if(fromId == toId) return;
-    arrangeAndNavigate(clips, fromId, toId, null);
+
+    var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+    var highlightId = newClips[toId].highlights[newClips[toId].position];
+    newClips[toId].top = highlights[highlightId].rects[0].top;
+    newClips[toId].page = highlights[highlightId].rects[0].page;
+
+    arrangeAndNavigate(newClips, fromId, toId, null);
   }
 
   // Navigate with clip to the position of another paper highlight
@@ -173,8 +179,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const arrangeAndNavigate = (newClips: {[index: number]: Clip}, fromId: number, toId: number, highlightIdx: number | null) => {
     // Find what the clip's top will be in the new position;
-    var spreadClips = spreadOutClips(newClips, toId, videoWidth, pageDimensions.height * scale);
-    var container = document.getElementsByClassName("reader__main")[0];
+    var spreadClips = spreadOutClips(newClips, highlights, toId, videoWidth, pageDimensions.height * scale);
+    var container = document.getElementsByClassName("reader__container")[0];
     var fromVideo = document.getElementById("video__note-" + fromId);
     var fromTop = 0;
     if(fromVideo != null)
@@ -188,7 +194,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
     if(scrollTo < 0) {
       setScrollOverflow(-1);
-      var container = document.getElementsByClassName("reader__main")[0];
+      var container = document.getElementsByClassName("reader__container")[0];
       scrollTo += 1000
     } else if (scrollTo + window.innerHeight > container.scrollHeight) {
       setScrollOverflow(1);
@@ -213,8 +219,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].position = newPosition;
     newClips[clipId].top = highlights[highlightId].rects[0].top;
     newClips[clipId].page = highlights[highlightId].rects[0].page;
+    var spreadClips = spreadOutClips(newClips, highlights, clipId, videoWidth, pageDimensions.height * scale);
+    setClips(spreadClips);
     setFocusId(clipId);
-    setClips(newClips);
 
     if(!playedHistory.includes(clipId)) {
       setPlayedHistory([...playedHistory, clipId]);
@@ -277,6 +284,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                           highlights={highlights} 
                           clips={clips}
                           changeClipPosition={changeClipPosition}
+                          scrubClip={scrubClip}
                           setScrubClip={setScrubClip}
                           focusId={focusId}
                           playedHistory={playedHistory}

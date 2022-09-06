@@ -48,7 +48,8 @@ export function PlayerTimeline({
             var width = ratio * (clip.end - clip.start) + (!isEnd ? -2 : -1);
             var color = isCurrentClip ? colors[id % 7] : "#f6f6f6";
             var borderRadius = isStart ? "4px 0 0 4px" : (isEnd ? "0 4px 4px 0" : "");
-            var opacity = playedHistory.includes(clip.id) || isCurrentClip ? "1" : "0.5";
+            var opacity = playedHistory.includes(typeof clip.id == "string" ? parseInt(clip.id) : clip.id) ? "1" : "0.7";
+            var height = isCurrentClip ? "20px" : "";
             return (
                 <div 
                     key={i}
@@ -60,7 +61,8 @@ export function PlayerTimeline({
                         borderRadius: borderRadius,
                         backgroundColor: color,
                         borderColor: color,
-                        opacity: opacity
+                        opacity: opacity,
+                        height: height,
                     }}
                     onClick={handleClick}
                 >{isCurrentClip ? (id+1) : ""}</div>

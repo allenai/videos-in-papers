@@ -64,7 +64,7 @@ export function Player({
   playedHistory,
   updatePlayedHistory,
   setFocusId,
-  setHoveredWord
+  setHoveredWord,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -115,11 +115,14 @@ export function Player({
   React.useEffect(() => {
     if(isFocus && videoRef.current) {
       videoRef.current.seekTo(0, 'fraction')
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(false);
     }
   }, [isFocus]);
 
   React.useEffect(() => {
-    if(scrubPosition != -1 && !isFocus && !isPlaying && videoRef.current) {
+    if(scrubPosition != -1 && !isPlaying && videoRef.current) {
       videoRef.current.seekTo(scrubPosition, 'fraction')
     }
   }, [scrubPosition]);
@@ -216,10 +219,10 @@ export function Player({
       <div className="video__note-navigator">
         <div 
           className="video__note-navigator-row" 
-          style={{fontSize: "18px", color: "rgba(0, 0, 0, 0.3)", cursor: "pointer"}}
+          style={{fontSize: "14px", color: "rgba(0, 0, 0, 0.3)", cursor: "pointer", textDecoration: "underline"}}
           onClick={handleAltClick}
         >
-          <i className={"fa fa-chevron-" + (clip.alternatives ? "up" : "down")}></i>
+          {clip.alternatives ? "Hide Other Highlights" : "Show Other Highlights"}
         </div>
         {otherHighlights.map((row, i) => {
           return (
@@ -246,6 +249,9 @@ export function Player({
   }
 
   function renderCaptions() {
+    var highlight = highlights[clip['position']];
+
+    var tokens = highlight['tokens'].map((t) => t['text']);
     return (
       <div className="video__note-captions" onClick={handleCaptionClick}>
         <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}
@@ -257,9 +263,13 @@ export function Player({
               var passed = caption.start/1000 < (clip.start + progress);
               return (
                 words.map((text, j) => {
+                  var style = {
+                    backgroundColor: color + (hoveredWordId == i+'-'+j ? "99" : (passed ? "33" : "00")),
+                    fontWeight: tokens.includes(text) ? 700 : 400
+                  }
                   return (
                     <span 
-                      key={j} style={{backgroundColor: color + (hoveredWordId == i+'-'+j ? "99" : (passed ? "33" : "00"))}}
+                      key={j} style={style}
                       onMouseEnter={() => handleWordEnter(i+'-'+j, text)} onMouseLeave={handleWordLeave}
                     >
                       {text}&nbsp;
@@ -287,7 +297,7 @@ export function Player({
   }
 
   var newLeft = left ? left: 20;
-  var adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.7)
+  var adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.8)
   var videoHeight = adjustedVideoWidth / 16 * 9;
 
   // If clip is navigating, adjust the positions to be relative

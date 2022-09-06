@@ -4,6 +4,7 @@ import * as React from 'react';
 import { BoundingBoxType, TransformContext, DocumentContext, computeBoundingBoxStyle } from '@allenai/pdf-components';
 
 export type Props = BoundingBoxType & {
+  position: number;
   className?: string;
   id?: string;
   isCurrent: boolean;
@@ -21,6 +22,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   left,
   height,
   width,
+  position,
   className,
   id,
   isCurrent,
@@ -39,6 +41,19 @@ export const Sidebar: React.FunctionComponent<Props> = ({
     isHighlighted === true ? 'reader__page-overlay__sidebar-highlighted' : '',
     className
   );
+  const sidebarRef = React.createRef<HTMLDivElement>();
+  const [scaledPosition, setScaledPosition] = React.useState<number>(-1);
+
+  React.useEffect(() => {
+    if(!sidebarRef.current) {
+      return;
+    } else if(position == -1) {
+      setScaledPosition(-1);
+    } else {
+      var rect = sidebarRef.current.getBoundingClientRect();
+      setScaledPosition(position * rect.height);
+    }
+  }, [position]);
 
   const getBoundingBoxStyle = React.useCallback(() => {
     return computeBoundingBoxStyle(boxSize, pageDimensions, rotation, scale);
@@ -52,15 +67,20 @@ export const Sidebar: React.FunctionComponent<Props> = ({
     <React.Fragment>
       <div
         id={id}
+        ref={sidebarRef}
         className={`${componentClassName} ${rotationClassName()}`}
         style={getBoundingBoxStyle()}
         onClick={onClick}
         onMouseMove={onMouseMove}
         onMouseOut={onMouseOut}
         {...extraProps}
-      />
-      <div>
-
+      >
+        {scaledPosition != -1 ?
+          <div 
+            className='reader__page-overlay__sidebar-tick'
+            style={{top: scaledPosition+"px"}}
+          />
+        : ""}
       </div>
     </React.Fragment>
   );

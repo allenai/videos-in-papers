@@ -7,13 +7,13 @@ body {
   display: flex;
   height: 100vh;
   background-color: @grey;
+  overflow: scroll;
 }
 
 
 .reader__main {
   position: relative;
   flex: 1;
-  overflow: scroll;
   padding-top: 38px;
 }
 
@@ -198,4 +198,12 @@ body {
 .reader_sidebar_color-6 {
   background-color: #dd59ba;
   border-color: #dd59ba;
+}
+
+.reader__page-overlay__sidebar-tick {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background-color: white;
+  pointer-events: none;
 }
