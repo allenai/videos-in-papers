@@ -124,6 +124,7 @@ export function Player({
   React.useEffect(() => {
     if(scrubPosition != -1 && !isPlaying && videoRef.current) {
       videoRef.current.seekTo(scrubPosition, 'fraction')
+      setProgress(scrubPosition * duration);
     }
   }, [scrubPosition]);
 
@@ -252,34 +253,53 @@ export function Player({
     var highlight = highlights[clip['position']];
 
     var tokens = highlight['tokens'].map((t) => t['text']);
+
+    var summary = <div><b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}</div>;
+    if(scrubPosition != -1) {
+      var scrubTime = (scrubPosition*duration + clip.start)*1000;
+      var caption = clip['captions'].find((c: Caption) => c.start <= scrubTime && scrubTime < c.end);
+      if(caption) {
+        summary = (
+          <div style={{color: color+"cc"}}>
+            <b>Transcript</b>&nbsp;&nbsp;{caption.caption}
+          </div>
+        )
+      }
+    }
+
+    var transcript = <></>;
+    if(isFocus && !!clip.expanded) {
+      transcript = (
+        <div style={{lineBreak: "anywhere"}}>
+          <b>Transcript</b>&nbsp;&nbsp;
+          {clip['captions'].map((caption: Caption, i: number) => {
+            var words = caption.caption.split(" ");
+            var passed = caption.start/1000 < (clip.start + progress);
+            return (
+              words.map((text, j) => {
+                var style = {
+                  backgroundColor: color + (hoveredWordId == i+'-'+j ? "99" : (passed ? "33" : "00")),
+                  fontWeight: tokens.includes(text) ? 700 : 400
+                }
+                return (
+                  <span 
+                    key={j} style={style}
+                    onMouseEnter={() => handleWordEnter(i+'-'+j, text)} onMouseLeave={handleWordLeave}
+                  >
+                    {text}&nbsp;
+                  </span>
+                )
+              })
+            )
+          })}
+        </div>
+      );
+    }
+
     return (
       <div className="video__note-captions" onClick={handleCaptionClick}>
-        <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}
-        {isFocus && !!clip.expanded ? 
-          <div style={{lineBreak: "anywhere"}}>
-            <b>Transcript</b>&nbsp;&nbsp;
-            {clip['captions'].map((caption: Caption, i: number) => {
-              var words = caption.caption.split(" ");
-              var passed = caption.start/1000 < (clip.start + progress);
-              return (
-                words.map((text, j) => {
-                  var style = {
-                    backgroundColor: color + (hoveredWordId == i+'-'+j ? "99" : (passed ? "33" : "00")),
-                    fontWeight: tokens.includes(text) ? 700 : 400
-                  }
-                  return (
-                    <span 
-                      key={j} style={style}
-                      onMouseEnter={() => handleWordEnter(i+'-'+j, text)} onMouseLeave={handleWordLeave}
-                    >
-                      {text}&nbsp;
-                    </span>
-                  )
-                })
-              )
-            })}
-          </div> : ""
-        }
+        {summary}
+        {transcript}
         {isFocus ? 
           <div style={{textAlign: "center", color: "#999"}}>
             <i className={"fa fa-" + (clip.expanded ? "minus" : "plus")}></i>
@@ -294,6 +314,14 @@ export function Player({
     if(setFocusId) {
       setFocusId(id);
     }
+  }
+
+  function handleMove(e: React.MouseEvent, direction: number) {
+    e.stopPropagation();
+    var fromIdx = clips.findIndex((c) => c.id == id);
+    var toId = clips[fromIdx + direction].id;
+    if(handleNavigate)
+      handleNavigate(id, toId, true);
   }
 
   var newLeft = left ? left: 20;
@@ -326,6 +354,22 @@ export function Player({
           <div className="video__note-container" style={{width: adjustedVideoWidth+"px", borderColor: color}}>
             <div style={{height: videoHeight+"px"}} onClick={handleClickNote}>
               {!isFocus ? <div className="video__note-timestamp" style={{backgroundColor: color}}>{timeToStr(duration)}</div> : ""}
+              {isFocus && id != 0 ?
+                <i key={0}
+                  className="fa fa-chevron-left video__note-chevron-left"
+                  style={{top: videoHeight/2 + 6 + "px"}}
+                  onClick={(e) => handleMove(e, -1)}
+                ></i> 
+                : ""
+              }
+              {isFocus && id != clips.length - 1 ?
+                <i key={1}
+                  className="fa fa-chevron-right video__note-chevron-right"
+                  style={{top: videoHeight/2 + 6 + "px"}}
+                  onClick={(e) => handleMove(e, 1)}
+                ></i>
+                : ""
+              }
               <ReactPlayer 
                   ref={videoRef}
                   url={'public/clips/'+id+'.mp4'} 

@@ -8,7 +8,7 @@ export type Props = BoundingBoxType & {
   className?: string;
   id?: string;
   isCurrent: boolean;
-  isHighlighted?: boolean;
+  isFocus?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   onMouseMove?: (e: React.MouseEvent) => void;
   onMouseOut?: () => void;
@@ -26,7 +26,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   className,
   id,
   isCurrent,
-  isHighlighted,
+  isFocus,
   onClick,
   onMouseMove,
   onMouseOut,
@@ -38,7 +38,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   const componentClassName = classNames(
     'reader__page-overlay__sidebar',
     isCurrent == true ? '' : 'reader__page-overlay__sidebar-notcurrent',
-    isHighlighted === true ? 'reader__page-overlay__sidebar-highlighted' : '',
+    isFocus === true ? 'reader__page-overlay__sidebar-highlighted' : '',
     className
   );
   const sidebarRef = React.createRef<HTMLDivElement>();

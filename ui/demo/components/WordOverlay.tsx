@@ -24,12 +24,7 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
     highlights,
     hoveredWord,
 }: Props) => {
-  const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
-
-  if (!isShowingTextHighlight) {
-    return null;
-  }
 
   function processText(text: string) {
     return text.toLowerCase().replace(/[^A-Za-z0-9\s]/g, "");

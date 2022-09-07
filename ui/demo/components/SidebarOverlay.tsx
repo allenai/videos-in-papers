@@ -6,8 +6,8 @@ import * as React from 'react';
 type Bar = BoundingBoxType & {
   id: number;
   position: number,
-  isHighlighted: boolean;
   isCurrent: boolean;
+  isFocus: boolean;
 }
 
 type Props = {
@@ -19,6 +19,7 @@ type Props = {
   setScrubClip: (data: {highlight: number, clip: number, progress: number} | null) => void;
   playedHistory: Array<number>;
   focusId: number;
+  setThumbnail: (data: {clipId: number, left: number, top: number} | null) => void;
 };
 
 /*
@@ -33,13 +34,9 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     setScrubClip,
     focusId,
     playedHistory,
+    setThumbnail,
 }: Props) => {
-  const { isShowingTextHighlight } = React.useContext(UiContext);
   const { pageDimensions } = React.useContext(DocumentContext);
-
-  if (!isShowingTextHighlight) {
-    return null;
-  }
 
   // Transform BoundingBoxes for highlights into Sidebar dimensions
   function getSidebarProps() {
@@ -80,7 +77,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
               sidebars.push({
                 id: id, top, height: bottom - top, width, left, page,
                 isCurrent: clips[clipId].highlights[clips[clipId].position] == id,
-                isHighlighted: focusId == clipId, position: position
+                isFocus: focusId == clipId, position: position
               });
               top = bbox.top;
               bottom = bbox.height + bbox.top;
@@ -109,7 +106,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         sidebars.push({
           id: id, top, height: bottom - top, width, left, page, 
           isCurrent: clips[clipId].highlights[clips[clipId].position] == id,
-          isHighlighted: focusId == clipId, position: position
+          isFocus: focusId == clipId, position: position
         });
       }
 
@@ -127,17 +124,20 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
   }
 
   // Move in sidebar to scrub through video
-  function onMoveInSidebar (e: React.MouseEvent) {
-    var temp = e.currentTarget.getAttribute('id');
-    var id: number = temp == null ? 0 : parseInt(temp);
+  function onMoveInSidebar (e: React.MouseEvent, id: number, isCurrent: boolean) {
     var rect = e.currentTarget.getBoundingClientRect();
     var position = e.pageY - rect.top;
     if(position < 0) position = 0;
     setScrubClip({highlight: id, clip: parseInt(highlights[id].clip), progress: position / rect.height});
+
+    if(!isCurrent) { 
+      setThumbnail({clipId: parseInt(highlights[id].clip), left: e.pageX, top: e.pageY});
+    }
   }
 
   function onMouseOutSidebar () {
     setScrubClip(null);
+    setThumbnail(null);
   }
 
   function renderSidebars(): Array<React.ReactElement> {
@@ -151,10 +151,9 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             id: ""+prop.id,
             className: 'reader_sidebar_color-' + parseInt(highlights[prop.id].clip) % 7,
             // Set isHighlighted to true for highlighted styling
-            isHighlighted: prop.isHighlighted,
             key: prop.id+"-"+j,
             onClick: onClickSidebar,
-            onMouseMove: onMoveInSidebar,
+            onMouseMove: (e: React.MouseEvent) => onMoveInSidebar(e, prop.id, prop.isCurrent),
             onMouseOut: onMouseOutSidebar
           };
 

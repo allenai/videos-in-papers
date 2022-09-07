@@ -24,6 +24,7 @@ import { SidebarOverlay } from './SidebarOverlay';
 import { WordOverlay } from './WordOverlay';
 import { VideoNotes } from './VideoNotes';
 import { VideoPopup } from './VideoPopup';
+import { ThumbnailPopup } from './ThumbnailPopup';
 
 import { Highlight, Clip } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
@@ -62,24 +63,14 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>({});
 
   const [ videoWidth, setVideoWidth ] = React.useState(pageDimensions.height * 0.25 / 9 * 16);
+  const [ focusId, setFocusId ] = React.useState(-1);
+  const [ playedHistory, setPlayedHistory ] = React.useState<Array<number>>([]);
 
   const [ scrubClip, setScrubClip ] = React.useState<{highlight: number, clip: number, progress: number} | null>(null);
-
-  const [ focusId, setFocusId ] = React.useState(-1);
-
-  const [ playedHistory, setPlayedHistory ] = React.useState<Array<number>>([]);
   const [ hoveredWord, setHoveredWord ] = React.useState<{clipId: number, text: string} | null>(null);
-
-  const {
-    isShowingHighlightOverlay,
-    isShowingTextHighlight,
-    setIsShowingHighlightOverlay,
-    setIsShowingOutline,
-    setIsShowingTextHighlight,
-  } = React.useContext(UiContext);
+  const [ thumbnail, setThumbnail ] = React.useState<{clipId: number, left: number, top: number} | null>(null);
 
   React.useEffect(() => {
-    setIsShowingTextHighlight(true);
     fetch('/public/annotation/3491102.3501873.json')
       .then((res) => res.json())
       .then((data) => {
@@ -288,6 +279,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                           setScrubClip={setScrubClip}
                           focusId={focusId}
                           playedHistory={playedHistory}
+                          setThumbnail={setThumbnail}
                         />
                       </Overlay>
                     </PageWrapper>
@@ -312,6 +304,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
               </div>
               {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}
             </DocumentWrapper>
+            <ThumbnailPopup
+              thumbnail={thumbnail}
+            />
           </div>
         </Route>
       </BrowserRouter>
@@ -345,9 +340,11 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                           highlights={highlights} 
                           clips={clips}
                           changeClipPosition={changeClipPosition}
+                          scrubClip={scrubClip}
                           setScrubClip={setScrubClip}
                           focusId={focusId}
                           playedHistory={playedHistory}
+                          setThumbnail={setThumbnail}
                         />
                       </Overlay>
                     </PageWrapper>
