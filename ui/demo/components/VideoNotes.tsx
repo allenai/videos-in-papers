@@ -32,6 +32,7 @@ type Props = {
   updatePlayedHistory: (clipId: number) => void;
   setFocusId: (clipId: number) => void;
   setHoveredWord: (data: {clipId: number, text: string} | null) => void;
+  lock: {clipId: number, relativePosition: number} | null;
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -48,7 +49,8 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     playedHistory,
     updatePlayedHistory,
     setFocusId,
-    setHoveredWord
+    setHoveredWord,
+    lock
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -116,11 +118,14 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
       var isOverlay = false;
       var isPhantom = false;
       if(navigating !== null && navigating.fromId == id) {
-          isPhantom = true;
+        isPhantom = true;
       } else if(navigating !== null && navigating.toId == id) {
-          top = navigating.fromTop;
-          isOverlay = true;
-      }
+        top = navigating.fromTop;
+        isOverlay = true;
+      } else if(lock != null && lock.clipId == id) {
+        top = lock.relativePosition;
+        isOverlay = true;
+      } 
 
       return (
           <Player 

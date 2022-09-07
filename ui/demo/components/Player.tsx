@@ -257,7 +257,7 @@ export function Player({
     var tokens = highlight['tokens'].map((t) => t['text']);
 
     var summary = <div><b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}</div>;
-    if(scrubPosition != -1) {
+    if(scrubPosition != -1 && !clip.expanded) {
       var scrubTime = (scrubPosition*duration + clip.start)*1000;
       var caption = clip['captions'].find((c: Caption) => c.start <= scrubTime && scrubTime < c.end);
       if(caption) {

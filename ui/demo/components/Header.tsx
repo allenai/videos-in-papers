@@ -3,7 +3,15 @@ import * as React from 'react';
 
 import { PercentFormatter } from '../utils/format';
 
-export const Header: React.FunctionComponent = () => {
+type Props = {
+  lockable: boolean,
+  setLockable: (lockable: boolean) => void;
+}
+
+export const Header: React.FunctionComponent<Props> = ({
+  lockable,
+  setLockable
+}: Props) => {
   const { scale } = React.useContext(TransformContext);
 
   const renderLabel = React.useCallback(() => {
@@ -12,9 +20,19 @@ export const Header: React.FunctionComponent = () => {
 
   return (
     <div className="reader__header">
-      <ZoomOutButton/>
-      {renderLabel()}
-      <ZoomInButton/>
+      <div></div>
+      <div>
+        <ZoomOutButton/>
+        {renderLabel()}
+        <ZoomInButton/>
+      </div>
+      <div>
+        Lock Video &nbsp;&nbsp;&nbsp;
+        <input 
+          type="checkbox" className="toggle-switch-checkbox" name="toggleSwitch" id="toggleSwitch" 
+          checked={lockable} onClick={() => setLockable(!lockable)}
+        />
+      </div>
     </div>
   );
 };

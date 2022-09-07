@@ -28,6 +28,7 @@ import { ThumbnailPopup } from './ThumbnailPopup';
 
 import { Highlight, Clip } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
+import { isRegExp } from 'util';
 
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
@@ -69,6 +70,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ scrubClip, setScrubClip ] = React.useState<{highlight: number, clip: number, progress: number} | null>(null);
   const [ hoveredWord, setHoveredWord ] = React.useState<{clipId: number, text: string} | null>(null);
   const [ thumbnail, setThumbnail ] = React.useState<{clipId: number, left: number, top: number} | null>(null);
+
+  const [ lockable, setLockable ] = React.useState<boolean>(false);
+  const [ lock, setLock ] = React.useState<{clipId: number, relativePosition: number} | null>(null);
 
   React.useEffect(() => {
     fetch('/public/annotation/3491102.3501873.json')
@@ -118,6 +122,32 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     container.scrollTo({top: navigating.scrollTo, left: 0, behavior: "smooth"})
   }, [navigating]);
 
+  React.useEffect(() => {
+    var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+    if(focusId != -1) {
+      var highlightId = newClips[focusId].highlights[newClips[focusId].position];
+      newClips[focusId].top = highlights[highlightId].rects[0].top;
+      newClips[focusId].page = highlights[highlightId].rects[0].page;
+    }
+    var spreadClips = spreadOutClips(newClips, highlights, focusId, videoWidth, pageDimensions.height * scale);
+    if(lockable) {
+      if(focusId == -1) {
+        setLock(null);
+      } else if(lock == null) {
+        var container = document.getElementsByClassName("reader__container")[0];
+        var top = container.scrollTop;
+        var clipTop = (spreadClips[focusId].top + spreadClips[focusId].page) * pageDimensions.height * scale + (24 + spreadClips[focusId].page * 48) + 38;
+        top = Math.floor(clipTop - top);
+        setLock({clipId: focusId, relativePosition: top});
+      }
+    }
+    setClips(spreadClips);
+  }, [focusId]);
+
+  React.useEffect(() => {
+    if(!lockable) setLock(null);
+  }, [lockable]);
+
   const handleScroll = (e: any) => {
     if(navigating == null) {
       // Remove the padding spaces added to handle overflow
@@ -152,6 +182,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[toId].top = highlights[highlightId].rects[0].top;
     newClips[toId].page = highlights[highlightId].rects[0].page;
 
+    if(lock != null) {
+      setLock({clipId: toId, relativePosition: lock['relativePosition']})
+    }
     arrangeAndNavigate(newClips, fromId, toId, null);
   }
 
@@ -250,7 +283,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     return (
       <BrowserRouter>
         <Route path="/">
-          <Header />
+          <Header lockable={lockable} setLockable={setLockable}/>
           <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
             <DocumentWrapper 
               className="reader__main"
@@ -300,6 +333,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   updatePlayedHistory={updatePlayedHistory}
                   setFocusId={setFocusId}
                   setHoveredWord={setHoveredWord}
+                  lock={lock}
                 />
               </div>
               {scrollOverflow == 1 ? <div style={{height: "2000px"}}></div> : ""}
@@ -315,7 +349,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     return (
       <BrowserRouter>
         <Route path="/">
-          <Header />
+          <Header lockable={lockable} setLockable={setLockable}/>
           <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
             <DocumentWrapper 
               className="reader__main"
