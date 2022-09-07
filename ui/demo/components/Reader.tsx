@@ -139,13 +139,30 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         var clipTop = (spreadClips[focusId].top + spreadClips[focusId].page) * pageDimensions.height * scale + (24 + spreadClips[focusId].page * 48) + 38;
         top = Math.floor(clipTop - top);
         setLock({clipId: focusId, relativePosition: top});
+      } else if(lock.clipId != focusId) {
+        setLock({clipId: focusId, relativePosition: lock.relativePosition});
       }
     }
     setClips(spreadClips);
   }, [focusId]);
 
   React.useEffect(() => {
-    if(!lockable) setLock(null);
+    if(!lockable) {
+      setLock(null);     
+    } else if(focusId != -1) { 
+      var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
+      if(focusId != -1) {
+        var highlightId = newClips[focusId].highlights[newClips[focusId].position];
+        newClips[focusId].top = highlights[highlightId].rects[0].top;
+        newClips[focusId].page = highlights[highlightId].rects[0].page;
+      }
+      var spreadClips = spreadOutClips(newClips, highlights, focusId, videoWidth, pageDimensions.height * scale);  
+      var container = document.getElementsByClassName("reader__container")[0];
+      var top = container.scrollTop;
+      var clipTop = (spreadClips[focusId].top + spreadClips[focusId].page) * pageDimensions.height * scale + (24 + spreadClips[focusId].page * 48) + 38;
+      top = Math.floor(clipTop - top);
+      setLock({clipId: focusId, relativePosition: top});
+    }
   }, [lockable]);
 
   const handleScroll = (e: any) => {
