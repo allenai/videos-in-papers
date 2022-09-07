@@ -31,6 +31,7 @@ interface Props {
   updatePlayedHistory?: (clipId: number) => void;
   setFocusId?: (clipId: number) => void;
   setHoveredWord?: (data: {clipId: number, text: string} | null) => void;
+  sections?: {[id: number]: string};
 }
 
 const colors = [
@@ -65,6 +66,7 @@ export function Player({
   updatePlayedHistory,
   setFocusId,
   setHoveredWord,
+  sections,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -350,7 +352,7 @@ export function Player({
     >
       <div className="video__note-supercontainer">
         <div>
-          {isFocus ? <PlayerTimeline id={id} clips={clips} width={videoWidth} handleNavigate={handleNavigateWrapper} playedHistory={playedHistory}/> : ""}
+          {isFocus ? <PlayerTimeline id={id} clips={clips} sections={sections} width={videoWidth} handleNavigate={handleNavigateWrapper} playedHistory={playedHistory}/> : ""}
           <div className="video__note-container" style={{width: adjustedVideoWidth+"px", borderColor: color}}>
             <div style={{height: videoHeight+"px"}} onClick={handleClickNote}>
               {!isFocus ? <div className="video__note-timestamp" style={{backgroundColor: color}}>{timeToStr(duration)}</div> : ""}

@@ -6,6 +6,7 @@ export type Highlight = {
     rects: Array<BoundingBoxType>,
     clip: string,
     tokens: Array<Token>,
+    section: string,
 }
 
 export type Caption = {

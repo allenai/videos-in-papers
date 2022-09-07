@@ -12,6 +12,7 @@ interface Props {
   width: number;
   handleNavigate: (fromId: number, toId: number) => void;
   playedHistory: Array<number>;
+  sections?: {[id: number]: string};
 }
 
 const colors = [
@@ -24,12 +25,24 @@ export function PlayerTimeline({
   width,
   handleNavigate,
   playedHistory,
+  sections
 }: Props) {
   const [ratio, setRatio] = React.useState(0);
+  const [hovered, setHovered] = React.useState(-1);
 
   React.useEffect(() => {
     setRatio(width / clips[clips.length - 1].end);
   }, [width]);
+
+  const handleMouseEnter = (e: React.MouseEvent) => {
+    var temp = e.currentTarget.getAttribute('data-id');
+    var id = temp != null ? parseInt(temp) : -1;
+    console.log(id, sections);
+    setHovered(id);
+  }
+  const handleMouseLeave = (e: React.MouseEvent) => {
+    setHovered(-1);
+  }
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -40,34 +53,43 @@ export function PlayerTimeline({
 
   return (
     <div className="video__note-timeline">
-        {clips.map((clip: Clip, i: number) => {
-            var isCurrentClip = clip.id == id;
-            var isStart = i == 0;
-            var isEnd = i == clips.length - 1;
-            var left = ratio * clip.start + (!isStart ? 2 : 0);
-            var width = ratio * (clip.end - clip.start) + (!isEnd ? -2 : -1);
-            var color = isCurrentClip ? colors[id % 7] : "#f6f6f6";
-            var borderRadius = isStart ? "4px 0 0 4px" : (isEnd ? "0 4px 4px 0" : "");
-            var opacity = playedHistory.includes(typeof clip.id == "string" ? parseInt(clip.id) : clip.id) ? "1" : "0.7";
-            var height = isCurrentClip ? "20px" : "";
-            return (
-                <div 
-                    key={i}
-                    className="video__note-timeline-block" 
-                    data-id={clip.id}
-                    style={{
-                        left: left+"px",
-                        width: width+"px", 
-                        borderRadius: borderRadius,
-                        backgroundColor: color,
-                        borderColor: color,
-                        opacity: opacity,
-                        height: height,
-                    }}
-                    onClick={handleClick}
-                >{isCurrentClip ? (id+1) : ""}</div>
-            )
-        })}
+      {hovered != -1 && sections ? 
+        <div style={{position: "absolute", top: "-24px", color: "#333"}}>
+          {sections[hovered]}
+        </div> : ""
+      }
+      {clips.map((clip: Clip, i: number) => {
+          var isCurrentClip = clip.id == id;
+          var isStart = i == 0;
+          var isEnd = i == clips.length - 1;
+          var left = ratio * clip.start + (!isStart ? 2 : 0);
+          var blockWidth = ratio * (clip.end - clip.start) + (!isEnd ? -2 : -1);
+          var color = isCurrentClip ? colors[id % 7] : "#f6f6f6";
+          var borderRadius = isStart ? "4px 0 0 4px" : (isEnd ? "0 4px 4px 0" : "");
+          var opacity = playedHistory.includes(typeof clip.id == "string" ? parseInt(clip.id) : clip.id) ? "1" : "0.7";
+          var height = isCurrentClip ? "20px" : "";
+          return (
+              <div 
+                  key={i}
+                  className="video__note-timeline-block" 
+                  data-id={clip.id}
+                  style={{
+                      left: left+"px",
+                      width: blockWidth+"px", 
+                      borderRadius: borderRadius,
+                      backgroundColor: color,
+                      borderColor: color,
+                      opacity: opacity,
+                      height: height,
+                  }}
+                  onClick={handleClick}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+              >
+                {isCurrentClip ? (id+1) : ""}
+              </div>
+          )
+      })}
     </div>
   );
 }

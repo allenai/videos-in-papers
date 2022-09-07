@@ -100,6 +100,14 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   // Render all the clips
   function renderClips(): Array<React.ReactElement> {
     var timeOrderedClips = Object.values(clips);
+    var sections: {[id: number]: string} = {};
+
+    for(var i = 0; i < timeOrderedClips.length; i++) {
+      var clip = timeOrderedClips[i];
+      var highlight = highlights[clip.highlights[clip.position]];
+      sections[clip.id] = highlight.section;
+    }
+
     timeOrderedClips.sort((a, b) => a['start'] - b['start']);
     var clipsHTML = Object.keys(processedClips).map((i: string) => {
       var id = parseInt(i);
@@ -137,6 +145,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
               updatePlayedHistory={updatePlayedHistory}
               setFocusId={setFocusId}
               setHoveredWord={setHoveredWord}
+              sections={sections}
           />
       )
     });
