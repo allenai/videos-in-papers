@@ -161,7 +161,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       var top = container.scrollTop;
       var clipTop = (spreadClips[focusId].top + spreadClips[focusId].page) * pageDimensions.height * scale + (24 + spreadClips[focusId].page * 48) + 38;
       top = Math.floor(clipTop - top);
-      setLock({clipId: focusId, relativePosition: top});
+      setLock({clipId: focusId, relativePosition: 64});
     }
   }, [lockable]);
 
