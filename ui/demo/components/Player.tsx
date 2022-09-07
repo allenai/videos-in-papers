@@ -257,13 +257,16 @@ export function Player({
     var tokens = highlight['tokens'].map((t) => t['text']);
 
     var summary = <div><b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}</div>;
-    if(scrubPosition != -1 && !clip.expanded) {
-      var scrubTime = (scrubPosition*duration + clip.start)*1000;
-      var caption = clip['captions'].find((c: Caption) => c.start <= scrubTime && scrubTime < c.end);
+    if((scrubPosition != -1 || isPlaying) && !clip.expanded) {
+      var captionTime = (clip.start + progress) * 1000;
+      if(scrubPosition != -1) {
+        captionTime = (scrubPosition*duration + clip.start)*1000;
+      }
+      var caption = clip['captions'].find((c: Caption) => c.start <= captionTime && captionTime < c.end);
       if(caption) {
         summary = (
           <div style={{color: color+"cc"}}>
-            <b>Transcript</b>&nbsp;&nbsp;{caption.caption}
+            <b style={{color: "#333"}}>Transcript</b>&nbsp;&nbsp;{caption.caption}
           </div>
         )
       }
@@ -280,8 +283,9 @@ export function Player({
             return (
               words.map((text, j) => {
                 var style = {
-                  backgroundColor: color + (hoveredWordId == i+'-'+j ? "99" : (passed ? "33" : "00")),
-                  fontWeight: tokens.includes(text) ? 700 : 400
+                  color: (hoveredWordId == i+'-'+j ? color+"ff" : (passed ? color+"aa" : "#333")),
+                  fontWeight: tokens.includes(text) ? 700 : 400,
+                  textDecoration: hoveredWordId == i+'-'+j ? "underline": "none";
                 }
                 return (
                   <span 
