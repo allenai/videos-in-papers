@@ -285,7 +285,7 @@ export function Player({
                 var style = {
                   color: (hoveredWordId == i+'-'+j ? color+"ff" : (passed ? color+"aa" : "#333")),
                   fontWeight: tokens.includes(text) ? 700 : 400,
-                  textDecoration: hoveredWordId == i+'-'+j ? "underline": "none";
+                  textDecoration: hoveredWordId == i+'-'+j ? "underline": "none",
                 }
                 return (
                   <span 
