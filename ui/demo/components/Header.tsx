@@ -26,11 +26,11 @@ export const Header: React.FunctionComponent<Props> = ({
         {renderLabel()}
         <ZoomInButton/>
       </div>
-      <div>
-        Lock Video &nbsp;&nbsp;&nbsp;
+      <div style={{display: "flex", flexDirection: "row", gap: "8px", paddingRight: "16px"}}>
+        Lock Video
         <input 
           type="checkbox" className="toggle-switch-checkbox" name="toggleSwitch" id="toggleSwitch" 
-          checked={lockable} onClick={() => setLockable(!lockable)}
+          checked={lockable} onChange={() => setLockable(!lockable)}
         />
       </div>
     </div>

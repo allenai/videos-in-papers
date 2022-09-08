@@ -58,8 +58,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
   // Load data
-  const samplePdfUrl = 'public/pdf/3491102.3501873.pdf';
-  const videoUrl = 'https://www.youtube.com/watch?v=brCo42DoMu0';
+  const doi = "3491102.3501873";
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>({});
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>({});
 
@@ -74,8 +73,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ lockable, setLockable ] = React.useState<boolean>(false);
   const [ lock, setLock ] = React.useState<{clipId: number, relativePosition: number} | null>(null);
 
+  var data = new FormData();
+  data.append("json", JSON.stringify({doi: doi}));
   React.useEffect(() => {
-    fetch('/public/annotation/3491102.3501873.json')
+    fetch('/api/annotation/'+doi+'.json')
       .then((res) => res.json())
       .then((data) => {
         setClips(data['clips']);
@@ -304,7 +305,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
           <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
             <DocumentWrapper 
               className="reader__main"
-              file={samplePdfUrl} 
+              file={'/api/pdf/'+doi+'.pdf'} 
               inputRef={pdfContentRef} 
             >
               {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}
@@ -370,7 +371,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
           <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
             <DocumentWrapper 
               className="reader__main"
-              file={samplePdfUrl} 
+              file={'/api/pdf/'+doi+'.pdf'} 
               inputRef={pdfContentRef} 
             >
               {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}

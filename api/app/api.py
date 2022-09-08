@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, send_from_directory
 from random import randint
 from time import sleep
 from typing import List, Tuple
@@ -66,5 +66,18 @@ def create_api() -> Blueprint:
         sleep(randint(1,3))
 
         return jsonify(answer)
+
+    @api.route('/api/annotation/<path:path>')
+    def annotation(path):
+        return send_from_directory("./data/annotation/", path)
+
+    @api.route('/api/pdf/<path:path>')
+    def pdf(path):
+        return send_from_directory("./data/pdf/", path)
+
+    @api.route('/api/clips/<path:path>')
+    def clips(path):
+        return send_from_directory("./data/clips/", path)
+
 
     return api

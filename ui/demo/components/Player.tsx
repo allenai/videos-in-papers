@@ -378,7 +378,7 @@ export function Player({
               }
               <ReactPlayer 
                   ref={videoRef}
-                  url={'public/clips/'+id+'.mp4'} 
+                  url={'api/clips/'+id+'.mp4'} 
                   playing={isPlaying}
                   controls={isFocus}
                   onReady={(e) => {videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration())}}
