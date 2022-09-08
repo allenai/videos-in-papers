@@ -9,11 +9,12 @@ import * as ReactDOM from 'react-dom';
 import { BrowserRouter, Route } from 'react-router-dom';
 
 import { Reader } from './components/Reader';
+import { Author } from './components/Author';
 
 const App = () => (
   <ContextProvider>
     <BrowserRouter>
-      <Route path="/" component={Reader} />
+      <Route path="/" component={Author} />
     </BrowserRouter>
   </ContextProvider>
 );

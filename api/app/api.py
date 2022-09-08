@@ -79,5 +79,12 @@ def create_api() -> Blueprint:
     def clips(path):
         return send_from_directory("./data/clips/", path)
 
+    @api.route('/api/blocks/<path:path>')
+    def blocks(path):
+        return send_from_directory("./data/blocks/", path)
+
+    @api.route('/api/captions/<path:path>')
+    def captions(path):
+        return send_from_directory("./data/captions/", path)
 
     return api
