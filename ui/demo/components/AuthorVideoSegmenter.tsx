@@ -10,6 +10,14 @@ import { AuthorTimeline } from './AuthorTimeline';
 
 const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
+function usePreviousValue(value: any) {
+  const ref = React.useRef();
+  React.useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
 interface Props {
   url: string;
   videoWidth: number;
@@ -44,11 +52,34 @@ export function AuthorVideoSegmenter({
   const [pushable, setPushable] = React.useState(false);
 
   const [ selectedCaptions, setSelectedCaptions ] = React.useState<Array<number>>([]);
+  const previousSelectedClip = usePreviousValue(selectedClip);
 
   const videoRef = React.useRef<ReactPlayerProps>(null);
 
   React.useEffect(() => {
-    if(selectedClip[0] == -1) setSelectedCaptions([]);
+    if(selectedClip[0] == -1) { 
+        setSelectedCaptions([]);
+    } else {
+        var newSelectedCaptions = [];
+        for(var i = 0; i < captions.length; i++) {
+            var c = captions[i];
+            var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]
+            selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
+            if(selected) {
+                newSelectedCaptions.push(i);
+            }
+        }
+        setSelectedCaptions(newSelectedCaptions);
+
+        if(previousSelectedClip && videoRef.current) {
+            console.log(selectedClip, previousSelectedClip);
+            if(selectedClip[0] != previousSelectedClip[0] && selectedClip[1] == previousSelectedClip[1]) {
+                videoRef.current.seekTo(selectedClip[0]/1000);
+            } else if(selectedClip[0] == previousSelectedClip[0] && selectedClip[1] != previousSelectedClip[1]) {
+                videoRef.current.seekTo(selectedClip[1]/1000);
+            }
+        }
+    }
   }, [selectedClip]);
 
   // Update progress (current time) as video plays
@@ -61,13 +92,6 @@ export function AuthorVideoSegmenter({
 
   const handleSelectCaption = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    var clipValues = Object.values(clips);
-    for(var i = 0; i < clipValues.length; i++) {
-        var temp = clipValues[i];
-        if(temp.start <= captions[idx].start && captions[idx].end <= temp.end) {
-            return
-        }
-    }
     var newSelectedCaptions = [...selectedCaptions];
     if(selectedCaptions.includes(idx)) {
         var position = selectedCaptions.indexOf(idx);
@@ -88,8 +112,25 @@ export function AuthorVideoSegmenter({
         captions[newSelectedCaptions[0]].start, 
         captions[newSelectedCaptions[newSelectedCaptions.length - 1]].end
     ];
+    changeClip(clip, -1);
+  }
+
+  const changeClip = (clip: Array<number>, idx: number) => {
+    if(clip[0] < 0) clip[0] = 0;
+    if(clip[1] > duration*1000) clip[1] = duration*1000;
+    var clipValues = Object.values(clips);
+    for(var i = 0; i < clipValues.length; i++) {
+        var temp = clipValues[i];
+        if(temp.start <= clip[0] && clip[0] < temp.end) {
+            clip[0] = temp.end;
+        } else if(temp.start < clip[1] && clip[1] <= temp.end) {
+            clip[1] = temp.start;
+        } else if(clip[0] <= temp.start && temp.end <= clip[1]) {
+            return;
+        }
+    }
+    if(clip[1] <= clip[0]) return;
     setSelectedClip(clip);
-    setSelectedCaptions(newSelectedCaptions);
   }
 
   const handleClickOutside = (e: React.MouseEvent<HTMLElement>) => {
@@ -115,7 +156,12 @@ export function AuthorVideoSegmenter({
                     light={false}
                 />
             </div>
-            <AuthorTimeline duration={duration} width={adjustedVideoWidth} clips={clips} selectedClip={selectedClip}/>
+            <div className="video__segmenter-timeline-label">
+                {selectedClip[0] == -1 ? 
+                    "No clip selected..." : 
+                    (<span>Current Clip: <b>{`${timeToStr(selectedClip[0]/1000)}-${timeToStr(selectedClip[1]/1000)}`}</b></span>)} 
+            </div>
+            <AuthorTimeline duration={duration} width={adjustedVideoWidth} clips={clips} selectedClip={selectedClip} changeClip={changeClip}/>
             <div className="video__segmenter-transcript">
                 {captions.map((c, i) => {
                     var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]

@@ -40,7 +40,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [ blocks, setBlocks ] = React.useState<Array<Block>>([]);
   const [ captions, setCaptions ] = React.useState<Array<Caption>>([]);
 
-  const [ videoWidth, setVideoWidth ] = React.useState(pageDimensions.height * 0.5 / 9 * 16);
+  const [ videoWidth, setVideoWidth ] = React.useState(0);
   const [ selectedBlocks, setSelectedBlocks ] = React.useState<Array<number>>([]);
   const [ selectedClip, setSelectedClip ] = React.useState<Array<number>>([-1, -1]);
 
@@ -147,7 +147,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSelectedClip([-1, -1]);
   }
 
-  if(blocks.length == 0) {
+  if(videoWidth == 0) {
     return (
       <div>
         Loading...
