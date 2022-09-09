@@ -105,6 +105,7 @@ export function AuthorTimeline({
                 width: blockWidth+"px",
                 backgroundColor: (idx == -1 ? "#1890ff" : colors[idx % 7]),
                 height: edit == idx ? "28px" : "20px",
+                zIndex: edit == idx ? 5 : 1,
             }}
             onClick={(e: React.MouseEvent) => handleClickSegment(idx, e)}
         >{thumbs}</div>
@@ -113,6 +114,10 @@ export function AuthorTimeline({
 
   const handleTimelineClick = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
+    var rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var newTime = Math.floor(x / ratio * 1000);
+    changeClip([newTime-10000, newTime+10000], -1);
   }
 
   return (

@@ -44,6 +44,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [ selectedBlocks, setSelectedBlocks ] = React.useState<Array<number>>([]);
   const [ selectedClip, setSelectedClip ] = React.useState<Array<number>>([-1, -1]);
 
+  const [ selectedMapping, setSelectedMapping ] = React.useState<{higlight: number, clip: number} | null>(null);
+  const [ modifyMode, setModifyMode ] = React.useState<boolean>(false);
+
+
   var data = new FormData();
   data.append("json", JSON.stringify({doi: DOI}));
   React.useEffect(() => {

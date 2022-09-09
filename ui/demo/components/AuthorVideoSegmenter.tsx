@@ -166,10 +166,22 @@ export function AuthorVideoSegmenter({
                 {captions.map((c, i) => {
                     var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]
                     selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
+                    var used = false;
+                    var clipList = Object.values(clips);
+                    for(var j = 0; j < clipList.length; j++) {
+                        if(clipList[j].start <= c.start && c.end <= clipList[j].end) {
+                            used = true;
+                            break;
+                        }
+                    }
                     return (
                         <div 
                             key={i}
-                            className={"video__segmenter-transcript-container" + (selected ? " video__segmenter-transcript-container-selected" : "")}
+                            className={
+                                "video__segmenter-transcript-container" + 
+                                (selected ? " video__segmenter-transcript-container-selected" : "") +
+                                (used ? " video__segmenter-transcript-container-used": "")
+                            }
                             onClick={(e) => handleSelectCaption(i, e)}
                         >
                             <div className="video__segmenter-transcript-timestamp">
