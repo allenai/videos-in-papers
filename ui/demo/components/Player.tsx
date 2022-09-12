@@ -10,6 +10,7 @@ const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 import { PlayerTimeline } from './PlayerTimeline';
 
 interface Props {
+  doi: string;
   id: number;
   top: number;
   left?: number;
@@ -45,6 +46,7 @@ function timeToStr(time: number) {
 }
 
 export function Player({
+  doi,
   id,
   top,
   left,
@@ -378,7 +380,7 @@ export function Player({
               }
               <ReactPlayer 
                   ref={videoRef}
-                  url={'api/clips/'+id+'.mp4'} 
+                  url={'api/clips/'+doi+'/'+id+'.mp4'} 
                   playing={isPlaying}
                   controls={isFocus}
                   onReady={(e) => {videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration())}}

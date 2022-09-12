@@ -189,7 +189,8 @@ iframe {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding-top: 38px;
+    padding-top: 64px;
+    padding-bottom: 32px;
 }
 
 .video__segmenter-transcript {
@@ -203,6 +204,7 @@ iframe {
     font-size: 16px;
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 
 .video__segmenter-transcript-container {
@@ -242,26 +244,32 @@ iframe {
 }
 
 .video__segmenter-timeline {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
     width: 100%;
     position: relative;
     cursor: pointer;
-    padding: 24px 0;
+    height: 64px;
+    margin-bottom: 8px;
+    background-color: #ccc;
+    overflow: scroll;
 }
 
-.video__segmenter-timeline-strip {
-    background-color: #33333333;
-    height: 12px;
-    border-radius: 3px;
-    width: 100%;
+.video__segmenter-timeline-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    border-radius: 8px;
 }
 
 .video__segmenter-timeline-label {
     margin-top: 8px;
     color: #999;
     font-size: 16px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .video__segmenter-timeline-label b {
@@ -295,20 +303,51 @@ iframe {
     padding-left: 8px;
     background-color: transparent;
     flex: 0;
-    margin-left: -14px;
+    margin-left: -12px;
     cursor: pointer;
 }
 .video__segmenter-thumb-right-container {
     padding-right: 8px;
     background-color: transparent;
     flex: 0;
-    margin-right: -14px;
+    margin-right: -12px;
     cursor: pointer;
 }
 .video__segmenter-thumb {
     height: 36px;
-    width: 6px;
+    width: 8px;
     background-color: #1890ff;
     border: solid 1px #ffffff66;
     border-radius: 3px;
+}
+
+.video__segmenter-timeline-zoom {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    font-size: 24px;
+    color: #1890ff;
+    align-items: center;
+}
+
+
+.video__segmenter-timeline-tick {
+    height: 100%;
+    width: 1px;
+    background-color: #aaa;
+    position: absolute;
+}
+
+.video__segmenter-timeline-tick-major {
+    height: 100%;
+    width: 1px;
+    background-color: #999;
+    position: absolute;
+}
+
+.video__segmenter-timeline-tick-label {
+    color: #999;
+    font-size: 8px;
+    position: absolute;
+    top: 2px;
 }

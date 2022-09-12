@@ -5,10 +5,12 @@ const ReactPlayer = _ReactPlayer as unknown as React.FC<ReactPlayerProps>;
 
 interface Props {
   thumbnail: {clipId: number, left: number, top: number} | null;
+  doi: string;
 }
 
 export function ThumbnailPopup({
-  thumbnail
+  thumbnail,
+  doi
 }: Props) {
   if(thumbnail == null) {
     return null;
@@ -22,7 +24,7 @@ export function ThumbnailPopup({
       <div className="popup-thumbnail__wrapper">
         <ReactPlayer 
           className="popup-thumbnail__thumbnail"
-          url={'api/clips/'+thumbnail.clipId+'.mp4'} 
+          url={'api/clips/'+doi+'/'+thumbnail.clipId+'.mp4'} 
           controls={false}
           playing={false}
           width="100%" height="100%"

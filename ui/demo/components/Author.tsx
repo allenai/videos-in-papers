@@ -18,6 +18,7 @@ import { Header } from './Header';
 import { Outline } from './Outline';
 import { AuthorVideoSegmenter } from './AuthorVideoSegmenter';
 import { AuthorBlockOverlay } from './AuthorBlockOverlay';
+import { AuthorMappingControls } from './AuthorMappingControls';
 
 import { Highlight, Clip, Caption, Block } from '../types/clips';
 
@@ -44,7 +45,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [ selectedBlocks, setSelectedBlocks ] = React.useState<Array<number>>([]);
   const [ selectedClip, setSelectedClip ] = React.useState<Array<number>>([-1, -1]);
 
-  const [ selectedMapping, setSelectedMapping ] = React.useState<{higlight: number, clip: number} | null>(null);
+  const [ selectedMapping, setSelectedMapping ] = React.useState<number | null>(null);
   const [ modifyMode, setModifyMode ] = React.useState<boolean>(false);
 
 
@@ -87,17 +88,28 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setScrollRoot(pdfScrollableRef.current || null);
   }, [pdfScrollableRef]);
 
+  React.useEffect(() => {
+    if(selectedMapping == null && modifyMode) { 
+        setModifyMode(false);
+    } else if(selectedMapping != null && !modifyMode) {
+        setModifyMode(true);
+    }
+  }, [selectedMapping]);
+
   const handleClickOutside = (e: React.MouseEvent<HTMLElement>) => {
     if((e.target as HTMLElement).className.includes('reader_highlight_color')) {
         return;
     }
     setSelectedBlocks([]);
+    setSelectedMapping(null);
   }
 
   const createMapping = () => {
     var topTop = 0;
     var topPage = 0;
-    var rects: Array<BoundingBoxType> = selectedBlocks.map((id: number) => {
+    var copyBlocks = [...selectedBlocks];
+    copyBlocks.sort();
+    var rects: Array<BoundingBoxType> = copyBlocks.map((id: number) => {
         var blk = blocks[id];
         if(blk.page < topPage) {
             topPage = blk.page;
@@ -121,8 +133,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
         rects: rects,
         clip: clipId,
         tokens: [],
-        section: blocks[selectedBlocks[0]]['section'],
-        blocks: selectedBlocks
+        section: blocks[copyBlocks[0]]['section'],
+        blocks: copyBlocks
     };
     var filteredCaptions = captions.filter((c: Caption) => {
         return selectedClip[0] <= c.start && c.start < selectedClip[1] || selectedClip[0] < c.end && c.end <= selectedClip[1];
@@ -151,6 +163,51 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSelectedClip([-1, -1]);
   }
 
+  const removeMapping = () => {
+    if(selectedMapping == null) return;
+    var clipId = selectedMapping;
+    var highlightIds = clips[clipId].highlights;
+    var newClips = {...clips};
+    var newHighlights = {...highlights};
+    delete newClips[clipId];
+    for(var i = 0; i < highlightIds.length; i++) {
+        delete newHighlights[highlightIds[i]];
+    }
+    setClips(newClips);
+    setHighlights(newHighlights);
+  }
+
+  const changeClip = (clipId: number, start: number, end: number) => {
+    var newClips = {...clips};
+    newClips[clipId].start = start;
+    newClips[clipId].end = end;
+    var filteredCaptions = captions.filter((c: Caption) => {
+        return start <= c.start && c.start < end || start < c.end && c.end <= end;
+    });
+    newClips[clipId].captions = filteredCaptions;
+    setClips(newClips);
+  }
+
+  const changeHighlight = (highlightId: number, changedBlocks: Array<number>) => {
+    var newHighlights = {...highlights};
+    var copyBlocks = [...changedBlocks];
+    copyBlocks.sort();
+    var rects: Array<BoundingBoxType> = copyBlocks.map((id: number) => {
+        var blk = blocks[id];
+        return {
+            page: blk.page,
+            top: blk.top,
+            left: blk.left,
+            height: blk.height,
+            width: blk.width
+        }
+    });
+    newHighlights[highlightId].rects = rects;
+    newHighlights[highlightId].blocks = changedBlocks;
+    newHighlights[highlightId].section = blocks[copyBlocks[0]]['section'];
+    setHighlights(newHighlights);
+  }
+
   if(videoWidth == 0) {
     return (
       <div>
@@ -163,13 +220,15 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
         <Route path="/">
           <Header/>
           <div className="reader__container">
-            <div className="mapping-controls__container">
-                {
-                    selectedBlocks.length > 0 && selectedClip[0] != -1 ? 
-                    <button onClick={createMapping} style={{backgroundColor: "#1890ff"}}>Create Mapping</button> :
-                    ""
-                }
-            </div>
+            <AuthorMappingControls 
+                selectedBlocks={selectedBlocks} 
+                selectedClip={selectedClip}
+                selectedMapping={selectedMapping}
+                createMapping={createMapping}
+                removeMapping={removeMapping}
+                modifyMode={modifyMode}
+                setModifyMode={setModifyMode}
+            />
             <DocumentWrapper 
               className="reader__main"
               file={'/api/pdf/'+DOI+'.pdf'} 
@@ -186,7 +245,12 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           blocks={blocks}
                           selectedBlocks={selectedBlocks}
                           setSelectedBlocks={setSelectedBlocks}
-                          highlights={highlights} 
+                          highlights={highlights}
+                          changeHighlight={changeHighlight}
+                          clips={clips}
+                          selectedMapping={selectedMapping}
+                          setSelectedMapping={setSelectedMapping}
+                          modifyMode={modifyMode}
                         />
                       </Overlay>
                     </PageWrapper>
@@ -198,10 +262,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
               url={VIDEO_URL}
               videoWidth={videoWidth}
               clips={clips} 
+              changeClip={changeClip}
               highlights={highlights}
               captions={captions}
               selectedClip={selectedClip}
               setSelectedClip={setSelectedClip}
+              selectedMapping={selectedMapping}
+              setSelectedMapping={setSelectedMapping}
+              modifyMode={modifyMode}
             />
           </div>
         </Route>

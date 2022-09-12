@@ -22,26 +22,36 @@ interface Props {
   url: string;
   videoWidth: number;
   clips: {[id: number]: Clip};
+  changeClip: (id: number, start: number, end: number) => void;
   highlights: {[id: number]: Highlight};
   captions: Array<Caption>;
   selectedClip: Array<number>;
   setSelectedClip: (data: Array<number>) => void;
+  selectedMapping: number | null;
+  setSelectedMapping: (clipId: number | null) => void;
+  modifyMode: boolean;
 }
 
 function timeToStr(time: number) {
-  var min = Math.floor(time / 60);
-  var sec = Math.floor(time % 60);
-  return (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+  var dec = Math.floor(time/10) % 100;
+  var totalSec = Math.floor(time/1000)
+  var min = Math.floor(totalSec / 60);
+  var sec = Math.floor(totalSec % 60);
+  return (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec) + ";" + (dec < 10 ? "0" + dec : dec);
 }
 
 export function AuthorVideoSegmenter({
   url,
   videoWidth,
   clips,
+  changeClip,
   highlights,
   captions,
   selectedClip,
-  setSelectedClip
+  setSelectedClip,
+  selectedMapping,
+  setSelectedMapping,
+  modifyMode,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -49,78 +59,94 @@ export function AuthorVideoSegmenter({
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
-  const [pushable, setPushable] = React.useState(false);
+  const [timelineScale, setTimelineScale] = React.useState(100);
 
-  const [ selectedCaptions, setSelectedCaptions ] = React.useState<Array<number>>([]);
-  const previousSelectedClip = usePreviousValue(selectedClip);
+  const previousSelectedClip: any | undefined = usePreviousValue(selectedClip);
 
   const videoRef = React.useRef<ReactPlayerProps>(null);
 
   React.useEffect(() => {
-    if(selectedClip[0] == -1) { 
-        setSelectedCaptions([]);
-    } else {
-        var newSelectedCaptions = [];
-        for(var i = 0; i < captions.length; i++) {
-            var c = captions[i];
-            var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]
-            selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
-            if(selected) {
-                newSelectedCaptions.push(i);
-            }
-        }
-        setSelectedCaptions(newSelectedCaptions);
-
-        if(previousSelectedClip && videoRef.current) {
-            console.log(selectedClip, previousSelectedClip);
-            if(selectedClip[0] != previousSelectedClip[0] && selectedClip[1] == previousSelectedClip[1]) {
-                videoRef.current.seekTo(selectedClip[0]/1000);
-            } else if(selectedClip[0] == previousSelectedClip[0] && selectedClip[1] != previousSelectedClip[1]) {
-                videoRef.current.seekTo(selectedClip[1]/1000);
-            }
+    if(previousSelectedClip != undefined && videoRef.current) {
+        if(selectedClip[0] != previousSelectedClip[0] && selectedClip[1] == previousSelectedClip[1]) {
+            videoRef.current.seekTo(selectedClip[0]/1000);
+            setIsPlaying(true);
+        } else if(selectedClip[0] == previousSelectedClip[0] && selectedClip[1] != previousSelectedClip[1]) {
+            videoRef.current.seekTo(selectedClip[1]/1000);
+            setIsPlaying(true);
         }
     }
   }, [selectedClip]);
+
+  React.useEffect(() => {
+    if(selectedMapping == null) return;
+    setSelectedClip([-1, -1]);
+  }, [selectedMapping]);
 
   // Update progress (current time) as video plays
   const updateProgress = (e : any) => {
     if(videoRef.current && isPlaying) {
       var currentTime = e.playedSeconds;
-      setProgress(currentTime);
+      if(selectedClip[0] != -1 && e.playedSeconds*1000 > selectedClip[1]) {
+        setIsPlaying(false);
+        videoRef.current.seekTo(selectedClip[1]/1000);
+        setProgress(selectedClip[1]/1000);
+      } else if (selectedClip[0] != -1 && e.playedSeconds*1000 < selectedClip[0]) {
+        videoRef.current.seekTo(selectedClip[0]/1000);
+        setProgress(selectedClip[0]/1000);
+        setIsPlaying(true);
+      } else {
+        setProgress(currentTime);
+      }
     }
+  }
+
+  const equalTimes = (timeA: number, timeB: number) => {
+    return timeA - 500 <= timeB && timeB <= timeA + 500;
   }
 
   const handleSelectCaption = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    var newSelectedCaptions = [...selectedCaptions];
-    if(selectedCaptions.includes(idx)) {
-        var position = selectedCaptions.indexOf(idx);
-        if(position != 0 || position != selectedCaptions.length - 1) {
-            newSelectedCaptions = [idx];
+    if(!modifyMode) {
+        var newClip = [...selectedClip];
+        var caption = captions[idx];
+        if(equalTimes(caption.end, newClip[0])) {
+            newClip[0] = caption.start;
+        } else if(equalTimes(caption.start, newClip[1])) {
+            newClip[1] = caption.end
+        } else if (equalTimes(caption.end, newClip[1])) {
+            newClip[1] = caption.start;
+        } else if (equalTimes(caption.start, newClip[0])) {
+            newClip[0] = caption.end;
         } else {
-            newSelectedCaptions.splice(position, 1);
+            newClip = [caption.start, caption.end];
         }
-    } else if(idx + 1 == selectedCaptions[0]) {
-        newSelectedCaptions = [idx].concat(newSelectedCaptions);
-    } else if (selectedCaptions[selectedCaptions.length - 1] == idx - 1) {
-        newSelectedCaptions = newSelectedCaptions.concat([idx]);
-    } else {
-        newSelectedCaptions = [idx];
-    }
 
-    var clip = [
-        captions[newSelectedCaptions[0]].start, 
-        captions[newSelectedCaptions[newSelectedCaptions.length - 1]].end
-    ];
-    changeClip(clip, -1);
+        changeClipWrapper(newClip, -1);
+        setSelectedMapping(null);
+    } else if(modifyMode && selectedMapping != null) {
+        var newClip = [clips[selectedMapping].start, clips[selectedMapping].end];
+        var caption = captions[idx];
+        if(equalTimes(caption.end, newClip[0])) {
+            newClip[0] = caption.start;
+        } else if(equalTimes(caption.start, newClip[1])) {
+            newClip[1] = caption.end
+        } else if (equalTimes(caption.end, newClip[1])) {
+            newClip[1] = caption.start;
+        } else if (equalTimes(caption.start, newClip[0])) {
+            newClip[0] = caption.end;
+        }
+
+        changeClipWrapper(newClip, selectedMapping);
+    }
   }
 
-  const changeClip = (clip: Array<number>, idx: number) => {
+  const changeClipWrapper = (clip: Array<number>, id: number) => {
     if(clip[0] < 0) clip[0] = 0;
     if(clip[1] > duration*1000) clip[1] = duration*1000;
     var clipValues = Object.values(clips);
     for(var i = 0; i < clipValues.length; i++) {
         var temp = clipValues[i];
+        if(temp.id == id) continue;
         if(temp.start <= clip[0] && clip[0] < temp.end) {
             clip[0] = temp.end;
         } else if(temp.start < clip[1] && clip[1] <= temp.end) {
@@ -130,12 +156,26 @@ export function AuthorVideoSegmenter({
         }
     }
     if(clip[1] <= clip[0]) return;
-    setSelectedClip(clip);
+    if(id == -1) {
+        setSelectedClip(clip);
+    } else {
+        changeClip(id, clip[0], clip[1]);
+    }
   }
 
   const handleClickOutside = (e: React.MouseEvent<HTMLElement>) => {
     setSelectedClip([-1, -1]);
-    setSelectedCaptions([]);
+    // setSelectedCaptions([]);
+    setSelectedMapping(null);
+  }
+
+  const changeScale = (e: React.MouseEvent, direction: number) => {
+    e.stopPropagation();
+    if(direction == 1 && timelineScale < 400) {
+        setTimelineScale(timelineScale + 50);
+    } else if(direction == -1 && timelineScale > 100) {
+        setTimelineScale(timelineScale - 50);
+    }
   }
 
   var adjustedVideoWidth = videoWidth;
@@ -150,18 +190,45 @@ export function AuthorVideoSegmenter({
                     url={url} 
                     playing={isPlaying}
                     controls={true}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
                     onReady={(e) => {videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration())}}
+                    onSeek={(e) => console.log(e)}
                     onProgress={(e) => {updateProgress(e)}}
+                    progressInterval={100}
                     width="100%" height="100%"
                     light={false}
                 />
             </div>
             <div className="video__segmenter-timeline-label">
-                {selectedClip[0] == -1 ? 
-                    "No clip selected..." : 
-                    (<span>Current Clip: <b>{`${timeToStr(selectedClip[0]/1000)}-${timeToStr(selectedClip[1]/1000)}`}</b></span>)} 
+                <div className="video__segmenter-timeline-zoom">
+                    <div style={{cursor: "pointer"}} onClick={(e) => changeScale(e, -1)}>-</div>
+                    <div style={{fontSize: "14px"}}>{timelineScale + "%"}</div>
+                    <div style={{cursor: "pointer"}} onClick={(e) => changeScale(e, 1)}>+</div>
+                </div>
+                <div>
+                    <span>Current Time: <b>{`${timeToStr(progress*1000)}`}</b></span>
+                </div>
+                <div>
+                    {modifyMode && selectedMapping != null ?
+                        (<span>Current Clip: <b>{`${timeToStr(clips[selectedMapping].start)} - ${timeToStr(clips[selectedMapping].end)}`}</b></span>) :
+                        (selectedClip[0] != -1 ? 
+                            (<span>Current Clip: <b>{`${timeToStr(selectedClip[0])} - ${timeToStr(selectedClip[1])}`}</b></span>) :
+                            "No clip selected...")} 
+                </div>
+                <div></div>
             </div>
-            <AuthorTimeline duration={duration} width={adjustedVideoWidth} clips={clips} selectedClip={selectedClip} changeClip={changeClip}/>
+            <AuthorTimeline 
+                duration={duration} 
+                width={adjustedVideoWidth} 
+                clips={clips} 
+                selectedClip={selectedClip} 
+                changeClip={changeClipWrapper}
+                selectedMapping={selectedMapping}
+                setSelectedMapping={setSelectedMapping}
+                modifyMode={modifyMode}
+                scale={timelineScale}
+            />
             <div className="video__segmenter-transcript">
                 {captions.map((c, i) => {
                     var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]
@@ -185,7 +252,7 @@ export function AuthorVideoSegmenter({
                             onClick={(e) => handleSelectCaption(i, e)}
                         >
                             <div className="video__segmenter-transcript-timestamp">
-                                {timeToStr(c['start']/1000)}
+                                {timeToStr(c['start'])}
                             </div>
                             <div className="video__segmenter-transcript-text">
                                 {c['caption']}

@@ -14,7 +14,8 @@ import { Author } from './components/Author';
 const App = () => (
   <ContextProvider>
     <BrowserRouter>
-      <Route path="/" component={Author} />
+      <Route path="/reader" component={Reader} />
+      <Route path="/author" component={Author} />
     </BrowserRouter>
   </ContextProvider>
 );

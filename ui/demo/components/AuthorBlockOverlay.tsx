@@ -1,5 +1,5 @@
 import { BoundingBox, BoundingBoxType, UiContext, DocumentContext, scaleRawBoundingBox } from '@allenai/pdf-components';
-import { Highlight, Block } from '../types/clips';
+import { Highlight, Block, Clip } from '../types/clips';
 import * as React from 'react';
 
 type Props = {
@@ -8,6 +8,11 @@ type Props = {
   selectedBlocks: Array<number>;
   setSelectedBlocks: (blocks: Array<number>) => void;
   highlights: {[id: number]: Highlight};
+  changeHighlight: (id: number, blocks: Array<number>) => void;
+  clips: {[id: number]: Clip};
+  selectedMapping: number | null;
+  setSelectedMapping: (clipId: number | null) => void;
+  modifyMode: boolean;
 };
 
 /*
@@ -18,9 +23,19 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     blocks, 
     selectedBlocks,
     setSelectedBlocks,
-    highlights 
+    highlights,
+    changeHighlight,
+    clips,
+    selectedMapping,
+    setSelectedMapping,
+    modifyMode,
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
+
+  React.useEffect(() => {
+    if(selectedMapping == null) return;
+    setSelectedBlocks([]);
+  }, [selectedMapping]);
 
   function getBoundingBoxProps() {
     var results: Array<Block> = [];
@@ -34,14 +49,22 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     return results;
   }
 
-  function handleClick(id: number) {
-    if(selectedBlocks.includes(id)) {
-        var copySelBlocks = [...selectedBlocks];
-        var index = selectedBlocks.indexOf(id);
-        copySelBlocks.splice(index, 1);
-        setSelectedBlocks(copySelBlocks);
-    } else {
-        setSelectedBlocks([...selectedBlocks, id]);
+  function handleClick(blockId: number) {
+    if(!modifyMode) {
+        if(selectedBlocks.includes(blockId)) {
+            var copySelBlocks = [...selectedBlocks];
+            var index = selectedBlocks.indexOf(blockId);
+            copySelBlocks.splice(index, 1);
+            setSelectedBlocks(copySelBlocks);
+        } else {
+            setSelectedBlocks([...selectedBlocks, blockId]);
+        }
+        setSelectedMapping(null);
+    } else if(modifyMode && selectedMapping != null) {
+        var highlightId = clips[selectedMapping].highlights[0];
+        var blocks = highlights[highlightId].blocks;
+        if(blocks)
+            changeHighlight(highlightId, blocks.concat([blockId]));
     }
   }
 
@@ -54,13 +77,24 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     }
   }
 
+  function handleClickMapped(clipId: number, blockId: number) {
+    if(!modifyMode) {
+        setSelectedMapping(clipId == selectedMapping ? null : clipId);
+    } else if(modifyMode && selectedMapping != null) {
+        var highlightId = clips[selectedMapping].highlights[0];
+        var blocks = highlights[highlightId].blocks;
+        if(blocks)
+            changeHighlight(highlightId, blocks.filter(id => id != blockId));
+    }
+  }
+
   function renderHighlightedBoundingBoxes(): Array<React.ReactElement> {
     const boxes: Array<React.ReactElement> = [];
     getBoundingBoxProps().map((prop, i) => {
       // Only render this BoundingBox if it belongs on the current page
         if (prop.page === pageIndex) {
             var clipId = findInHighlights(prop.id);
-
+            
             var props = {
                 ...prop,
                 id: "" + prop.id,
@@ -74,11 +108,11 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
                 props = {
                     ...prop,
                     id: "" + prop.id,
-                    className: 'reader_highlight_color-' + clipId % 7,
+                    className: 'reader_highlight_color-mapped-' + clipId % 7 + (clipId == selectedMapping ? " reader_highlight_color-mapped-sel" : ""),
                     // Set isHighlighted to true for highlighted styling
                     isHighlighted: true,
                     key: i,
-                    onClick: () => console.log("mapped")
+                    onClick: () => handleClickMapped(clipId, prop.id)
                 };
             }
 
