@@ -24,7 +24,7 @@ export function ThumbnailPopup({
       <div className="popup-thumbnail__wrapper">
         <ReactPlayer 
           className="popup-thumbnail__thumbnail"
-          url={'api/clips/'+doi+'/'+thumbnail.clipId+'.mp4'} 
+          url={'/api/clips/'+doi+'/'+thumbnail.clipId+'.mp4'} 
           controls={false}
           playing={false}
           width="100%" height="100%"

@@ -41,4 +41,5 @@ export type Block = BoundingBoxType & {
     index: number,
     type: string,
     section: string,
+    tokens: Array<Token>
 }

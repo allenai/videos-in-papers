@@ -1,5 +1,5 @@
 import { BoundingBox, BoundingBoxType, UiContext, DocumentContext, scaleRawBoundingBox } from '@allenai/pdf-components';
-import { Highlight, Block, Clip } from '../types/clips';
+import { Highlight, Block, Clip, Token } from '../types/clips';
 import * as React from 'react';
 
 type Props = {
@@ -43,7 +43,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
       var block = blocks[i];
       var rect = {page: block.page, top: block.top, left: block.left, height: block.height, width: block.width};
       var bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
-      results.push({...bbox, id: block.id, index: block.index, type: block.type, section: block.section});
+      results.push({...block, ...bbox});
     }
 
     return results;
@@ -96,7 +96,11 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
             var clipId = findInHighlights(prop.id);
             
             var props = {
-                ...prop,
+                top: prop.top,
+                left: prop.left,
+                height: prop.height,
+                width: prop.width,
+                page: prop.page,
                 id: "" + prop.id,
                 className: 'reader_highlight_color-' + (selectedBlocks.includes(prop.id) ? "sel" : "unsel"),
                 // Set isHighlighted to true for highlighted styling
@@ -106,7 +110,11 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
             };
             if(clipId != -1) {
                 props = {
-                    ...prop,
+                    top: prop.top,
+                    left: prop.left,
+                    height: prop.height,
+                    width: prop.width,
+                    page: prop.page,
                     id: "" + prop.id,
                     className: 'reader_highlight_color-mapped-' + clipId % 7 + (clipId == selectedMapping ? " reader_highlight_color-mapped-sel" : ""),
                     // Set isHighlighted to true for highlighted styling
@@ -119,6 +127,29 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
             boxes.push(<BoundingBox {...props} />);
         }
     });
+    if(selectedMapping != null) {
+      var selectedClip = clips[selectedMapping];
+      var selectedHighlight = selectedClip['highlights'][selectedClip['position']];
+      highlights[selectedHighlight].blocks?.map((blockId: number) => {
+        var blk = blocks[blockId];
+        return blk.tokens.map((tok: Token, i) => {
+          if (tok.page === pageIndex) {
+            var rect = {top: tok.top, left: tok.left, height: tok.height, width: tok.width, page: tok.page};
+            rect = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
+            var props = {
+                ...rect,
+                id: "" + tok.id,
+                className: 'reader__sample-highlight-overlay__bbox',
+                // Set isHighlighted to true for highlighted styling
+                isHighlighted: true,
+                key: tok.id
+            };
+
+            boxes.push(<BoundingBox {...props} />);
+          }
+        });
+      })
+    }
     return boxes;
   }
 
