@@ -53,21 +53,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   React.useEffect(() => {
     fetch('/api/blocks/'+doi+'.json')
       .then((res) => res.json())
-      .then((data) => {
-        setBlocks(
-          data.map((block: {id: string, index: string, page: string, type: string, y1: string, x1: string, y2: string, x2: string}) => {
-            return {
-              id: parseInt(block.id),
-              index: parseInt(block.index),
-              page: parseInt(block.page),
-              type: block.type,
-              top: parseFloat(block.y1),
-              left: parseFloat(block.x1),
-              height: parseFloat(block.y2) - parseFloat(block.y1),
-              width: parseFloat(block.x2) - parseFloat(block.x1),
-            }
-          })
-        );
+      .then((data: Array<Block>) => {
+        setBlocks(data);
       });
     fetch('/api/captions/'+doi+'.json')
       .then((res) => res.json())

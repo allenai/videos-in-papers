@@ -460,6 +460,14 @@ def get_paper(url, doi, output_path):
     file.write(response.content)
     file.close()
 
+def process_interval_str(interval_str):
+    result = []
+    temp = interval_str.split("), (")
+    for t in temp:
+        t = t.replace(")", "").replace("(", "").replace("[", "").replace("]", "")
+        result.append(list(map(lambda txt: int(txt), t.split(", "))))
+    return result
+
 def process_paper_blocks(doi, input_path, output_path):
     parsed_path = '/api/app/data/parsed_pdf'
     pipeline(
@@ -472,6 +480,8 @@ def process_paper_blocks(doi, input_path, output_path):
         relative_coordinates=True
     )
 
+    tokens_df = pd.read_csv(f'{parsed_path}/{doi}/tokens.csv', index_col=0)
+
     with open(f"{parsed_path}/{doi}/structure.csv") as f:
         reader = csv.reader(f)
         next(reader)
@@ -480,16 +490,36 @@ def process_paper_blocks(doi, input_path, output_path):
         for row in reader:
             if row[3] == 'Section':
                 section = row[5]
-            json_obj.append({
-                "id": row[0],
-                "index": row[1],
-                "page": row[2],
+            block = {
+                "id": int(row[0]),
+                "index": int(row[1]),
+                "page": int(row[2]),
                 "type": row[3],
                 "section": section,
-                "x1": row[6],
-                "y1": row[7],
-                "x2": row[8],
-                "y2": row[9]
-            })
+                "left": float(row[6]),
+                "top": float(row[7]),
+                "width": float(row[8]) - float(row[6]),
+                "height": float(row[9]) - float(row[7]),
+                "tokens": [],
+            }
+
+            intervals = process_interval_str(row[4])
+            for interval in intervals:
+                for tok_idx in range(interval[0], interval[1]):
+                    token = tokens_df[np.logical_and(tokens_df['page'] == int(block['page']), tokens_df['id'] == tok_idx)]
+                    if token.empty:
+                        continue
+                    token = token.iloc[0]
+                    block['tokens'].append({
+                        'id': tok_idx,
+                        'page': int(token['page']),
+                        'text': token['text'],
+                        'left': float(token['x1']),
+                        'top': float(token['y1']),
+                        'width': float(token['x2']) - float(token['x1']),
+                        'height': float(token['y2']) - float(token['y1'])
+                    })
+            json_obj.append(block)
+
         with open(f"{output_path}/{doi}.json", "w") as output_f:
             json.dump(json_obj, output_f)

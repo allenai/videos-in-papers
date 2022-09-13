@@ -40,6 +40,10 @@ function timeToStr(time: number) {
   return (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec) + ";" + (dec < 10 ? "0" + dec : dec);
 }
 
+const colors = [
+    "#cb725e", "#d9a460", "#3e9d29", "#306ed3", "#07cead", "#9d58e1", "#dd59ba"
+];
+
 export function AuthorVideoSegmenter({
   url,
   videoWidth,
@@ -97,7 +101,6 @@ export function AuthorVideoSegmenter({
       } else {
         setProgress(currentTime);
       }
-      // TODO: make it so the video goes to section of selectedmapping
     }
   }
 
@@ -179,6 +182,50 @@ export function AuthorVideoSegmenter({
     }
   }
 
+  const handleClickTranscript = (e: React.MouseEvent) => {
+    if(e.detail != 2) return;
+  }
+
+  const renderCaptions = () => {
+    return captions.map((c, i) => {
+        var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]
+        selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
+        var usedClipId = -1;
+        var clipList = Object.values(clips);
+        for(var j = 0; j < clipList.length; j++) {
+            if(clipList[j].start <= c.start && c.end <= clipList[j].end) {
+                usedClipId = clipList[j].id;
+                break;
+            }
+        }
+        return (
+            <div 
+                key={i}
+                className={
+                    "video__segmenter-transcript-container" + 
+                    (selected ? " video__segmenter-transcript-container-selected" : "")
+                }
+                style={ selectedMapping == usedClipId ? 
+                        {backgroundColor: colors[usedClipId % 7] + "33" } : 
+                        (usedClipId != -1 ? {opacity: 0.5} : {})}
+                onClick={(e) => handleSelectCaption(i, e)}
+            >
+                <div 
+                    className="video__segmenter-transcript-timestamp"
+                >
+                    {timeToStr(c['start'])}
+                </div>
+                <div 
+                    className="video__segmenter-transcript-text"
+                    onClick={handleClickTranscript}
+                >
+                    {c['caption']}
+                </div>
+            </div>
+        );
+    })
+  }
+
   var adjustedVideoWidth = videoWidth;
   var videoHeight = adjustedVideoWidth / 16 * 9;
 
@@ -234,36 +281,7 @@ export function AuthorVideoSegmenter({
                 scale={timelineScale}
             />
             <div className="video__segmenter-transcript">
-                {captions.map((c, i) => {
-                    var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]
-                    selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
-                    var used = false;
-                    var clipList = Object.values(clips);
-                    for(var j = 0; j < clipList.length; j++) {
-                        if(clipList[j].start <= c.start && c.end <= clipList[j].end) {
-                            used = true;
-                            break;
-                        }
-                    }
-                    return (
-                        <div 
-                            key={i}
-                            className={
-                                "video__segmenter-transcript-container" + 
-                                (selected ? " video__segmenter-transcript-container-selected" : "") +
-                                (used ? " video__segmenter-transcript-container-used": "")
-                            }
-                            onClick={(e) => handleSelectCaption(i, e)}
-                        >
-                            <div className="video__segmenter-transcript-timestamp">
-                                {timeToStr(c['start'])}
-                            </div>
-                            <div className="video__segmenter-transcript-text">
-                                {c['caption']}
-                            </div>
-                        </div>
-                    );
-                })}
+                {renderCaptions()}
             </div>
         </div>
         <div className="video__segmenter-placeholder" style={{ width: videoWidth+48+"px"}}></div>
