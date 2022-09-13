@@ -22,6 +22,8 @@ import { AuthorMappingControls } from './AuthorMappingControls';
 
 import { Highlight, Clip, Caption, Block } from '../types/clips';
 
+const DOI = window.location.pathname.split("/").pop();
+
 export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -34,8 +36,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
 
   // Load data
-  const DOI = "3491102.3501967";
-  const VIDEO_URL = "https://www.youtube.com/watch?v=HBcDELI9ZNE";
+  const [ doi, setDoi ] = React.useState<string>(DOI ? DOI : "");
+  const [ videoUrl, setVideoUrl ] = React.useState<string>('/api/clips/' + DOI + '/full.mp4');
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>({});
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>({});
   const [ blocks, setBlocks ] = React.useState<Array<Block>>([]);
@@ -48,11 +50,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [ selectedMapping, setSelectedMapping ] = React.useState<number | null>(null);
   const [ modifyMode, setModifyMode ] = React.useState<boolean>(false);
 
-
-  var data = new FormData();
-  data.append("json", JSON.stringify({doi: DOI}));
   React.useEffect(() => {
-    fetch('/api/blocks/'+DOI+'.json')
+    fetch('/api/blocks/'+doi+'.json')
       .then((res) => res.json())
       .then((data) => {
         setBlocks(
@@ -70,7 +69,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
           })
         );
       });
-    fetch('/api/captions/'+DOI+'.json')
+    fetch('/api/captions/'+doi+'.json')
       .then((res) => res.json())
       .then((data) => {
         setCaptions(data);
@@ -208,6 +207,21 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setHighlights(newHighlights);
   }
 
+  const saveAnnotations = () => {
+    var data = {doi: doi, highlights: highlights, clips: clips};
+    fetch('/api/save_annotations', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }).then((response) => {
+      return response.json();
+    }).then((result) => {
+      console.log("SAVED!");
+    });
+  }
+
   if(videoWidth == 0) {
     return (
       <div>
@@ -218,7 +232,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     return (
       <BrowserRouter>
         <Route path="/">
-          <Header/>
+          <Header saveAnnotations={saveAnnotations}/>
           <div className="reader__container">
             <AuthorMappingControls 
                 selectedBlocks={selectedBlocks} 
@@ -231,7 +245,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
             />
             <DocumentWrapper 
               className="reader__main"
-              file={'/api/pdf/'+DOI+'.pdf'} 
+              file={'/api/pdf/'+doi+'.pdf'} 
               inputRef={pdfContentRef} 
             >
               <div className="reader__main-inner" onClick={handleClickOutside}>
@@ -259,7 +273,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
               </div>
             </DocumentWrapper>
             <AuthorVideoSegmenter  
-              url={VIDEO_URL}
+              url={videoUrl}
               videoWidth={videoWidth}
               clips={clips} 
               changeClip={changeClip}

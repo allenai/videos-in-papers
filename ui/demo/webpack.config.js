@@ -64,7 +64,9 @@ module.exports = {
     host: '0.0.0.0',
     // The `ui` host is used by the reverse proxy when requesting the UI while working locally.
     allowedHosts: ['ui'],
-    historyApiFallback: true,
+    historyApiFallback: {
+      disableDotRule: true
+    },
     port: 3000,
     // Apparently webpack's dev server doesn't write files to disk. This makes it hard to
     // debug the build process, as there's no way to examine the output. We change this

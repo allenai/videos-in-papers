@@ -71,7 +71,7 @@ export function AuthorVideoSegmenter({
             videoRef.current.seekTo(selectedClip[0]/1000);
             setIsPlaying(true);
         } else if(selectedClip[0] == previousSelectedClip[0] && selectedClip[1] != previousSelectedClip[1]) {
-            videoRef.current.seekTo(selectedClip[1]/1000);
+            videoRef.current.seekTo(selectedClip[1]/1000 - 0.5);
             setIsPlaying(true);
         }
     }
@@ -97,6 +97,7 @@ export function AuthorVideoSegmenter({
       } else {
         setProgress(currentTime);
       }
+      // TODO: make it so the video goes to section of selectedmapping
     }
   }
 
@@ -184,7 +185,10 @@ export function AuthorVideoSegmenter({
   return (
     <div className="video__segmenter-container" onClick={handleClickOutside}>
         <div className="video__segmenter-container-inner">
-            <div style={{width: adjustedVideoWidth + "px", height: videoHeight + "px"}}>
+            <div 
+                style={{width: adjustedVideoWidth + "px", height: videoHeight + "px"}}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <ReactPlayer 
                     ref={videoRef}
                     url={url} 

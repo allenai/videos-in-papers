@@ -162,7 +162,7 @@ export function AuthorTimeline({
     for(var i = 1; i < numTicks; i++) {
       ticksHTML.push(
         <div 
-          key={i}
+          key={'minor-' + i}
           className="video__segmenter-timeline-tick"
           style={{left: i*10 * ratio + "px"}}
         ></div>
@@ -172,14 +172,14 @@ export function AuthorTimeline({
     for(var i = 1; i < numTicks; i++) {
       ticksHTML.push(
         <div 
-          key={i}
+          key={'major-' + i}
           className="video__segmenter-timeline-tick-major"
           style={{left: i*30 * ratio + "px"}}
         ></div>
       )
       ticksHTML.push(
         <div 
-          key={i+"-label"}
+          key={'label-' + i}
           className="video__segmenter-timeline-tick-label"
           style={{left: (i*30 * ratio) - 11.5 + "px"}}
         >{timeToStr(i*30*1000)}</div>

@@ -6,11 +6,13 @@ import { PercentFormatter } from '../utils/format';
 type Props = {
   lockable?: boolean,
   setLockable?: (lockable: boolean) => void;
+  saveAnnotations?: () => void;
 }
 
 export const Header: React.FunctionComponent<Props> = ({
   lockable,
-  setLockable
+  setLockable,
+  saveAnnotations
 }: Props) => {
   const { scale } = React.useContext(TransformContext);
 
@@ -33,8 +35,14 @@ export const Header: React.FunctionComponent<Props> = ({
             type="checkbox" className="toggle-switch-checkbox" name="toggleSwitch" id="toggleSwitch" 
             checked={lockable} onChange={() => setLockable ? setLockable(!lockable) : null}
           />
-        </div>:
-        <div></div>
+        </div>: ""
+      }
+      {saveAnnotations ?
+        <div>
+          <button className="reader__header-save-button" onClick={saveAnnotations}>
+            Save Mappings
+          </button>
+        </div> : ""
       }
     </div>
   );

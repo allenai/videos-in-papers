@@ -30,6 +30,8 @@ import { Highlight, Clip } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
 import { isRegExp } from 'util';
 
+const URL_DOI = window.location.pathname.split("/").pop();
+
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -45,6 +47,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // ref for the scrollable region where the pages are rendered
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
 
+  const [DOI, setDOI] = React.useState(URL_DOI ? URL_DOI : '')
+
   // Navigation mode = auto-scrolling between video clips
   // Scroll overflow checks if padding needs to be added to the page
   const [navigating, setNavigating] = React.useState<{
@@ -58,7 +62,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
   // Load data
-  const DOI = "3491102.3501873";
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>({});
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>({});
 
