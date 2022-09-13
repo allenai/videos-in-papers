@@ -12,11 +12,15 @@ WORKDIR /api
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt --no-cache-dir
 
 # Copy over the source code
 COPY app app/
 COPY start.py .
+
+RUN apt-get update
+RUN apt-get -y install libgl1
+RUN apt-get -y install poppler-utils
 
 # Kick things off
 ENTRYPOINT [ "python" ]

@@ -4,9 +4,10 @@ export type Highlight = {
     id: number,
     type: string,
     rects: Array<BoundingBoxType>,
-    clip: string,
+    clip: number,
     tokens: Array<Token>,
     section: string,
+    blocks?: Array<number>
 }
 
 export type Caption = {
@@ -33,4 +34,11 @@ export type Token = BoundingBoxType & {
     text: string,
     page: number,
     clip?: number,
+}
+
+export type Block = BoundingBoxType & {
+    id: number,
+    index: number,
+    type: string,
+    section: string,
 }

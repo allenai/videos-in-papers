@@ -30,6 +30,8 @@ import { Highlight, Clip } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
 import { isRegExp } from 'util';
 
+const URL_DOI = window.location.pathname.split("/").pop();
+
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -45,6 +47,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // ref for the scrollable region where the pages are rendered
   const pdfScrollableRef = React.createRef<HTMLDivElement>();
 
+  const [DOI, setDOI] = React.useState(URL_DOI ? URL_DOI : '')
+
   // Navigation mode = auto-scrolling between video clips
   // Scroll overflow checks if padding needs to be added to the page
   const [navigating, setNavigating] = React.useState<{
@@ -58,7 +62,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [scrollOverflow, setScrollOverflow] = React.useState(0);
 
   // Load data
-  const doi = "3491102.3501873";
   const [ highlights, setHighlights ] = React.useState<{[index: number]: Highlight}>({});
   const [ clips, setClips ] = React.useState<{[index: number]: Clip}>({});
 
@@ -74,9 +77,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [ lock, setLock ] = React.useState<{clipId: number, relativePosition: number} | null>(null);
 
   var data = new FormData();
-  data.append("json", JSON.stringify({doi: doi}));
+  data.append("json", JSON.stringify({doi: DOI}));
   React.useEffect(() => {
-    fetch('/api/annotation/'+doi+'.json')
+    fetch('/api/annotation/'+DOI+'.json')
       .then((res) => res.json())
       .then((data) => {
         setClips(data['clips']);
@@ -255,7 +258,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   // Move clip to the position of another paper highlight
   const changeClipPosition = (highlightId: number) => {
-    var clipId: number = parseInt(highlights[highlightId]['clip']);
+    var clipId: number = highlights[highlightId]['clip'];
     var newClips: {[index: number]: Clip} = JSON.parse(JSON.stringify(clips));
     var newPosition = newClips[clipId].highlights.findIndex((ele) => ele == highlightId);
     newClips[clipId].position = newPosition;
@@ -305,7 +308,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
           <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
             <DocumentWrapper 
               className="reader__main"
-              file={'/api/pdf/'+doi+'.pdf'} 
+              file={'/api/pdf/'+DOI+'.pdf'} 
               inputRef={pdfContentRef} 
             >
               {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}
@@ -337,6 +340,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   ))}
                 </div>
                 <VideoNotes  
+                  doi={DOI}
                   clips={clips} 
                   highlights={highlights}
                   focusId={focusId}
@@ -358,6 +362,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
             </DocumentWrapper>
             <ThumbnailPopup
               thumbnail={thumbnail}
+              doi={DOI}
             />
           </div>
         </Route>
@@ -371,7 +376,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
           <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
             <DocumentWrapper 
               className="reader__main"
-              file={'/api/pdf/'+doi+'.pdf'} 
+              file={'/api/pdf/'+DOI+'.pdf'} 
               inputRef={pdfContentRef} 
             >
               {scrollOverflow == -1 ? <div style={{height: "1000px"}}></div> : ""}
@@ -403,6 +408,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   ))}
                 </div>
                 <VideoPopup 
+                  doi={DOI}
                   clips={clips} 
                   highlights={highlights}
                   focusId={focusId}

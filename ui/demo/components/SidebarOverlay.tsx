@@ -51,7 +51,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
         pages.push(rects[j].page);
       }
 
-      var clipId = parseInt(highlights[id].clip);
+      var clipId = highlights[id].clip;
 
       for(var j = 0; j < pages.length; j++) {
         var page = pages[j];
@@ -128,10 +128,10 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
     var rect = e.currentTarget.getBoundingClientRect();
     var position = e.pageY - rect.top;
     if(position < 0) position = 0;
-    setScrubClip({highlight: id, clip: parseInt(highlights[id].clip), progress: position / rect.height});
+    setScrubClip({highlight: id, clip: highlights[id].clip, progress: position / rect.height});
 
     if(!isCurrent) { 
-      setThumbnail({clipId: parseInt(highlights[id].clip), left: e.pageX, top: e.pageY});
+      setThumbnail({clipId: highlights[id].clip, left: e.pageX, top: e.pageY});
     }
   }
 
@@ -149,7 +149,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
           const props = {
             ...prop,
             id: ""+prop.id,
-            className: 'reader_sidebar_color-' + parseInt(highlights[prop.id].clip) % 7,
+            className: 'reader_sidebar_color-' + highlights[prop.id].clip % 7,
             // Set isHighlighted to true for highlighted styling
             key: prop.id+"-"+j,
             onClick: onClickSidebar,

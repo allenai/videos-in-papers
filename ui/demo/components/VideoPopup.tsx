@@ -11,6 +11,7 @@ import { Highlight, Clip } from '../types/clips';
 import { positionSingleClip } from '../utils/positioning';
 
 type Props = {
+  doi: string;
   clips: {[index: number]: Clip};
   highlights: {[index: number]: Highlight};
   focusId: number;
@@ -35,6 +36,7 @@ type Props = {
 };
 
 export const VideoPopup: React.FunctionComponent<Props> = ({
+    doi,
     clips,
     highlights,
     navigating,
@@ -89,6 +91,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
     return (
         <Player 
             key={focusId} 
+            doi={doi}
             id={focusId} 
             top={top}
             left={left}

@@ -11,6 +11,7 @@ import { Highlight, Clip } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
 
 type Props = {
+  doi: string;
   clips: {[index: number]: Clip};
   highlights: {[index: number]: Highlight};
   focusId: number;
@@ -36,6 +37,7 @@ type Props = {
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
+    doi,
     clips,
     highlights,
     navigating,
@@ -83,6 +85,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     return (
       <Player 
         key={"phantom-" + id}
+        doi={doi}
         id={id+100000} 
         top={top}
         clip={clip}
@@ -129,7 +132,8 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
 
       return (
           <Player 
-              key={id} 
+              key={id}
+              doi={doi} 
               id={id} 
               top={top}
               clip={clip} 

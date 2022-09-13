@@ -42,7 +42,7 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, highl
           const props = {
             ...prop,
             id: "" + highlights[i].id,
-            className: 'reader_highlight_color-' + parseInt(highlights[i].clip) % 7,
+            className: 'reader_highlight_color-' + highlights[i].clip % 7,
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
             key: i+"-"+j,

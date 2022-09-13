@@ -1,7 +1,11 @@
 from flask import Blueprint, jsonify, request, current_app, send_from_directory
 from random import randint
 from time import sleep
+import json
 from typing import List, Tuple
+
+from app.video_handler import download_video, split_video
+from app.paper_handler import get_paper, process_paper_blocks
 
 # Takes a list of strings and filters out any empty strings
 def clean_str_list(input: List[str]) -> List[str]:
@@ -79,5 +83,58 @@ def create_api() -> Blueprint:
     def clips(path):
         return send_from_directory("./data/clips/", path)
 
+    @api.route('/api/blocks/<path:path>')
+    def blocks(path):
+        return send_from_directory("./data/blocks/", path)
+
+    @api.route('/api/captions/<path:path>')
+    def captions(path):
+        return send_from_directory("./data/captions/", path)
+
+    @api.route('/api/process_video', methods=["POST"])
+    def process_video():
+        data = request.json
+        if data is None:
+            return error("No request body")
+
+        doi = data.get("doi")
+        video_url = data.get("url")
+        try:
+            download_video(video_url, doi, video_path='/api/app/data/clips', caption_path="/api/app/data/captions")
+            return jsonify({'message': 200})
+        except Exception as e:
+            print(e)
+            return jsonify({'message': 400})
+
+    @api.route('/api/process_paper', methods=['POST'])
+    def process_paper():
+        data = request.json
+        if data is None:
+            return error("No request body")
+
+        doi = data.get("doi")
+        paper_url = data.get("url")
+        try:
+            get_paper(paper_url, doi, '/api/app/data/pdf')
+            process_paper_blocks(doi, '/api/app/data/pdf', '/api/app/data/blocks')
+            return jsonify({'message': 200})
+        except Exception as e:
+            print(e)
+            return jsonify({'message': 400})
+
+    @api.route('/api/save_annotations', methods=['POST'])
+    def save_annotations():
+        data = request.json
+        if data is None:
+            return error("No request body")
+
+        doi = data.get("doi")
+        clips = data.get("clips")
+        highlights = data.get('highlights')
+
+        with open(f'/api/app/data/annotation/{doi}.json', 'w') as f:
+            json.dump({'highlights': highlights, 'clips': clips}, f)
+
+        split_video(doi, '/api/app/data/clips', clips)
 
     return api
