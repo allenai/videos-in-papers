@@ -77,6 +77,7 @@ export function AuthorVideoSegmenter({
   const [timelineScale, setTimelineScale] = React.useState(100);
 
   const previousSelectedClip: any | undefined = usePreviousValue(selectedClip);
+  const previousMappingClip: any | undefined = usePreviousValue(selectedMapping == null ? [-1, -1] : [clips[selectedMapping].start,  clips[selectedMapping].end]);
 
   const videoRef = React.useRef<ReactPlayerProps>(null);
 
@@ -93,23 +94,43 @@ export function AuthorVideoSegmenter({
   }, [selectedClip]);
 
   React.useEffect(() => {
+    if(selectedMapping != null && previousMappingClip != undefined && videoRef.current) {
+      if(clips[selectedMapping].start != previousMappingClip[0] && clips[selectedMapping].end == previousMappingClip[1]) {
+          videoRef.current.seekTo(clips[selectedMapping].start/1000);
+          setIsPlaying(true);
+      } else if(clips[selectedMapping].start == previousMappingClip[0] && clips[selectedMapping].end != previousMappingClip[1]) {
+          videoRef.current.seekTo(clips[selectedMapping].end/1000 - 0.5);
+          setIsPlaying(true);
+      }
+    }
+  }, [clips]);
+
+  React.useEffect(() => {
     if(selectedMapping == null) return;
     setSelectedClip([-1, -1]);
-    // TODO: make it replay or go to adequate section depending on selectedMapping
+    if(videoRef.current) {
+      videoRef.current.seekTo(clips[selectedMapping].start/1000);
+    }
   }, [selectedMapping]);
 
   // Update progress (current time) as video plays
   const updateProgress = (e : any) => {
-    if(videoRef.current && isPlaying) {
+    if(videoRef.current) {
       var currentTime = e.playedSeconds;
       if(selectedClip[0] != -1 && e.playedSeconds*1000 > selectedClip[1]) {
-        setIsPlaying(false);
         videoRef.current.seekTo(selectedClip[1]/1000);
         setProgress(selectedClip[1]/1000);
+        setIsPlaying(false);
       } else if (selectedClip[0] != -1 && e.playedSeconds*1000 < selectedClip[0]) {
         videoRef.current.seekTo(selectedClip[0]/1000);
         setProgress(selectedClip[0]/1000);
-        setIsPlaying(true);
+      } else if(selectedMapping != null && e.playedSeconds*1000 > clips[selectedMapping].end) {
+        videoRef.current.seekTo(clips[selectedMapping].end/1000);
+        setProgress(clips[selectedMapping].end/1000);
+        setIsPlaying(false);
+      } else if(selectedMapping != null && e.playedSeconds*1000 < clips[selectedMapping].start) {
+        videoRef.current.seekTo(clips[selectedMapping].start/1000);
+        setProgress(clips[selectedMapping].start/1000);
       } else {
         setProgress(currentTime);
       }
