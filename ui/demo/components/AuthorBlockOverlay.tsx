@@ -17,6 +17,9 @@ type Props = {
   selectedWords: SyncWords;
   setSelectedWords: (words: SyncWords) => void;
   syncSegments: {[id: number]: Array<SyncWords>};
+  hoveredSegment: {clipId: number, index: number} | null;
+  setHoveredSegment: (segment: {clipId: number, index: number} | null) => void;
+  removeSegment: (clipId: number, index: number) => void;
 };
 
 /*
@@ -37,6 +40,9 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     selectedWords,
     setSelectedWords,
     syncSegments,
+    hoveredSegment,
+    setHoveredSegment,
+    removeSegment
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
 
@@ -46,10 +52,8 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
   }, [selectedMapping]);
 
   function getBoundingBoxProps() {
-    var segments = Object.values(syncSegments).reduce((prev, current) => prev.concat(current), []);
-    var usedTokens = segments.map((seg) => seg.tokenIds.map(value => value.tokenIdx)).reduce((prev, current) => prev.concat(current), []);
     var bboxes: Array<Block> = [];
-    var tokens: Array<Token> = [];
+    var tokens: Array<Token & {clipId: number, segmentIndex: number}> = [];
     for(var i = 0; i < blocks.length; i++) {
       var block = blocks[i];
       if(block.page !== pageIndex) continue;
@@ -57,14 +61,19 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
       var bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
       bboxes.push({...block, ...bbox});
 
+      var clipId = Object.values(highlights).find(highlight => highlight.blocks?.includes(block.id))?.clip;
+
+      if(clipId == null) continue; 
+
       for(var j = 0; j < block.tokens.length; j++) {
         var token = block.tokens[j];
         if(token.page !== pageIndex) continue;
-        var used = usedTokens.includes(token.id);
-        if(used) {
+        var segments = syncSegments[clipId];
+        var index = segments.findIndex((segment) => segment.tokenIds.find((value) => value.blockIdx == block.id && value.tokenIdx == token.id) != null);
+        if(index != -1) {
           var rect = {page: token.page, top: token.top, left: token.left, height: token.height, width: token.width};
           var bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
-          tokens.push({...token, ...bbox});
+          tokens.push({...token, ...bbox, segmentIndex: index, clipId: clipId});
         }
       }
     }
@@ -110,7 +119,6 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         var blocks = highlights[highlightId].blocks;
         if(blocks) {
             changeHighlight(highlightId, blocks.filter(id => id != blockId));
-            // TODO: check if need to remove a sync segment?
         }
     }
   }
@@ -121,13 +129,13 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     if(selected != -1) {
       tokenIds.splice(selected, 1);
       setSelectedWords({
+        ...selectedWords,
         tokenIds: tokenIds,
-        captionIds: selectedWords.captionIds
       });
     } else {
       setSelectedWords({
+        ...selectedWords,
         tokenIds: [...selectedWords.tokenIds, {blockIdx: blockId, tokenIdx: tokenId}],
-        captionIds: selectedWords.captionIds
       });
     }
   }
@@ -170,7 +178,8 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
 
         boxes.push(<BoundingBox {...props} />);
     });
-    tokens.map((tok: Token, i: number) => {
+    tokens.map((tok: Token & {clipId: number, segmentIndex: number}, i: number) => {
+      var isHovered = hoveredSegment != null && hoveredSegment.clipId == tok.clipId && hoveredSegment.index == tok.segmentIndex;
       var props = {
           top: tok.top,
           left: tok.left,
@@ -178,10 +187,13 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
           width: tok.width,
           page: tok.page,
           id: "" + tok.id,
-          className: 'reader_highlight_color_token-used',
+          className: 'reader_highlight_color_token-used ' + (isHovered ? "reader_highlight_color_token-used-hovered" : ""),
           // Set isHighlighted to true for highlighted styling
           isHighlighted: false,
-          key: 'used-' + tok.id
+          key: 'used-' + tok.id,
+          onMouseEnter: () => setHoveredSegment({clipId: tok.clipId, index: tok.segmentIndex}),
+          onMouseLeave: () => setHoveredSegment(null),
+          onClick: () => removeSegment(tok.clipId, tok.segmentIndex)
       };
 
       boxes.push(<BoundingBox {...props} />);

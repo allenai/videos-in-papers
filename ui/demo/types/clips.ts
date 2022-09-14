@@ -46,6 +46,7 @@ export type Block = BoundingBoxType & {
 }
 
 export type SyncWords = {
+    clipId: number,
     tokenIds: Array<{blockIdx: number, tokenIdx: number}>,
     captionIds: Array<{captionIdx: number, wordIdx: number}>,
 }

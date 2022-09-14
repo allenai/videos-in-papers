@@ -49,9 +49,11 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [ selectedMapping, setSelectedMapping ] = React.useState<number | null>(null);
   const [ modifyMode, setModifyMode ] = React.useState<boolean>(false);
+
   const [ highlightMode, setHighlightMode ] = React.useState<boolean>(false);
-  const [ selectedWords, setSelectedWords ] = React.useState<SyncWords>({tokenIds: [], captionIds: []});
+  const [ selectedWords, setSelectedWords ] = React.useState<SyncWords>({tokenIds: [], captionIds: [], clipId: -1});
   const [ syncSegments, setSyncSegments ] = React.useState<{[id: number]: Array<SyncWords>}>({});
+  const [ hoveredSegment, setHoveredSegment ] = React.useState<{clipId: number, index: number} | null>(null);
 
   React.useEffect(() => {
     fetch('/api/blocks/'+doi+'.json')
@@ -93,7 +95,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSelectedBlocks([]);
     setSelectedMapping(null);
     setHighlightMode(false);
-    setSelectedWords({tokenIds: [], captionIds: []});
+    setSelectedWords({tokenIds: [], captionIds: [], clipId: -1});
   }
 
   const createMapping = () => {
@@ -152,7 +154,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setClips(copyClips); 
 
     var newSyncSegments = {...syncSegments};
-    newSyncSegments = [];
+    newSyncSegments[clipId] = [];
     setSyncSegments(newSyncSegments);
 
     setSelectedBlocks([]);
@@ -182,11 +184,23 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[clipId].start = start;
     newClips[clipId].end = end;
     var filteredCaptions = captions.filter((c: Caption) => {
-        return start <= c.start && c.start < end || start < c.end && c.end <= end;
+        return (start <= c.start && c.start < end) || (start < c.end && c.end <= end);
     });
-    // TODO: check if need to remove a sync segment?
     newClips[clipId].captions = filteredCaptions;
     setClips(newClips);
+
+    var captionIds = filteredCaptions.map((c) => c.id);
+    var segments = syncSegments[clipId];
+    var newSegments = [];
+    for(var i = 0; i < segments.length; i++) {
+      var filteredCaptionIds = segments[i].captionIds.filter((word) => captionIds.includes(word.captionIdx));
+      if(filteredCaptionIds.length > 0) {
+        newSegments.push({...segments[i], captionIds: filteredCaptionIds});
+      }
+    }
+    var newSyncSegments = {...syncSegments};
+    newSyncSegments[clipId] = newSegments;
+    setSyncSegments(newSyncSegments);
   }
 
   const changeHighlight = (highlightId: number, changedBlocks: Array<number>) => {
@@ -207,6 +221,18 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     newHighlights[highlightId].blocks = changedBlocks;
     newHighlights[highlightId].section = blocks[copyBlocks[0]]['section'];
     setHighlights(newHighlights);
+
+    var segments = syncSegments[newHighlights[highlightId].clip];
+    var newSegments = [];
+    for(var i = 0; i < segments.length; i++) {
+      var filteredTokenIds = segments[i].tokenIds.filter((word) => changedBlocks.includes(word.blockIdx));
+      if(filteredTokenIds.length > 0) {
+        newSegments.push({...segments[i], tokenIds: filteredTokenIds});
+      }
+    }
+    var newSyncSegments = {...syncSegments};
+    newSyncSegments[newHighlights[highlightId].clip] = newSegments;
+    setSyncSegments(newSyncSegments);
   }
 
   const saveAnnotations = () => {
@@ -224,12 +250,18 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     });
   }
 
+  const removeSegment = (clipId: number, index: number) => {
+    var newSyncSegments = {...syncSegments};
+    newSyncSegments[clipId].splice(index, 1);
+    setSyncSegments(newSyncSegments);
+  }
+
   React.useEffect(() => {
     if(selectedMapping == null || highlightMode || selectedWords.tokenIds.length == 0 || selectedWords.captionIds.length == 0) return;
     var newSyncSegments = {...syncSegments};
-    newSyncSegments[selectedMapping].push(selectedWords);
+    newSyncSegments[selectedMapping].push({...selectedWords, clipId: selectedMapping});
     setSyncSegments(newSyncSegments);
-    setSelectedWords({tokenIds: [], captionIds: []});
+    setSelectedWords({tokenIds: [], captionIds: [], clipId: -1});
   }, [highlightMode]);
 
   if(videoWidth == 0) {
@@ -281,6 +313,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           selectedWords={selectedWords}
                           setSelectedWords={setSelectedWords}
                           syncSegments={syncSegments}
+                          hoveredSegment={hoveredSegment}
+                          setHoveredSegment={setHoveredSegment}
+                          removeSegment={removeSegment}
                         />
                       </Overlay>
                     </PageWrapper>
@@ -304,6 +339,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
               selectedWords={selectedWords}
               setSelectedWords={setSelectedWords}
               syncSegments={syncSegments}
+              hoveredSegment={hoveredSegment}
+              setHoveredSegment={setHoveredSegment}
+              removeSegment={removeSegment}
             />
           </div>
         </Route>

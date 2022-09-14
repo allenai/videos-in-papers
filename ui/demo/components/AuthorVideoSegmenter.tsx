@@ -34,6 +34,9 @@ interface Props {
   selectedWords: SyncWords;
   setSelectedWords: (words: SyncWords) => void;
   syncSegments: {[id: number]: Array<SyncWords>};
+  hoveredSegment: {clipId: number, index: number} | null;
+  setHoveredSegment: (segment: {clipId: number, index: number} | null) => void;
+  removeSegment: (clipId: number, index: number) => void;
 }
 
 function timeToStr(time: number) {
@@ -63,7 +66,10 @@ export function AuthorVideoSegmenter({
   highlightMode,
   selectedWords,
   setSelectedWords,
-  syncSegments
+  syncSegments,
+  hoveredSegment,
+  setHoveredSegment,
+  removeSegment,
 }: Props) {
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
@@ -89,6 +95,7 @@ export function AuthorVideoSegmenter({
   React.useEffect(() => {
     if(selectedMapping == null) return;
     setSelectedClip([-1, -1]);
+    // TODO: make it replay or go to adequate section depending on selectedMapping
   }, [selectedMapping]);
 
   // Update progress (current time) as video plays
@@ -201,27 +208,26 @@ export function AuthorVideoSegmenter({
     if(selected != -1) {
       captionIds.splice(selected, 1);
       setSelectedWords({
-        tokenIds: selectedWords.tokenIds,
+        ...selectedWords,
         captionIds: captionIds
       });
     } else {
       setSelectedWords({
-        tokenIds: selectedWords.tokenIds,
+        ...selectedWords,
         captionIds: [...selectedWords.captionIds, {captionIdx, wordIdx}]
       });
     }
   }
 
   const renderCaptions = () => {
-    var segments = Object.values(syncSegments).reduce((prev, curr) => prev.concat(curr), []);
-    var usedWords = segments.map(value => value.captionIds.map(value => value.captionIdx + '-' + value.wordIdx)).reduce((prev, curr) => prev.concat(curr), []);
     return captions.map((c, i) => {
         var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]
         selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
         var usedClipId = -1;
         var clipList = Object.values(clips);
         for(var j = 0; j < clipList.length; j++) {
-            if(clipList[j].start <= c.start && c.end <= clipList[j].end) {
+            var found = clipList[j].captions.find((temp) => temp.id == c.id);
+            if(found != null) {
                 usedClipId = clipList[j].id;
                 break;
             }
@@ -250,22 +256,41 @@ export function AuthorVideoSegmenter({
                     {c['caption'].split(" ").map((text: string, j) => {
                         var className = "";
                         var selectable = selectedMapping == usedClipId && highlightMode;
-                        var used = usedWords.includes(i+'-'+j);
+                        var isUsed = false;
+                        var index = -1;
+
                         if(selectable) {
                             className = "video__segmenter-transcript-token";
-                            var selected = selectedWords.captionIds.find((value) => value.captionIdx == i && value.wordIdx == j);
+                            var selected = selectedWords.captionIds.find((value) => value.captionIdx == c.id && value.wordIdx == j);
                             if(selected) {
                                 className += "-sel";
                             }
                         }
-                        if(used) {
+                        if(usedClipId != -1) {
+                          var segments = syncSegments[usedClipId];
+                          index = segments.findIndex((value) => value.captionIds.find((value) => value.captionIdx == i && value.wordIdx == j) != null);
+                          isUsed = index != -1;
+                          if(hoveredSegment != null && usedClipId == hoveredSegment.clipId && index == hoveredSegment.index) {
+                            className += " video__segmenter-transcript-token-hovered"
+                          }else if(index != -1) {
                             className += " video__segmenter-transcript-token-used"
+                          }
                         }
                         return [
                             <span 
                                 key={i+'-'+j}
                                 className={className}
-                                onClick={(e: React.MouseEvent) => selectable ? handleClickWord(e, i, j) : ""}
+                                onClick={(e: React.MouseEvent) => {
+                                  if(isUsed) {
+                                    e.stopPropagation();
+                                    removeSegment(usedClipId, index);
+                                  }else if(selectable) {
+                                    e.stopPropagation();
+                                    handleClickWord(e, c.id, j);
+                                  }
+                                }}
+                                onMouseEnter={(e: React.MouseEvent) => isUsed ? setHoveredSegment({clipId: usedClipId, index}) : ""}
+                                onMouseLeave={(e: React.MouseEvent) => isUsed ? setHoveredSegment(null) : ""}
                             >{text}</span>,
                             <span key={'space-'+i+'-'+j}>&nbsp;</span>
                         ]
