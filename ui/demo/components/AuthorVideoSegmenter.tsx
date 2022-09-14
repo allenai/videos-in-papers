@@ -37,6 +37,7 @@ interface Props {
   hoveredSegment: {clipId: number, index: number} | null;
   setHoveredSegment: (segment: {clipId: number, index: number} | null) => void;
   removeSegment: (clipId: number, index: number) => void;
+  shiftDown: boolean;
 }
 
 function timeToStr(time: number) {
@@ -70,6 +71,7 @@ export function AuthorVideoSegmenter({
   hoveredSegment,
   setHoveredSegment,
   removeSegment,
+  shiftDown,
 }: Props) {
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
@@ -135,7 +137,6 @@ export function AuthorVideoSegmenter({
         setProgress(currentTime);
       }
     }
-    // TODO: make it replay or go to adequate section depending on selectedMapping
   }
 
   const equalTimes = (timeA: number, timeB: number) => {
@@ -233,10 +234,43 @@ export function AuthorVideoSegmenter({
         captionIds: captionIds
       });
     } else {
-      setSelectedWords({
-        ...selectedWords,
-        captionIds: [...selectedWords.captionIds, {captionIdx, wordIdx}]
-      });
+      if(shiftDown) {
+        var closest = null;
+        var closestDist = null;
+        for(var i = 0; i < captionIds.length; i++) {
+          var caption = captionIds[i];
+          if(caption.captionIdx != captionIdx) continue;
+          var dist = Math.abs(caption.wordIdx - wordIdx);
+          if(closest == null || closestDist == null || dist < closestDist) {
+            closestDist = dist;
+            closest = caption;
+          }
+        }
+        if(closest != null) {
+          var start = Math.min(closest.wordIdx, wordIdx);
+          var end = Math.max(closest.wordIdx, wordIdx);
+          for(var i = start; i <= end; i++) {
+            captionIds.push({
+              captionIdx: captionIdx,
+              wordIdx: i
+            });
+          }
+        } else {
+          captionIds.push({
+            captionIdx: captionIdx,
+            wordIdx: wordIdx
+          });
+        }
+        setSelectedWords({
+          ...selectedWords,
+          captionIds: captionIds
+        })
+      } else {
+        setSelectedWords({
+          ...selectedWords,
+          captionIds: [...selectedWords.captionIds, {captionIdx, wordIdx}]
+        });
+      }
     }
   }
 

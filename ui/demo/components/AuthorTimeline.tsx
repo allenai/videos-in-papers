@@ -105,27 +105,33 @@ export function AuthorTimeline({
     var left = ratio * start/1000;
     var blockWidth = ratio * (end - start)/1000;
 
-    var thumbs: Array<React.ReactElement> = [];
+    var thumbs: Array<React.ReactElement> = [
+      <div key={id+"-left"}></div>,
+      <div key={id+"-middle"}>{id != -1 && blockWidth > 9 ? id : ""}</div>,
+      <div key={id+"-right"}></div>
+    ];
     // Don't make other clips editable for now
     if((edit == id && id == -1) || (modifyMode && selectedMapping == id) ){
-        thumbs = [
-            <div 
-                key={id + '-left'}
-                className="video__segmenter-thumb-left-container"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  setScrubDirection(-1)
-                }}
-            ><div className="video__segmenter-thumb"></div></div>,
-            <div 
-                key={id + '-right'}
-                className="video__segmenter-thumb-right-container"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  setScrubDirection(1)
-                }}
-            ><div className="video__segmenter-thumb"></div></div>
-        ];
+      thumbs[0] = (
+        <div 
+            key={id + '-left'}
+            className="video__segmenter-thumb-left-container"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setScrubDirection(-1)
+            }}
+        ><div className="video__segmenter-thumb"></div></div>
+      )
+      thumbs[2] = (
+        <div 
+            key={id + '-right'}
+            className="video__segmenter-thumb-right-container"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setScrubDirection(1)
+            }}
+        ><div className="video__segmenter-thumb"></div></div>
+      )
     }
 
     return (

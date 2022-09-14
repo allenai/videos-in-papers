@@ -236,6 +236,7 @@ iframe {
 .video__segmenter-transcript-text {
     flex: 1;
     color: #555;
+    user-select: none;
 }
 
 .video__segmenter-transcript-timestamp {
@@ -282,6 +283,7 @@ iframe {
     cursor: pointer;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
     transition: height 0.1s;
+    color: #f6f6f6;
     border-radius: 3px;
     position: absolute;
     display: flex;
@@ -289,7 +291,7 @@ iframe {
     align-items: center;
     justify-content: space-between;
     &:hover {
-        height: 24px;
+        height: 28px !important;
     }
 }
 

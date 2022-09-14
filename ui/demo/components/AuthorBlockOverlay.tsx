@@ -1,5 +1,6 @@
 import { BoundingBox, BoundingBoxType, UiContext, DocumentContext, scaleRawBoundingBox } from '@allenai/pdf-components';
 import { Highlight, Block, Clip, Token, SyncWords } from '../types/clips';
+import { AuthorBlockLabel } from './AuthorBlockLabel';
 import * as React from 'react';
 
 type Props = {
@@ -20,7 +21,12 @@ type Props = {
   hoveredSegment: {clipId: number, index: number} | null;
   setHoveredSegment: (segment: {clipId: number, index: number} | null) => void;
   removeSegment: (clipId: number, index: number) => void;
+  shiftDown: boolean;
 };
+
+const colors = [
+  "#cb725e", "#d9a460", "#3e9d29", "#306ed3", "#07cead", "#9d58e1", "#dd59ba"
+];
 
 /*
  * Example of BoundingBoxes used as text highlights
@@ -42,7 +48,8 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     syncSegments,
     hoveredSegment,
     setHoveredSegment,
-    removeSegment
+    removeSegment,
+    shiftDown,
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
 
@@ -104,9 +111,9 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
   function findInHighlights(id: number) {
     var filteredHighlights = Object.values(highlights).filter((hl: Highlight) => hl.blocks?.includes(id));
     if(filteredHighlights.length == 0) {
-        return -1;
+        return {clipId: -1, highlightId: -1};
     } else {
-        return filteredHighlights[0].clip;
+        return {clipId: filteredHighlights[0].clip, highlightId: filteredHighlights[0].id};
     }
   }
 
@@ -133,10 +140,39 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         tokenIds: tokenIds,
       });
     } else {
-      setSelectedWords({
-        ...selectedWords,
-        tokenIds: [...selectedWords.tokenIds, {blockIdx: blockId, tokenIdx: tokenId}],
-      });
+      if(shiftDown) {
+        var closest = null;
+        var closestDist = null;
+        for(var i = 0; i < tokenIds.length; i++) {
+          var token = tokenIds[i];
+          if(token.blockIdx != blockId) continue;
+          var dist = Math.abs(token.tokenIdx - tokenId);
+          if(closest == null || closestDist == null || dist < closestDist) {
+            closest = token;
+            closestDist = dist;
+          }
+        }
+        if(closest != null) {
+          var start = Math.min(closest.tokenIdx, tokenId);
+          var end = Math.max(closest.tokenIdx, tokenId);
+          for(var i = start; i <= end; i++) {
+            if(!tokenIds.find((value) => value.blockIdx == blockId && value.tokenIdx == i)) {
+              tokenIds.push({blockIdx: blockId, tokenIdx: i});
+            }
+          }
+        } else {
+          tokenIds.push({blockIdx: blockId, tokenIdx: tokenId});
+        }
+        setSelectedWords({
+          ...selectedWords,
+          tokenIds: tokenIds,
+        });
+      } else {
+        setSelectedWords({
+          ...selectedWords,
+          tokenIds: [...selectedWords.tokenIds, {blockIdx: blockId, tokenIdx: tokenId}],
+        });
+      }
     }
   }
 
@@ -145,7 +181,9 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     var {bboxes, tokens} = getBoundingBoxProps();
     bboxes.map((prop, i) => {
       // Only render this BoundingBox if it belongs on the current page
-        var clipId = findInHighlights(prop.id);
+        var found = findInHighlights(prop.id);
+        var clipId = found.clipId;
+        var highlightId = found.highlightId;
         
         var props = {
             top: prop.top,
@@ -172,8 +210,22 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
                 // Set isHighlighted to true for highlighted styling
                 isHighlighted: true,
                 key: i,
-                onClick: () => handleClickMapped(clipId, prop.id)
+                onClick: () => handleClickMapped(clipId, prop.id),
             };
+
+            var inHighlightIdx = highlights[highlightId].blocks?.indexOf(prop.id);
+            if(inHighlightIdx == 0) {
+              var labelProp = {
+                top: prop.top, 
+                left: prop.left, 
+                height: prop.height, 
+                width: prop.width, 
+                page: prop.page,
+                id: ""+clipId,
+                color: colors[clipId % 7],
+              }
+              boxes.push(<AuthorBlockLabel {...labelProp} />);
+            }
         }
 
         boxes.push(<BoundingBox {...props} />);

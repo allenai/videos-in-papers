@@ -55,6 +55,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [ syncSegments, setSyncSegments ] = React.useState<{[id: number]: Array<SyncWords>}>({});
   const [ hoveredSegment, setHoveredSegment ] = React.useState<{clipId: number, index: number} | null>(null);
 
+  const [ shiftDown, setShiftDown ] = React.useState(false);
+
   React.useEffect(() => {
     fetch('/api/blocks/'+doi+'.json')
       .then((res) => res.json())
@@ -275,7 +277,12 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
       <BrowserRouter>
         <Route path="/">
           <Header saveAnnotations={saveAnnotations}/>
-          <div className="reader__container">
+          <div 
+            className="reader__container"
+            onKeyDown={(e: React.KeyboardEvent) => e.key == 'Shift' ? setShiftDown(true) : null}
+            onKeyUp={(e: React.KeyboardEvent) => e.key == 'Shift' ? setShiftDown(false) : null}
+            tabIndex={0}
+          >
             <AuthorMappingControls 
                 selectedBlocks={selectedBlocks} 
                 selectedClip={selectedClip}
@@ -316,6 +323,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           hoveredSegment={hoveredSegment}
                           setHoveredSegment={setHoveredSegment}
                           removeSegment={removeSegment}
+                          shiftDown={shiftDown}
                         />
                       </Overlay>
                     </PageWrapper>
@@ -342,6 +350,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
               hoveredSegment={hoveredSegment}
               setHoveredSegment={setHoveredSegment}
               removeSegment={removeSegment}
+              shiftDown={shiftDown}
             />
           </div>
         </Route>
