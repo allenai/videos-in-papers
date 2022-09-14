@@ -10,6 +10,8 @@ type Props = {
     removeMapping: () => void;
     modifyMode: boolean;
     setModifyMode: (mode: boolean) => void;
+    highlightMode: boolean;
+    setHighlightMode: (mode: boolean) => void;
 };
 
 /*
@@ -23,6 +25,8 @@ export const AuthorMappingControls: React.FunctionComponent<Props> = ({
     removeMapping,
     modifyMode,
     setModifyMode,
+    highlightMode,
+    setHighlightMode,
 }: Props) => {
     return (
         <div className="mapping-controls__container">
@@ -35,19 +39,19 @@ export const AuthorMappingControls: React.FunctionComponent<Props> = ({
             selectedMapping != null ? 
             [
                 <button 
+                    key="1" 
+                    onClick={() => setHighlightMode(!highlightMode)} 
+                    style={{
+                        backgroundColor: highlightMode ? "#1890ff" : "#fff",
+                        color: highlightMode ? "#fff" : "#1890ff",
+                        borderColor: "#1890ff"
+                    }}
+                >{highlightMode ? "Save Sync Highlight" : "Create Sync Highlight"}</button>,
+                <button 
                     key="0" 
                     onClick={removeMapping} 
                     style={{backgroundColor: "#b00020", borderColor: "#b00020"}}
-                >Remove Mapping</button> //,
-                // <button 
-                //     key="1" 
-                //     onClick={() => setModifyMode(!modifyMode)} 
-                //     style={{
-                //         backgroundColor: modifyMode ? "#1890ff" : "#fff",
-                //         color: modifyMode ? "#fff" : "#1890ff",
-                //         borderColor: "#1890ff"
-                //     }}
-                // >{modifyMode ? "Modifying On" : "Modifying Off"}</button>
+                >Remove Mapping</button> 
             ] :
             ""
         }

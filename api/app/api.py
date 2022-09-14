@@ -131,9 +131,10 @@ def create_api() -> Blueprint:
         doi = data.get("doi")
         clips = data.get("clips")
         highlights = data.get('highlights')
+        syncSegments = data.get('syncSegments')
 
         with open(f'/api/app/data/annotation/{doi}.json', 'w') as f:
-            json.dump({'highlights': highlights, 'clips': clips}, f)
+            json.dump({'highlights': highlights, 'clips': clips, 'syncSegments': syncSegments}, f)
 
         split_video(doi, '/api/app/data/clips', clips)
 

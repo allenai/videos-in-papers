@@ -20,7 +20,7 @@ import { AuthorVideoSegmenter } from './AuthorVideoSegmenter';
 import { AuthorBlockOverlay } from './AuthorBlockOverlay';
 import { AuthorMappingControls } from './AuthorMappingControls';
 
-import { Highlight, Clip, Caption, Block } from '../types/clips';
+import { Highlight, Clip, Caption, Block, SyncWords } from '../types/clips';
 
 const DOI = window.location.pathname.split("/").pop();
 
@@ -49,6 +49,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [ selectedMapping, setSelectedMapping ] = React.useState<number | null>(null);
   const [ modifyMode, setModifyMode ] = React.useState<boolean>(false);
+  const [ highlightMode, setHighlightMode ] = React.useState<boolean>(false);
+  const [ selectedWords, setSelectedWords ] = React.useState<SyncWords>({tokenIds: [], captionIds: []});
+  const [ syncSegments, setSyncSegments ] = React.useState<{[id: number]: Array<SyncWords>}>({});
 
   React.useEffect(() => {
     fetch('/api/blocks/'+doi+'.json')
@@ -59,7 +62,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     fetch('/api/captions/'+doi+'.json')
       .then((res) => res.json())
       .then((data) => {
-        setCaptions(data);
+        setCaptions(data.map((c: {caption: string, start: number, end: number}, i: number) => { return {...c, id: i} }));
       });
   }, []);
 
@@ -83,11 +86,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   }, [selectedMapping]);
 
   const handleClickOutside = (e: React.MouseEvent<HTMLElement>) => {
-    if((e.target as HTMLElement).className.includes('reader_highlight_color')) {
+    var targetClasses = (e.target as HTMLElement).className;
+    if(targetClasses.includes('reader_highlight_color') || targetClasses.includes('reader_highlight_token')) {
         return;
     }
     setSelectedBlocks([]);
     setSelectedMapping(null);
+    setHighlightMode(false);
+    setSelectedWords({tokenIds: [], captionIds: []});
   }
 
   const createMapping = () => {
@@ -145,6 +151,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     copyClips[clipId] = clip;
     setClips(copyClips); 
 
+    var newSyncSegments = {...syncSegments};
+    newSyncSegments = [];
+    setSyncSegments(newSyncSegments);
+
     setSelectedBlocks([]);
     setSelectedClip([-1, -1]);
   }
@@ -155,12 +165,16 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     var highlightIds = clips[clipId].highlights;
     var newClips = {...clips};
     var newHighlights = {...highlights};
+    var newSyncSegments = {...syncSegments};
     delete newClips[clipId];
+    delete newSyncSegments[clipId];
     for(var i = 0; i < highlightIds.length; i++) {
         delete newHighlights[highlightIds[i]];
     }
     setClips(newClips);
     setHighlights(newHighlights);
+    setSelectedMapping(null);
+    setHighlightMode(false);
   }
 
   const changeClip = (clipId: number, start: number, end: number) => {
@@ -170,6 +184,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     var filteredCaptions = captions.filter((c: Caption) => {
         return start <= c.start && c.start < end || start < c.end && c.end <= end;
     });
+    // TODO: check if need to remove a sync segment?
     newClips[clipId].captions = filteredCaptions;
     setClips(newClips);
   }
@@ -195,7 +210,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   }
 
   const saveAnnotations = () => {
-    var data = {doi: doi, highlights: highlights, clips: clips};
+    var data = {doi: doi, highlights: highlights, clips: clips, syncSegments: syncSegments};
     fetch('/api/save_annotations', {
       method: 'POST',
       headers: {
@@ -208,6 +223,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
       console.log("SAVED!");
     });
   }
+
+  React.useEffect(() => {
+    if(selectedMapping == null || highlightMode || selectedWords.tokenIds.length == 0 || selectedWords.captionIds.length == 0) return;
+    var newSyncSegments = {...syncSegments};
+    newSyncSegments[selectedMapping].push(selectedWords);
+    setSyncSegments(newSyncSegments);
+    setSelectedWords({tokenIds: [], captionIds: []});
+  }, [highlightMode]);
 
   if(videoWidth == 0) {
     return (
@@ -229,6 +252,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                 removeMapping={removeMapping}
                 modifyMode={modifyMode}
                 setModifyMode={setModifyMode}
+                highlightMode={highlightMode}
+                setHighlightMode={setHighlightMode}
             />
             <DocumentWrapper 
               className="reader__main"
@@ -252,6 +277,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           selectedMapping={selectedMapping}
                           setSelectedMapping={setSelectedMapping}
                           modifyMode={modifyMode}
+                          highlightMode={highlightMode}
+                          selectedWords={selectedWords}
+                          setSelectedWords={setSelectedWords}
+                          syncSegments={syncSegments}
                         />
                       </Overlay>
                     </PageWrapper>
@@ -271,6 +300,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
               selectedMapping={selectedMapping}
               setSelectedMapping={setSelectedMapping}
               modifyMode={modifyMode}
+              highlightMode={highlightMode}
+              selectedWords={selectedWords}
+              setSelectedWords={setSelectedWords}
+              syncSegments={syncSegments}
             />
           </div>
         </Route>

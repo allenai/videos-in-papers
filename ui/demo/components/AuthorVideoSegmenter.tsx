@@ -3,7 +3,7 @@ import {
   DocumentContext,
   TransformContext,
 } from '@allenai/pdf-components';
-import { Highlight, Clip, Caption } from '../types/clips';
+import { Highlight, Clip, Caption, SyncWords } from '../types/clips';
 import _ReactPlayer, { ReactPlayerProps } from 'react-player';
 
 import { AuthorTimeline } from './AuthorTimeline';
@@ -30,6 +30,10 @@ interface Props {
   selectedMapping: number | null;
   setSelectedMapping: (clipId: number | null) => void;
   modifyMode: boolean;
+  highlightMode: boolean;
+  selectedWords: SyncWords;
+  setSelectedWords: (words: SyncWords) => void;
+  syncSegments: {[id: number]: Array<SyncWords>};
 }
 
 function timeToStr(time: number) {
@@ -56,10 +60,11 @@ export function AuthorVideoSegmenter({
   selectedMapping,
   setSelectedMapping,
   modifyMode,
+  highlightMode,
+  selectedWords,
+  setSelectedWords,
+  syncSegments
 }: Props) {
-  const { pageDimensions, numPages } = React.useContext(DocumentContext);
-  const { rotation, scale } = React.useContext(TransformContext);
-
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
@@ -102,6 +107,7 @@ export function AuthorVideoSegmenter({
         setProgress(currentTime);
       }
     }
+    // TODO: make it replay or go to adequate section depending on selectedMapping
   }
 
   const equalTimes = (timeA: number, timeB: number) => {
@@ -110,6 +116,7 @@ export function AuthorVideoSegmenter({
 
   const handleSelectCaption = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
+    if(highlightMode) return;
     if(!modifyMode) {
         var newClip = [...selectedClip];
         var caption = captions[idx];
@@ -145,6 +152,7 @@ export function AuthorVideoSegmenter({
   }
 
   const changeClipWrapper = (clip: Array<number>, id: number) => {
+    if(highlightMode) return;
     if(clip[0] < 0) clip[0] = 0;
     if(clip[1] > duration*1000) clip[1] = duration*1000;
     var clipValues = Object.values(clips);
@@ -186,7 +194,27 @@ export function AuthorVideoSegmenter({
     if(e.detail != 2) return;
   }
 
+  const handleClickWord = (e: React.MouseEvent, captionIdx: number, wordIdx: number) => {
+    e.stopPropagation();
+    var captionIds = [...selectedWords.captionIds];
+    var selected = captionIds.findIndex((value) => value.captionIdx == captionIdx && value.wordIdx == wordIdx);
+    if(selected != -1) {
+      captionIds.splice(selected, 1);
+      setSelectedWords({
+        tokenIds: selectedWords.tokenIds,
+        captionIds: captionIds
+      });
+    } else {
+      setSelectedWords({
+        tokenIds: selectedWords.tokenIds,
+        captionIds: [...selectedWords.captionIds, {captionIdx, wordIdx}]
+      });
+    }
+  }
+
   const renderCaptions = () => {
+    var segments = Object.values(syncSegments).reduce((prev, curr) => prev.concat(curr), []);
+    var usedWords = segments.map(value => value.captionIds.map(value => value.captionIdx + '-' + value.wordIdx)).reduce((prev, curr) => prev.concat(curr), []);
     return captions.map((c, i) => {
         var selected = selectedClip[0] <= c.start && c.start < selectedClip[1]
         selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
@@ -219,7 +247,29 @@ export function AuthorVideoSegmenter({
                     className="video__segmenter-transcript-text"
                     onClick={handleClickTranscript}
                 >
-                    {c['caption']}
+                    {c['caption'].split(" ").map((text: string, j) => {
+                        var className = "";
+                        var selectable = selectedMapping == usedClipId && highlightMode;
+                        var used = usedWords.includes(i+'-'+j);
+                        if(selectable) {
+                            className = "video__segmenter-transcript-token";
+                            var selected = selectedWords.captionIds.find((value) => value.captionIdx == i && value.wordIdx == j);
+                            if(selected) {
+                                className += "-sel";
+                            }
+                        }
+                        if(used) {
+                            className += " video__segmenter-transcript-token-used"
+                        }
+                        return [
+                            <span 
+                                key={i+'-'+j}
+                                className={className}
+                                onClick={(e: React.MouseEvent) => selectable ? handleClickWord(e, i, j) : ""}
+                            >{text}</span>,
+                            <span key={'space-'+i+'-'+j}>&nbsp;</span>
+                        ]
+                    })}
                 </div>
             </div>
         );

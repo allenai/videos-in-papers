@@ -11,9 +11,10 @@ export type Highlight = {
 }
 
 export type Caption = {
+    id: number,
     caption: string,
     start: number,
-    end: number
+    end: number,
 }
 
 export type Clip = {
@@ -42,4 +43,9 @@ export type Block = BoundingBoxType & {
     type: string,
     section: string,
     tokens: Array<Token>
+}
+
+export type SyncWords = {
+    tokenIds: Array<{blockIdx: number, tokenIdx: number}>,
+    captionIds: Array<{captionIdx: number, wordIdx: number}>,
 }

@@ -71,8 +71,8 @@ export function AuthorTimeline({
 
   const handleClickSegment = (idx: number, id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if(idx == -1) {
-        setEdit(idx);
+    if(id == -1) {
+        setEdit(id);
         setSelectedMapping(null);
     } else {
         setSelectedMapping(id);
@@ -107,10 +107,10 @@ export function AuthorTimeline({
 
     var thumbs: Array<React.ReactElement> = [];
     // Don't make other clips editable for now
-    if((edit == idx && idx == -1) || (modifyMode && selectedMapping == id) ){
+    if((edit == id && id == -1) || (modifyMode && selectedMapping == id) ){
         thumbs = [
             <div 
-                key={idx + '-left'}
+                key={id + '-left'}
                 className="video__segmenter-thumb-left-container"
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -118,7 +118,7 @@ export function AuthorTimeline({
                 }}
             ><div className="video__segmenter-thumb"></div></div>,
             <div 
-                key={idx + '-right'}
+                key={id + '-right'}
                 className="video__segmenter-thumb-right-container"
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -130,15 +130,15 @@ export function AuthorTimeline({
 
     return (
         <div 
-            key={idx}
+            key={id}
             className="video__segmenter-timeline-block" 
             data-id={id}
             style={{
                 left: left+"px",
                 width: blockWidth+"px",
-                backgroundColor: (idx == -1 ? "#1890ff" : colors[idx % 7]),
-                height: (edit == idx || selectedMapping == id) ? "28px" : "20px",
-                zIndex: (edit == idx || selectedMapping == id) ? 5 : 1,
+                backgroundColor: (id == -1 ? "#1890ff" : colors[id % 7]),
+                height: (edit == id || selectedMapping == id) ? "28px" : "20px",
+                zIndex: (edit == id || selectedMapping == id) ? 5 : 1,
             }}
             onClick={(e: React.MouseEvent) => handleClickSegment(idx, id, e)}
         >{thumbs}</div>

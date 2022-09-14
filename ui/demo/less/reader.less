@@ -274,14 +274,14 @@ body {
 }
 
 .mapping-controls__container button {
-  font-size: 20px;
+  font-size: 16px;
   color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-  padding: 8px 16px;
-  border: solid 4px;
+  padding: 4px 8px;
+  border: solid 2px;
   cursor: pointer;
-  margin: 0 8px;
+  margin: 0 16px;
 }
 
 .reader__header-save-button {
@@ -295,4 +295,24 @@ body {
   border: none;
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
   cursor: pointer;
+}
+
+.reader_highlight_color_token {
+  cursor: pointer;
+  &:hover {
+    background-color: #1075ff;
+    mix-blend-mode: screen;
+  }
+}
+
+.reader_highlight_color_token-sel {
+  cursor: pointer;
+  background-color: #1075ff;
+  mix-blend-mode: screen;
+}
+
+.reader_highlight_color_token-used {
+  border-bottom: solid 2px #777;
+  mix-blend-mode: normal;
+  background-color: transparent;
 }
