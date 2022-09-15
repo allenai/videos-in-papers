@@ -57,6 +57,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [ shiftDown, setShiftDown ] = React.useState(false);
 
+  const [ saving, setSaving ] = React.useState(false);
+
   React.useEffect(() => {
     fetch('/api/blocks/'+doi+'.json')
       .then((res) => res.json())
@@ -373,7 +375,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   }
 
   const saveAnnotations = () => {
+    if(saving) return;
     var data = {doi: doi, highlights: highlights, clips: clips, syncSegments: syncSegments};
+    setSaving(true);
     fetch('/api/save_annotations', {
       method: 'POST',
       headers: {
@@ -383,7 +387,12 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     }).then((response) => {
       return response.json();
     }).then((result) => {
-      console.log("SAVED!");
+      if(result.message == 200) {
+        setSaving(false);
+      } else {
+        alert("Error saving annotations");
+        setSaving(false);
+      }
     });
   }
 
@@ -435,7 +444,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     return (
       <BrowserRouter>
         <Route path="/">
-          <Header saveAnnotations={saveAnnotations}/>
+          <Header saveAnnotations={saveAnnotations} saving={saving}/>
           <div 
             className="reader__container"
             onKeyDown={(e: React.KeyboardEvent) => e.key == 'Shift' ? setShiftDown(true) : null}

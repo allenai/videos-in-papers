@@ -138,13 +138,14 @@ export function AuthorVideoSegmenter({
         currentTime = clips[selectedMapping].start/1000;
       }
       setProgress(currentTime);
-      if(captions[currentCaption].start <= currentTime && captions[currentCaption].end > currentTime) return;
+      if(captions[currentCaption].start <= currentTime*1000 && captions[currentCaption].end > currentTime*1000) return;
       var captionIdx = captions.findIndex((c) => c.start <= currentTime*1000 && c.end > currentTime*1000);
-      var captionTop = document.getElementById('caption-' + captionIdx)?.offsetTop;
-      var divTop = captionRef.current?.offsetTop;
-      if(captionIdx != -1 && captionTop && divTop) {
-        console.log(captionTop);
-        captionRef.current!.scrollTo(0, captionTop - divTop - 20);
+      if(captionIdx != -1) {
+        var captionTop = document.getElementById('caption-' + captionIdx)?.offsetTop;
+        var divTop = captionRef.current?.offsetTop;
+        if(Math.abs(captionIdx - currentCaption) > 6 && captionTop && divTop) {
+          captionRef.current!.scrollTo(0, captionTop - divTop - 20);
+        }
         setCurrentCaption(captionIdx);
       }
     }

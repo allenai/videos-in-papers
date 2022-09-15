@@ -7,12 +7,14 @@ type Props = {
   lockable?: boolean,
   setLockable?: (lockable: boolean) => void;
   saveAnnotations?: () => void;
+  saving?: boolean;
 }
 
 export const Header: React.FunctionComponent<Props> = ({
   lockable,
   setLockable,
-  saveAnnotations
+  saveAnnotations,
+  saving
 }: Props) => {
   const { scale } = React.useContext(TransformContext);
 
@@ -39,8 +41,12 @@ export const Header: React.FunctionComponent<Props> = ({
       }
       {saveAnnotations ?
         <div>
-          <button className="reader__header-save-button" onClick={saveAnnotations}>
-            Save Mappings
+          <button 
+            className="reader__header-save-button" 
+            onClick={saveAnnotations}
+            style={saving ? {backgroundColor: "#ccc", cursor: "auto"}: {}}
+          >
+            {saving ? "Saving..." : "Save Mappings"}
           </button>
         </div> : ""
       }

@@ -73,10 +73,9 @@ def download_video(url, doi, video_path, caption_path=None):
 
 
 def split_video(doi, video_path, clips):
-    return
     video_dir = f"{video_path}/{doi}"
     for clip_id in clips:
         clip = clips[clip_id]
-        video = VideoFileClip(f"{video_dir}/full.mp4").subclip(clip['start'], clip['end'])
-        video.audio = AudioFileClip(f"{video_dir}/full.mp4").subclip(clip['start'], clip['end'])
+        video = VideoFileClip(f"{video_dir}/full.mp4").subclip(clip['start']/1000, clip['end']/1000)
+        video.audio = AudioFileClip(f"{video_dir}/full.mp4").subclip(clip['start']/1000, clip['end']/1000)
         video.write_videofile(f"{video_dir}/{clip_id}.mp4", temp_audiofile='./temp-audio.m4a', fps=25, audio_codec="aac")

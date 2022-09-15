@@ -136,6 +136,11 @@ def create_api() -> Blueprint:
         with open(f'/api/app/data/annotation/{doi}.json', 'w') as f:
             json.dump({'highlights': highlights, 'clips': clips, 'syncSegments': syncSegments}, f)
 
-        split_video(doi, '/api/app/data/clips', clips)
+        try:
+            split_video(doi, '/api/app/data/clips', clips)
+            return jsonify({'message': 200})
+        except Exception as e:
+            print(e)
+            return jsonify({'message': 400})
 
     return api
