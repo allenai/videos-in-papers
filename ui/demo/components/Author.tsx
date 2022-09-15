@@ -393,6 +393,12 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSyncSegments(newSyncSegments);
   }
 
+  const changeClipPosition = (clipId: number, highlightId: number) => {
+    var newClips = {...clips};
+    newClips[clipId].position = newClips[clipId].highlights.indexOf(highlightId);
+    setClips(newClips);
+  }
+
   React.useEffect(() => {
     if(highlightMode || selectedMapping == null) return;
     if(selectedWords.tokenIds.length == 0 || selectedWords.captionIds.length == 0) {
@@ -463,6 +469,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           setHoveredSegment={setHoveredSegment}
                           removeSegment={removeSegment}
                           shiftDown={shiftDown}
+                          changeClipPosition={changeClipPosition}
                         />
                       </Overlay>
                     </PageWrapper>

@@ -22,6 +22,7 @@ type Props = {
   setHoveredSegment: (segment: {clipId: number, index: number} | null) => void;
   removeSegment: (clipId: number, index: number) => void;
   shiftDown: boolean;
+  changeClipPosition: (clipId: number, highlightId: number) => void;
 };
 
 const colors = [
@@ -50,6 +51,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     setHoveredSegment,
     removeSegment,
     shiftDown,
+    changeClipPosition,
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
 
@@ -216,7 +218,9 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
                 page: prop.page,
                 key: clipId + "-" + prop.id,
                 id: "" + clipId,
+                isHighlighted: clips[clipId].highlights[clips[clipId].position] == highlightId,
                 color: colors[clipId % 7],
+                onClick: () => changeClipPosition(clipId, highlightId),
               }
               boxes.push(<AuthorBlockLabel {...labelProp} />);
             }
