@@ -28,6 +28,8 @@ export type Clip = {
     captions: Array<Caption>;
     expanded?: boolean;
     alternatives?: boolean;
+    note?: string;
+    supplementary?: boolean;
 }
 
 export type Token = BoundingBoxType & {

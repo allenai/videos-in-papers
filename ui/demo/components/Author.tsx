@@ -109,7 +109,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     if(blockOne.page == blockTwo.page) return true;
     if(smallerBlockId + 1 == largerBlockId) return true;
     for(var i = smallerBlockId + 1; i < largerBlockId; i++) {
-      if(blocks[i].type == 'Paragraph') return false;
+      if(blocks[i].type == 'Paragraph' || blocks[i].type == "Margin") return false;
     }
     return true;
   };
@@ -411,6 +411,20 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSelectedWords({tokenIds: [], captionIds: [], clipId: -1});
   }, [highlightMode]);
 
+  const changeClipNote = (note: string) => {
+    if(selectedMapping == null) return;
+    var newClips = {...clips};
+    newClips[selectedMapping].note = note;
+    setClips(newClips);
+  }
+
+  const changeClipSupp = (supp: boolean) => {
+    if(selectedMapping == null) return;
+    var newClips = {...clips};
+    newClips[selectedMapping].supplementary = supp;
+    setClips(newClips);
+  }
+
   if(videoWidth == 0) {
     return (
       <div>
@@ -429,6 +443,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
             tabIndex={0}
           >
             <AuthorMappingControls 
+                clips={clips}
                 selectedBlocks={selectedBlocks} 
                 selectedClip={selectedClip}
                 selectedMapping={selectedMapping}
@@ -438,6 +453,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                 setModifyMode={setModifyMode}
                 highlightMode={highlightMode}
                 setHighlightMode={setHighlightMode}
+                changeClipNote={changeClipNote}
+                changeClipSupp={changeClipSupp}
             />
             <DocumentWrapper 
               className="reader__main"

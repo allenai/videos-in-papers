@@ -487,6 +487,10 @@ def process_paper_blocks(doi, input_path, output_path):
         next(reader)
         json_obj = []
         section = 'Title'
+        pages = []
+        max_id = -1
+        maxTop = 1
+        maxBottom = 0
         for row in reader:
             if row[3] == 'Section':
                 section = row[5]
@@ -502,6 +506,14 @@ def process_paper_blocks(doi, input_path, output_path):
                 "height": float(row[9]) - float(row[7]),
                 "tokens": [],
             }
+            if not block['page'] in pages:
+                pages.append(block['page'])
+            if block['id'] > max_id:
+                max_id = block['id']
+            if block['top'] < maxTop:
+                maxTop = block['top']
+            if block['top'] + block['height'] > maxBottom:
+                maxBottom = block['top'] + block['height']
 
             intervals = process_interval_str(row[4])
             for interval in intervals:
@@ -519,6 +531,36 @@ def process_paper_blocks(doi, input_path, output_path):
                         'width': float(token['x2']) - float(token['x1']),
                         'height': float(token['y2']) - float(token['y1'])
                     })
+            json_obj.append(block)
+        
+        max_id += 1
+        for i in range(len(pages)):
+            spacing = maxTop / 3
+            block = {
+                "id": max_id + i*2,
+                "index": max_id + i*2,
+                "page": pages[i],
+                "type": "Margin",
+                "section": "Page " + str(pages[i]),
+                "left": 0.30,
+                "top": spacing,
+                "width": 0.40,
+                "height": spacing,
+                "tokens": [],
+            }
+            json_obj.append(block)
+            block = {
+                "id": max_id + i*2 + 1,
+                "index": max_id + i*2 + 1,
+                "page": pages[i],
+                "type": "Margin",
+                "section": "Page " + str(pages[i]),
+                "left": 0.30,
+                "top": 1 - spacing*2,
+                "width": 0.40,
+                "height": spacing,
+                "tokens": [],
+            }
             json_obj.append(block)
 
         with open(f"{output_path}/{doi}.json", "w") as output_f:
