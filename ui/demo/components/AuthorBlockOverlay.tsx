@@ -9,7 +9,7 @@ type Props = {
   selectedBlocks: Array<number>;
   setSelectedBlocks: (blocks: Array<number>) => void;
   highlights: {[id: number]: Highlight};
-  changeHighlight: (id: number, blocks: Array<number>) => void;
+  changeHighlight: (clipId: number, blocks: number, operation: number) => void;
   clips: {[id: number]: Clip};
   selectedMapping: number | null;
   setSelectedMapping: (clipId: number | null) => void;
@@ -101,10 +101,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         }
         setSelectedMapping(null);
     } else if(modifyMode && selectedMapping != null) {
-        var highlightId = clips[selectedMapping].highlights[0];
-        var blocks = highlights[highlightId].blocks;
-        if(blocks)
-            changeHighlight(highlightId, blocks.concat([blockId]));
+        changeHighlight(selectedMapping, blockId, 1);
     }
   }
 
@@ -122,11 +119,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     if(!modifyMode) {
         setSelectedMapping(clipId == selectedMapping ? null : clipId);
     } else if(modifyMode && selectedMapping != null) {
-        var highlightId = clips[selectedMapping].highlights[0];
-        var blocks = highlights[highlightId].blocks;
-        if(blocks) {
-            changeHighlight(highlightId, blocks.filter(id => id != blockId));
-        }
+        changeHighlight(selectedMapping, blockId, -1);
     }
   }
 
@@ -221,7 +214,8 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
                 height: prop.height, 
                 width: prop.width, 
                 page: prop.page,
-                id: ""+clipId,
+                key: clipId + "-" + prop.id,
+                id: "" + clipId,
                 color: colors[clipId % 7],
               }
               boxes.push(<AuthorBlockLabel {...labelProp} />);

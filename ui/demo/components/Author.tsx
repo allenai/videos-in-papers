@@ -100,18 +100,65 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSelectedWords({tokenIds: [], captionIds: [], clipId: -1});
   }
 
+  const checkContinuousBlocks = (blockIdOne: number, blockIdTwo: number) => {
+    console.log(blockIdOne, blockIdTwo);
+    var smallerBlockId = Math.min(blockIdOne, blockIdTwo);
+    var largerBlockId = Math.max(blockIdOne, blockIdTwo);
+    var blockOne = blocks[smallerBlockId];
+    var blockTwo = blocks[largerBlockId];
+    if(blockOne.page == blockTwo.page) return true;
+    if(smallerBlockId + 1 == largerBlockId) return true;
+    for(var i = smallerBlockId + 1; i < largerBlockId; i++) {
+      if(blocks[i].type == 'Paragraph') return false;
+    }
+    return true;
+  };
+
+  const splitBlocks = (blockIds: Array<number>) => {
+    var listOfList: Array<Array<number>> = [];
+    var currentList: Array<number> = [];
+    var lastBlock = null;
+    for(var i = 0; i < blockIds.length; i++) {
+      var block = blocks[blockIds[i]];
+      if(lastBlock == null || checkContinuousBlocks(lastBlock.id, block.id)) {
+        currentList.push(blockIds[i]);
+      } else {
+        listOfList.push(currentList);
+        currentList = [blockIds[i]];
+      }
+      lastBlock = block;
+    }
+    listOfList.push(currentList);
+    return listOfList;
+  };
+
   const createMapping = () => {
     var topTop = 0;
     var topPage = 0;
     var copyBlocks = [...selectedBlocks];
     copyBlocks.sort();
-    var rects: Array<BoundingBoxType> = copyBlocks.map((id: number) => {
+    var clipId = Math.max(...Object.values(clips).map((c) => c.id)) + 1;
+    if(Object.values(clips).length == 0) {
+      clipId = 0;
+    }
+
+    var copyHighlights = {...highlights};
+    var newHighlightIds = [];
+    var splitBlocksList = splitBlocks(copyBlocks);
+    for(var i = 0; i < splitBlocksList.length; i++) {
+      var highlightId = Math.max(...Object.values(copyHighlights).map((hl) => hl.id)) + 1;
+      if(Object.values(copyHighlights).length == 0) {
+        highlightId = 0;
+      }
+      var rects: Array<BoundingBoxType> = splitBlocksList[i].map((id: number) => {
         var blk = blocks[id];
-        if(blk.page < topPage) {
-            topPage = blk.page;
-            topTop = blk.top;
-        } else if (blk.page == topPage && blk.top < topTop) {
-            topTop = blk.top;
+        if(i == 0) {
+          if(blk.page < topPage) {
+              topPage = blk.page;
+              topTop = blk.top;
+          } else if (blk.page == topPage && blk.top < topTop) {
+              topTop = blk.top;
+          }
         }
         return {
             page: blk.page,
@@ -120,35 +167,34 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
             height: blk.height,
             width: blk.width
         }
-    })
-    var highlightId = Object.keys(highlights).length;
-    var clipId = Object.keys(clips).length;
-    var highlight: Highlight = {
-        id: highlightId,
-        type: "text",
-        rects: rects,
-        clip: clipId,
-        tokens: [],
-        section: blocks[copyBlocks[0]]['section'],
-        blocks: copyBlocks
-    };
+      })
+      var highlight: Highlight = {
+          id: highlightId,
+          type: "text",
+          rects: rects,
+          clip: clipId,
+          tokens: [],
+          section: blocks[splitBlocksList[i][0]]['section'],
+          blocks: splitBlocksList[i]
+      };
+      copyHighlights[highlightId] = highlight;
+      newHighlightIds.push(highlightId);
+    }
+
     var filteredCaptions = captions.filter((c: Caption) => {
         return selectedClip[0] <= c.start && c.start < selectedClip[1] || selectedClip[0] < c.end && c.end <= selectedClip[1];
     });
-    
     var clip: Clip = {
         id: clipId, 
         start: selectedClip[0],
         end: selectedClip[1],
-        highlights: [highlightId],
+        highlights: newHighlightIds,
         position: 0,
         top: topTop,
         page: topPage,
         captions: filteredCaptions,
     }
     
-    var copyHighlights = {...highlights};
-    copyHighlights[highlightId] = highlight;
     setHighlights(copyHighlights);
 
     var copyClips = {...clips};
@@ -205,36 +251,125 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSyncSegments(newSyncSegments);
   }
 
-  const changeHighlight = (highlightId: number, changedBlocks: Array<number>) => {
+  const changeHighlight = (clipId: number, blockId: number, operation: number) => {
     var newHighlights = {...highlights};
-    var copyBlocks = [...changedBlocks];
-    copyBlocks.sort();
-    var rects: Array<BoundingBoxType> = copyBlocks.map((id: number) => {
-        var blk = blocks[id];
-        return {
-            page: blk.page,
-            top: blk.top,
-            left: blk.left,
-            height: blk.height,
-            width: blk.width
-        }
-    });
-    newHighlights[highlightId].rects = rects;
-    newHighlights[highlightId].blocks = changedBlocks;
-    newHighlights[highlightId].section = blocks[copyBlocks[0]]['section'];
-    setHighlights(newHighlights);
 
-    var segments = syncSegments[newHighlights[highlightId].clip];
-    var newSegments = [];
-    for(var i = 0; i < segments.length; i++) {
-      var filteredTokenIds = segments[i].tokenIds.filter((word) => changedBlocks.includes(word.blockIdx));
-      if(filteredTokenIds.length > 0) {
-        newSegments.push({...segments[i], tokenIds: filteredTokenIds});
+    if(operation == 1) {
+      var highlightId: any = null;
+      for(var i = 0; i < clips[clipId].highlights.length; i++) {
+        var highlight = newHighlights[clips[clipId].highlights[i]];
+        if(highlight.blocks == null) continue;
+
+        for(var j = 0; j < highlight.blocks.length; j++) {
+          var hlBlockId = highlight.blocks[j];
+          if(checkContinuousBlocks(hlBlockId, blockId)) {
+            highlightId = highlight.id
+            break;
+          }
+        }
+
+        if(highlightId != null) break;
+      }
+
+      if(highlightId == null) {
+        highlightId = Math.max(...Object.values(newHighlights).map((hl) => hl.id)) + 1;
+        if(Object.values(newHighlights).length == 0) highlightId = 0;
+
+        var newHighlight: Highlight = {
+          id: highlightId,
+          type: "text",
+          rects: [{
+            page: blocks[blockId].page,
+            top: blocks[blockId].top,
+            left: blocks[blockId].left,
+            height: blocks[blockId].height,
+            width: blocks[blockId].width
+          }],
+          clip: clipId,
+          tokens: [],
+          section: blocks[blockId]['section'],
+          blocks: [blockId]
+        };
+
+        newHighlights[highlightId] = newHighlight;
+        var newClips = {...clips};
+        newClips[clipId].highlights.push(highlightId);
+        setHighlights(newHighlights);
+        setClips(newClips);
+      } else {
+        if(newHighlights[highlightId].blocks) {
+          newHighlights[highlightId].blocks?.push(blockId);
+        } else {
+          newHighlights[highlightId].blocks = [blockId];
+        }
+        newHighlights[highlightId].rects.push({
+          page: blocks[blockId].page,
+          top: blocks[blockId].top,
+          left: blocks[blockId].left,
+          height: blocks[blockId].height,
+          width: blocks[blockId].width
+        });
+        newHighlights[highlightId].blocks?.sort((a: number, b: number) => a - b);
+        setHighlights(newHighlights);
+      }
+    } else if(operation == -1) {
+      var highlightId: any = clips[clipId].highlights.find((hId) => highlights[hId].blocks?.includes(blockId));
+      if(highlightId == undefined) return;
+      
+      var blockIdx = newHighlights[highlightId].blocks?.indexOf(blockId);
+      var newBlocks = newHighlights[highlightId].blocks;
+
+      if(blockIdx == null || blockIdx == -1 || newBlocks == undefined) return;
+
+      newBlocks = [...newBlocks];
+      newBlocks.splice(blockIdx, 1);
+      newBlocks.sort((a, b) => a - b);
+
+      if(newBlocks.length == 0) {
+        delete newHighlights[highlightId];
+        var newClips = {...clips};
+        var highlightIdx = newClips[clipId].highlights.indexOf(highlightId);
+        newClips[clipId].highlights.splice(highlightIdx, 1);
+        if(newClips[clipId].highlights.length == 0) {
+          delete newClips[clipId];
+          var newSyncSegments = {...syncSegments};
+          delete newSyncSegments[clipId];
+          setSyncSegments(newSyncSegments);
+          setSelectedMapping(null);
+        } else if(newClips[clipId].position == highlightIdx) {
+          newClips[clipId].position = 0;
+        }
+        setClips(newClips);
+        setHighlights(newHighlights);
+      } else {
+        var rects: Array<BoundingBoxType> = newBlocks.map((id: number) => {
+          var blk = blocks[id];
+          return {
+              page: blk.page,
+              top: blk.top,
+              left: blk.left,
+              height: blk.height,
+              width: blk.width
+          }
+        })
+        newHighlights[highlightId].blocks = newBlocks;
+        newHighlights[highlightId].rects = rects;
+        newHighlights[highlightId].section = blocks[newBlocks[0]]['section'];
+
+        var segments = syncSegments[clipId];
+        var newSegments = [];
+        for(var i = 0; i < segments.length; i++) {
+          var filteredTokenIds = segments[i].tokenIds.filter((word) => newBlocks?.includes(word.blockIdx));
+          if(filteredTokenIds.length > 0) {
+            newSegments.push({...segments[i], tokenIds: filteredTokenIds});
+          }
+        }
+  
+        var newSyncSegments = {...syncSegments};
+        newSyncSegments[newHighlights[highlightId].clip] = newSegments;
+        setSyncSegments(newSyncSegments);
       }
     }
-    var newSyncSegments = {...syncSegments};
-    newSyncSegments[newHighlights[highlightId].clip] = newSegments;
-    setSyncSegments(newSyncSegments);
   }
 
   const saveAnnotations = () => {
@@ -259,7 +394,11 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   }
 
   React.useEffect(() => {
-    if(selectedMapping == null || highlightMode || selectedWords.tokenIds.length == 0 || selectedWords.captionIds.length == 0) return;
+    if(highlightMode || selectedMapping == null) return;
+    if(selectedWords.tokenIds.length == 0 || selectedWords.captionIds.length == 0) {
+      setSelectedWords({tokenIds: [], captionIds: [], clipId: -1});
+      return;
+    }
     var newSyncSegments = {...syncSegments};
     newSyncSegments[selectedMapping].push({...selectedWords, clipId: selectedMapping});
     setSyncSegments(newSyncSegments);
