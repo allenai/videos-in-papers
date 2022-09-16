@@ -8,8 +8,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { BrowserRouter, Route } from 'react-router-dom';
 
-import { Reader } from './components/Reader';
 import { Author } from './components/Author';
+import { Reader } from './components/Reader';
 import { StartMenu } from './components/StartMenu';
 
 const App = () => (

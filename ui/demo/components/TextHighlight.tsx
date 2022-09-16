@@ -1,6 +1,13 @@
-import { BoundingBox, BoundingBoxType, UiContext, DocumentContext, scaleRawBoundingBox } from '@allenai/pdf-components';
-import { Highlight } from '../types/clips';
+import {
+  BoundingBox,
+  BoundingBoxType,
+  DocumentContext,
+  scaleRawBoundingBox,
+  UiContext,
+} from '@allenai/pdf-components';
 import * as React from 'react';
+
+import { Highlight } from '../types/clips';
 
 type Props = {
   pageIndex: number;
@@ -19,12 +26,12 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, highl
   }
 
   function getBoundingBoxProps() {
-    var results : Array<Array<BoundingBoxType>> = [];
-    for(var i = 0; i < highlights.length; i++) {
-      var rects = highlights[i].rects;
-      var boundingBoxes : Array<BoundingBoxType> = [];
-      for(var j = 0; j < rects.length; j++) {
-        var bbox = scaleRawBoundingBox(rects[j], pageDimensions.height, pageDimensions.width);
+    const results: Array<Array<BoundingBoxType>> = [];
+    for (let i = 0; i < highlights.length; i++) {
+      const rects = highlights[i].rects;
+      const boundingBoxes: Array<BoundingBoxType> = [];
+      for (let j = 0; j < rects.length; j++) {
+        const bbox = scaleRawBoundingBox(rects[j], pageDimensions.height, pageDimensions.width);
         boundingBoxes.push(bbox);
       }
       results.push(boundingBoxes);
@@ -41,11 +48,11 @@ export const TextHighlight: React.FunctionComponent<Props> = ({ pageIndex, highl
         if (prop.page === pageIndex) {
           const props = {
             ...prop,
-            id: "" + highlights[i].id,
-            className: 'reader_highlight_color-' + highlights[i].clip % 7,
+            id: '' + highlights[i].id,
+            className: 'reader_highlight_color-' + (highlights[i].clip % 7),
             // Set isHighlighted to true for highlighted styling
             isHighlighted: true,
-            key: i+"-"+j,
+            key: i + '-' + j,
           };
 
           boxes.push(<BoundingBox {...props} />);

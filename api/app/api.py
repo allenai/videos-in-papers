@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, jsonify, request, current_app, send_from_directory
 from random import randint
 from time import sleep
@@ -6,6 +7,11 @@ from typing import List, Tuple
 
 from app.video_handler import download_video, split_video
 from app.paper_handler import get_paper, process_paper_blocks
+
+env = os.getenv('FLASK_ENV', 'production')
+DIR_PATH = '/api/app'
+if env == 'production':
+    DIR_PATH = '/skiff_files/apps/paper-video-nav'
 
 # Takes a list of strings and filters out any empty strings
 def clean_str_list(input: List[str]) -> List[str]:
@@ -73,23 +79,23 @@ def create_api() -> Blueprint:
 
     @api.route('/api/annotation/<path:path>')
     def annotation(path):
-        return send_from_directory("./data/annotation/", path)
+        return send_from_directory(f"{DIR_PATH}/data/annotation/", path)
 
     @api.route('/api/pdf/<path:path>')
     def pdf(path):
-        return send_from_directory("./data/pdf/", path)
+        return send_from_directory(f"{DIR_PATH}/data/pdf/", path)
 
     @api.route('/api/clips/<path:path>')
     def clips(path):
-        return send_from_directory("./data/clips/", path)
+        return send_from_directory(f"{DIR_PATH}/data/clips/", path)
 
     @api.route('/api/blocks/<path:path>')
     def blocks(path):
-        return send_from_directory("./data/blocks/", path)
+        return send_from_directory(f"{DIR_PATH}/data/blocks/", path)
 
     @api.route('/api/captions/<path:path>')
     def captions(path):
-        return send_from_directory("./data/captions/", path)
+        return send_from_directory(f"{DIR_PATH}/data/captions/", path)
 
     @api.route('/api/process_video', methods=["POST"])
     def process_video():
@@ -99,8 +105,11 @@ def create_api() -> Blueprint:
 
         doi = data.get("doi")
         video_url = data.get("url")
+
+        print("[VIDEO]", doi, video_url, f"{DIR_PATH}/data/clips")
+
         try:
-            download_video(video_url, doi, video_path='/api/app/data/clips', caption_path="/api/app/data/captions")
+            download_video(video_url, doi, video_path=f"{DIR_PATH}/data/clips", caption_path=f"{DIR_PATH}/data/captions")
             return jsonify({'message': 200})
         except Exception as e:
             print(e)
@@ -114,9 +123,12 @@ def create_api() -> Blueprint:
 
         doi = data.get("doi")
         paper_url = data.get("url")
+
+        print("[PAPER]", doi, paper_url, f"{DIR_PATH}/data/pdf")
+
         try:
-            get_paper(paper_url, doi, '/api/app/data/pdf')
-            process_paper_blocks(doi, '/api/app/data/pdf', '/api/app/data/blocks')
+            get_paper(paper_url, doi, f"{DIR_PATH}/data/pdf")
+            process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks")
             return jsonify({'message': 200})
         except Exception as e:
             print(e)
@@ -133,11 +145,13 @@ def create_api() -> Blueprint:
         highlights = data.get('highlights')
         syncSegments = data.get('syncSegments')
 
-        with open(f'/api/app/data/annotation/{doi}.json', 'w') as f:
+        print("[ANNOTATIONS]", doi, f"{DIR_PATH}/data/annotation")
+
+        with open(f"{DIR_PATH}/data/annotation/{doi}.json", 'w') as f:
             json.dump({'highlights': highlights, 'clips': clips, 'syncSegments': syncSegments}, f)
 
         try:
-            split_video(doi, '/api/app/data/clips', clips)
+            split_video(doi, f"{DIR_PATH}/data/clips", clips)
             return jsonify({'message': 200})
         except Exception as e:
             print(e)

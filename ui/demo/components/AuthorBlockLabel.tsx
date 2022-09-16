@@ -1,7 +1,11 @@
+import {
+  BoundingBoxType,
+  computeBoundingBoxStyle,
+  DocumentContext,
+  TransformContext,
+} from '@allenai/pdf-components';
 import classNames from 'classnames';
 import * as React from 'react';
-
-import { BoundingBoxType, TransformContext, DocumentContext, computeBoundingBoxStyle } from '@allenai/pdf-components';
 
 export type Props = BoundingBoxType & {
   className?: string;
@@ -26,12 +30,12 @@ export const AuthorBlockLabel: React.FunctionComponent<Props> = ({
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
-  var boxSize = { top, left: left-40 - 4, height: 40, width: 40 };
-  if(pageDimensions.width/2 < left) {
-    boxSize = { top, left: left+width + 4, height: 40, width: 40 };
+  let boxSize = { top, left: left - 40 - 4, height: 40, width: 40 };
+  if (pageDimensions.width / 2 < left) {
+    boxSize = { top, left: left + width + 4, height: 40, width: 40 };
   }
   const componentClassName = classNames(
-    isHighlighted ? 'reader__page-overlay__block-label-sel' : 'reader__page-overlay__block-label',
+    isHighlighted ? 'reader__page-overlay__block-label-sel' : 'reader__page-overlay__block-label'
   );
   const sidebarRef = React.createRef<HTMLDivElement>();
 
@@ -49,9 +53,13 @@ export const AuthorBlockLabel: React.FunctionComponent<Props> = ({
         id={id}
         ref={sidebarRef}
         className={`${componentClassName} ${rotationClassName()}`}
-        style={{...getBoundingBoxStyle(), backgroundColor: color, borderColor: color, color: isHighlighted ? "#fff" : color}}
-        {...extraProps}
-      >
+        style={{
+          ...getBoundingBoxStyle(),
+          backgroundColor: color,
+          borderColor: color,
+          color: isHighlighted ? '#fff' : color,
+        }}
+        {...extraProps}>
         {id}
       </div>
     </React.Fragment>

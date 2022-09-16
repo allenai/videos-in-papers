@@ -1,7 +1,11 @@
+import {
+  BoundingBoxType,
+  computeBoundingBoxStyle,
+  DocumentContext,
+  TransformContext,
+} from '@allenai/pdf-components';
 import classNames from 'classnames';
 import * as React from 'react';
-
-import { BoundingBoxType, TransformContext, DocumentContext, computeBoundingBoxStyle } from '@allenai/pdf-components';
 
 export type Props = BoundingBoxType & {
   position: number;
@@ -45,12 +49,12 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   const [scaledPosition, setScaledPosition] = React.useState<number>(-1);
 
   React.useEffect(() => {
-    if(!sidebarRef.current) {
+    if (!sidebarRef.current) {
       return;
-    } else if(position == -1) {
+    } else if (position == -1) {
       setScaledPosition(-1);
     } else {
-      var rect = sidebarRef.current.getBoundingClientRect();
+      const rect = sidebarRef.current.getBoundingClientRect();
       setScaledPosition(position * rect.height);
     }
   }, [position]);
@@ -73,14 +77,15 @@ export const Sidebar: React.FunctionComponent<Props> = ({
         onClick={onClick}
         onMouseMove={onMouseMove}
         onMouseOut={onMouseOut}
-        {...extraProps}
-      >
-        {scaledPosition != -1 ?
-          <div 
-            className='reader__page-overlay__sidebar-tick'
-            style={{top: scaledPosition+"px"}}
+        {...extraProps}>
+        {scaledPosition != -1 ? (
+          <div
+            className="reader__page-overlay__sidebar-tick"
+            style={{ top: scaledPosition + 'px' }}
           />
-        : ""}
+        ) : (
+          ''
+        )}
       </div>
     </React.Fragment>
   );
