@@ -236,9 +236,9 @@ function(
                             image: apiImage,
                             volumeMounts: [
                                 {
-                                    mountPath: '/skiff_files',
+                                    mountPath: '/skiff_files/apps/paper-video-nav',
                                     name: 'skiff-files',
-                                    readOnly: true
+                                    readOnly: false
                                 }
                             ],
                             # The "probes" below allow Kubernetes to determine
