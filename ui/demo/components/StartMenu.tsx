@@ -40,6 +40,8 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             setPaperProcessed(1);
           }, 30000);
         } else {
+          alert('Error processing paper');
+          console.log(result.error);
           setPaperProcessed(-1);
         }
       });
@@ -59,6 +61,8 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
         if (result.message == 200) {
           setVideoProcessed(1);
         } else {
+          alert('Error processing video');
+          console.log(result.error);
           setVideoProcessed(-1);
         }
       });

@@ -107,14 +107,11 @@ def create_api() -> Blueprint:
         doi = data.get("doi")
         video_url = data.get("url")
 
-        sys.stderr.write(f"[VIDEO] {doi} {video_url} {DIR_PATH}/data/clips\n")
-
         try:
             download_video(video_url, doi, video_path=f"{DIR_PATH}/data/clips", caption_path=f"{DIR_PATH}/data/captions")
             return jsonify({'message': 200})
         except Exception as e:
-            sys.stderr.write(repr(e) + '\n')
-            return jsonify({'message': 400})
+            return jsonify({'message': 400, 'error': str(e)})
 
     @api.route('/api/process_paper', methods=['POST'])
     def process_paper():
@@ -125,15 +122,12 @@ def create_api() -> Blueprint:
         doi = data.get("doi")
         paper_url = data.get("url")
 
-        sys.stderr.write(f"[PAPER] {doi} {paper_url} {DIR_PATH}/data/pdf\n")
-
         try:
             get_paper(paper_url, doi, f"{DIR_PATH}/data/pdf")
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks")
             return jsonify({'message': 200})
         except Exception as e:
-            sys.stderr.write(repr(e) + '\n')
-            return jsonify({'message': 400})
+            return jsonify({'message': 400, 'error': str(e)})
 
     @api.route('/api/save_annotations', methods=['POST'])
     def save_annotations():
@@ -146,8 +140,6 @@ def create_api() -> Blueprint:
         highlights = data.get('highlights')
         syncSegments = data.get('syncSegments')
 
-        sys.stderr.write(f"[ANNOTATIONS] {doi} {DIR_PATH}/data/annotation\n")
-
         with open(f"{DIR_PATH}/data/annotation/{doi}.json", 'w') as f:
             json.dump({'highlights': highlights, 'clips': clips, 'syncSegments': syncSegments}, f)
 
@@ -155,7 +147,6 @@ def create_api() -> Blueprint:
             split_video(doi, f"{DIR_PATH}/data/clips", clips)
             return jsonify({'message': 200})
         except Exception as e:
-            sys.stderr.write(repr(e) + '\n')
-            return jsonify({'message': 400})
+            return jsonify({'message': 400, 'error': str(e)})
 
     return api

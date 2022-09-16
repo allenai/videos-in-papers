@@ -414,6 +414,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
           setSaving(false);
         } else {
           alert('Error saving annotations');
+          console.log(result.error);
           setSaving(false);
         }
       });
