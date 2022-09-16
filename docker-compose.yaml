@@ -10,7 +10,7 @@ services:
         build: ./api
         volumes:
             - ./api:/api
-            - /skiff_files/apps/paper-video-nav:/skiff_files/apps/paper-video-nav
+            - ./skiff_files/apps/paper-video-nav:/skiff_files/apps/paper-video-nav
         environment:
             # This ensures that errors are printed as they occur, which
             # makes debugging easier.
