@@ -77,6 +77,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
           })
         );
       });
+    fetch('/api/annotation/' + doi + '.json')
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+        setHighlights(data.highlights);
+        setClips(data.clips);
+        setSyncSegments(data.syncSegments);
+      });
   }, []);
 
   React.useEffect(() => {

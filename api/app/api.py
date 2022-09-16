@@ -80,7 +80,10 @@ def create_api() -> Blueprint:
 
     @api.route('/api/annotation/<path:path>')
     def annotation(path):
-        return send_from_directory(f"{DIR_PATH}/data/annotation/", path)
+        if(os.path.isfile(DIR_PATH + '/data/annotation/' + path)):
+            return send_from_directory(DIR_PATH + '/data/annotation/', path)
+        else:
+            return jsonify({'clips': {}, 'highlights': {}, 'syncSegments': {}})
 
     @api.route('/api/pdf/<path:path>')
     def pdf(path):
