@@ -1,4 +1,5 @@
 import os
+import sys
 from flask import Blueprint, jsonify, request, current_app, send_from_directory
 from random import randint
 from time import sleep
@@ -106,13 +107,13 @@ def create_api() -> Blueprint:
         doi = data.get("doi")
         video_url = data.get("url")
 
-        print("[VIDEO]", doi, video_url, f"{DIR_PATH}/data/clips")
+        sys.stderr.write(f"[VIDEO] {doi} {video_url} {DIR_PATH}/data/clips\n")
 
         try:
             download_video(video_url, doi, video_path=f"{DIR_PATH}/data/clips", caption_path=f"{DIR_PATH}/data/captions")
             return jsonify({'message': 200})
         except Exception as e:
-            print(e)
+            sys.stderr.write(e + '\n')
             return jsonify({'message': 400})
 
     @api.route('/api/process_paper', methods=['POST'])
@@ -124,14 +125,14 @@ def create_api() -> Blueprint:
         doi = data.get("doi")
         paper_url = data.get("url")
 
-        print("[PAPER]", doi, paper_url, f"{DIR_PATH}/data/pdf")
+        sys.stderr.write(f"[PAPER] {doi} {paper_url} {DIR_PATH}/data/pdf\n")
 
         try:
             get_paper(paper_url, doi, f"{DIR_PATH}/data/pdf")
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks")
             return jsonify({'message': 200})
         except Exception as e:
-            print(e)
+            sys.stderr.write(e + '\n')
             return jsonify({'message': 400})
 
     @api.route('/api/save_annotations', methods=['POST'])
@@ -145,7 +146,7 @@ def create_api() -> Blueprint:
         highlights = data.get('highlights')
         syncSegments = data.get('syncSegments')
 
-        print("[ANNOTATIONS]", doi, f"{DIR_PATH}/data/annotation")
+        sys.stderr.write(f"[ANNOTATIONS] {doi} {DIR_PATH}/data/annotation\n")
 
         with open(f"{DIR_PATH}/data/annotation/{doi}.json", 'w') as f:
             json.dump({'highlights': highlights, 'clips': clips, 'syncSegments': syncSegments}, f)
@@ -154,7 +155,7 @@ def create_api() -> Blueprint:
             split_video(doi, f"{DIR_PATH}/data/clips", clips)
             return jsonify({'message': 200})
         except Exception as e:
-            print(e)
+            sys.stderr.write(e + '\n')
             return jsonify({'message': 400})
 
     return api
