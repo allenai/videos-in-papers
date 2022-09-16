@@ -113,7 +113,7 @@ def create_api() -> Blueprint:
             download_video(video_url, doi, video_path=f"{DIR_PATH}/data/clips", caption_path=f"{DIR_PATH}/data/captions")
             return jsonify({'message': 200})
         except Exception as e:
-            sys.stderr.write(e + '\n')
+            sys.stderr.write(repr(e) + '\n')
             return jsonify({'message': 400})
 
     @api.route('/api/process_paper', methods=['POST'])
@@ -132,7 +132,7 @@ def create_api() -> Blueprint:
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks")
             return jsonify({'message': 200})
         except Exception as e:
-            sys.stderr.write(e + '\n')
+            sys.stderr.write(repr(e) + '\n')
             return jsonify({'message': 400})
 
     @api.route('/api/save_annotations', methods=['POST'])
@@ -155,7 +155,7 @@ def create_api() -> Blueprint:
             split_video(doi, f"{DIR_PATH}/data/clips", clips)
             return jsonify({'message': 200})
         except Exception as e:
-            sys.stderr.write(e + '\n')
+            sys.stderr.write(repr(e) + '\n')
             return jsonify({'message': 400})
 
     return api
