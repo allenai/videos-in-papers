@@ -371,7 +371,7 @@ export function AuthorVideoSegmenter({
                   className += '-sel';
                 }
               }
-              if (usedClipId != -1) {
+              if (usedClipId != -1 && syncSegments[usedClipId]) {
                 const segments = syncSegments[usedClipId];
                 index = segments.findIndex(
                   value =>

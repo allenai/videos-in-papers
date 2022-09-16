@@ -63,6 +63,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
+    fetch('/api/annotation/' + doi + '.json')
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+        setHighlights(data.highlights);
+        setClips(data.clips);
+        setSyncSegments(data.syncSegments);
+      });
     fetch('/api/blocks/' + doi + '.json')
       .then(res => res.json())
       .then((data: Array<Block>) => {
@@ -76,14 +84,6 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
             return { ...c, id: i };
           })
         );
-      });
-    fetch('/api/annotation/' + doi + '.json')
-      .then(res => res.json())
-      .then(data => {
-        console.log(data);
-        setHighlights(data.highlights);
-        setClips(data.clips);
-        setSyncSegments(data.syncSegments);
       });
   }, []);
 

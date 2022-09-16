@@ -225,7 +225,7 @@ export function Player({
             textDecoration: 'underline',
           }}
           onClick={handleAltClick}>
-          {clip.alternatives ? 'Hide Other Highlights' : 'Show Other Highlights'}
+          {clip.alternatives ? 'Hide Other Mentions' : 'Show Other Mentions'}
         </div>
         {otherHighlights.map((row, i) => {
           return (
@@ -258,7 +258,7 @@ export function Player({
 
     let summary = (
       <div>
-        <b>Summary</b>&nbsp;&nbsp;{id < 4 ? testSummaries[id] : clip.captions[0].caption}
+        <b>Summary</b>&nbsp;&nbsp;{clip.captions[0].caption}
       </div>
     );
     if ((scrubPosition != -1 || isPlaying) && !clip.expanded) {
@@ -288,7 +288,7 @@ export function Player({
             const passed = caption.start / 1000 < clip.start + progress;
             return words.map((text, j) => {
               const style = {
-                color: hoveredWordId == i + '-' + j ? color + 'ff' : passed ? color + 'aa' : '#333',
+                backgroundColor: hoveredWordId == i + '-' + j ? color + '77' : passed ? color + '33' : 'transparent',
                 fontWeight: tokens.includes(text) ? 700 : 400,
                 textDecoration: hoveredWordId == i + '-' + j ? 'underline' : 'none',
                 display: 'inline-block',
@@ -337,19 +337,25 @@ export function Player({
     if (handleNavigate) handleNavigate(id, toId, true);
   }
 
-  let newLeft = left ? left : 20;
-  const adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.8);
-  const videoHeight = (adjustedVideoWidth / 16) * 9;
+  var adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.8);
+  var videoHeight = (adjustedVideoWidth / 16) * 9;
 
   // If clip is navigating, adjust the positions to be relative
-  if (isOverlay && !left) {
-    const container = document
-      .getElementsByClassName('video__note-list')[0]
-      .getBoundingClientRect();
-    newLeft = container.left + 20;
-  }
-
+  const container = document
+    .getElementsByClassName('video__note-list');
   var color = colors[id % 7];
+  var isLocked = top == -1;
+  if(container.length > 0) {
+    var rect = container[0].getBoundingClientRect();  
+    if(isLocked) {
+      adjustedVideoWidth = pageDimensions.width * scale * 0.3;
+      videoHeight = (adjustedVideoWidth/16) * 9;
+      left = rect.left - 28 - adjustedVideoWidth;
+      top = 64;
+    } else {
+      left = 0;
+    }
+  }
   return (
     <div
       id={'video__note-' + id}
@@ -366,12 +372,12 @@ export function Player({
       }}>
       <div className="video__note-supercontainer">
         <div>
-          {isFocus ? (
+          {isFocus && !isLocked ? (
             <PlayerTimeline
               id={id}
               clips={clips}
               sections={sections}
-              width={videoWidth}
+              width={adjustedVideoWidth}
               handleNavigate={handleNavigateWrapper}
               playedHistory={playedHistory}
             />
@@ -426,9 +432,9 @@ export function Player({
                 light={false}
               />
             </div>
-            {renderCaptions()}
+            {!isLocked ? renderCaptions() : ""}
           </div>
-          {renderHighlightNavigator()}
+          {!isLocked ? renderHighlightNavigator() : ""}
         </div>
       </div>
     </div>

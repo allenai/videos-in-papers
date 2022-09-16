@@ -122,7 +122,8 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
         top = navigating.fromTop;
         isOverlay = true;
       } else if (lock != null && lock.clipId == id) {
-        top = lock.relativePosition;
+        //top = lock.relativePosition;
+        top = -1;
         isOverlay = true;
       }
 

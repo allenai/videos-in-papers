@@ -137,7 +137,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   React.useEffect(() => {
     const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
-    if (focusId != -1) {
+    if (focusId == -1) {
+      setLock(null);
+    } else if (focusId != -1) {
       const highlightId = newClips[focusId].highlights[newClips[focusId].position];
       newClips[focusId].top = highlights[highlightId].rects[0].top;
       newClips[focusId].page = highlights[highlightId].rects[0].page;
@@ -153,14 +155,15 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       if (focusId == -1) {
         setLock(null);
       } else if (lock == null) {
-        const container = document.getElementsByClassName('reader__container')[0];
-        let top = container.scrollTop;
-        const clipTop =
-          (spreadClips[focusId].top + spreadClips[focusId].page) * pageDimensions.height * scale +
-          (24 + spreadClips[focusId].page * 48) +
-          38;
-        top = Math.floor(clipTop - top);
-        setLock({ clipId: focusId, relativePosition: top });
+        setLock({ clipId: focusId, relativePosition: 64 });
+        // const container = document.getElementsByClassName('reader__container')[0];
+        // let top = container.scrollTop;
+        // const clipTop =
+        //   (spreadClips[focusId].top + spreadClips[focusId].page) * pageDimensions.height * scale +
+        //   (24 + spreadClips[focusId].page * 48) +
+        //   38;
+        // top = Math.floor(clipTop - top);
+        // setLock({ clipId: focusId, relativePosition: top });
       } else if (lock.clipId != focusId) {
         setLock({ clipId: focusId, relativePosition: lock.relativePosition });
       }
@@ -207,6 +210,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       ) {
         setScrollOverflow(0);
       }
+
+      if(focusId != -1) {
+        var player = document.getElementById('video__note-' + focusId) as HTMLDivElement; 
+        if(player && player.getBoundingClientRect().top < 0) {
+          setLock({ clipId: focusId, relativePosition: -1 });
+        }
+      }
       return;
     }
     if (navigating.scrollTo != e.target.scrollTop) return;
@@ -234,7 +244,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     newClips[toId].page = highlights[highlightId].rects[0].page;
 
     if (lock != null) {
-      setLock({ clipId: toId, relativePosition: lock['relativePosition'] });
+      setLock({ clipId: toId, relativePosition: lock.relativePosition });
     }
     arrangeAndNavigate(newClips, fromId, toId, null);
   };
