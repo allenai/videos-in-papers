@@ -281,7 +281,7 @@ export function Player({
     let transcript = <></>;
     if (isFocus && !!clip.expanded) {
       transcript = (
-        <div style={{ lineBreak: 'anywhere' }}>
+        <div>
           <b>Transcript</b>&nbsp;&nbsp;
           {clip['captions'].map((caption: Caption, i: number) => {
             const words = caption.caption.split(' ');
@@ -291,6 +291,7 @@ export function Player({
                 color: hoveredWordId == i + '-' + j ? color + 'ff' : passed ? color + 'aa' : '#333',
                 fontWeight: tokens.includes(text) ? 700 : 400,
                 textDecoration: hoveredWordId == i + '-' + j ? 'underline' : 'none',
+                display: 'inline-block',
               };
               return (
                 <span

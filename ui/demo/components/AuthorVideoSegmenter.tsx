@@ -356,7 +356,7 @@ export function AuthorVideoSegmenter({
             {timeToStr(c['start'])}
           </div>
           <div className="video__segmenter-transcript-text" onClick={handleClickTranscript}>
-            {c['caption'].split(' ').map((text: string, j) => {
+            {c['caption'].split(/\n| /).map((text: string, j) => {
               let className = '';
               const selectable = selectedMapping == usedClipId && highlightMode;
               let isUsed = false;
@@ -477,7 +477,6 @@ export function AuthorVideoSegmenter({
               'No clip selected...'
             )}
           </div>
-          <div></div>
         </div>
         <AuthorTimeline
           duration={duration}
@@ -490,7 +489,7 @@ export function AuthorVideoSegmenter({
           modifyMode={modifyMode}
           scale={timelineScale}
         />
-        <div className="video__segmenter-transcript" ref={captionRef}>
+        <div className="video__segmenter-transcript" ref={captionRef} style={{width: adjustedVideoWidth+'px'}}>
           {renderCaptions()}
         </div>
       </div>
