@@ -24,6 +24,7 @@ def parse_xml(xml):
     parser.feed(xml)
     results = []
     for i in range(len(parser.data)):
+        print(parser.data[i])
         results.append([
             parser.data[i],
             int(parser.attributes[i][0][1]),
@@ -42,20 +43,14 @@ def get_captions(yt, doi, output_path):
         code = caption.code
         lang = code.split(".")[0]
         if code == 'a.en':
-            auto_captions = caption.xml_captions.split("\n")[2:-3]
-        if lang == 'en':
-            xml = caption.xml_captions.split("\n")[2:-3]
+            xml = caption.xml_captions
+        # if lang == 'en':
+        #     xml = caption.xml_captions.split("\n")[2:-3]
     
-    xml = auto_captions
-    if xml is None:
-        # return None
-        xml = auto_captions
-    
+    # if xml is None:
+    #     xml = auto_captions
+
     processed = parse_xml(caption.xml_captions)
-    # with open(output_path+".csv", "w") as f:
-    #     writer = csv.writer(f)
-    #     writer.writerow(["text", "start_time", "duration"])
-    #     writer.writerows(processed)
 
     json_obj = []
     for caption in processed:
