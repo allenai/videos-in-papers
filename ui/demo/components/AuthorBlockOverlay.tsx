@@ -16,7 +16,7 @@ type Props = {
   selectedBlocks: Array<number>;
   setSelectedBlocks: (blocks: Array<number>) => void;
   highlights: { [id: number]: Highlight };
-  changeHighlight: (clipId: number, blocks: number, operation: number) => void;
+  changeHighlight: (clipId: number, block: Block, operation: number) => void;
   clips: { [id: number]: Clip };
   selectedMapping: number | null;
   setSelectedMapping: (clipId: number | null) => void;
@@ -30,6 +30,7 @@ type Props = {
   removeSegment: (clipId: number, index: number) => void;
   shiftDown: boolean;
   changeClipPosition: (clipId: number, highlightId: number) => void;
+  removeCreatedBlocks: (blockIds: Array<number>) => void;
 };
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -57,11 +58,13 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
   removeSegment,
   shiftDown,
   changeClipPosition,
+  removeCreatedBlocks
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
 
   React.useEffect(() => {
     if (selectedMapping == null) return;
+    removeCreatedBlocks(selectedBlocks);
     setSelectedBlocks([]);
   }, [selectedMapping]);
 
@@ -120,14 +123,17 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
       if (selectedBlocks.includes(blockId)) {
         const copySelBlocks = [...selectedBlocks];
         const index = selectedBlocks.indexOf(blockId);
+        console.log(selectedBlocks, blockId, index);
         copySelBlocks.splice(index, 1);
         setSelectedBlocks(copySelBlocks);
+        if(blocks[blockId].created)
+          removeCreatedBlocks([blockId]);
       } else {
         setSelectedBlocks([...selectedBlocks, blockId]);
       }
       setSelectedMapping(null);
     } else if (modifyMode && selectedMapping != null) {
-      changeHighlight(selectedMapping, blockId, 1);
+      changeHighlight(selectedMapping, blocks[blockId], 1);
     }
   }
 
@@ -147,7 +153,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     if (!modifyMode) {
       setSelectedMapping(clipId == selectedMapping ? null : clipId);
     } else if (modifyMode && selectedMapping != null) {
-      changeHighlight(selectedMapping, blockId, -1);
+      changeHighlight(selectedMapping, blocks[blockId], -1);
     }
   }
 

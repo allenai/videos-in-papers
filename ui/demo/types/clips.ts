@@ -45,6 +45,7 @@ export type Block = BoundingBoxType & {
   type: string;
   section: string;
   tokens: Array<Token>;
+  created?: boolean;
 };
 
 export type SyncWords = {

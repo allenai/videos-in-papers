@@ -44,8 +44,6 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [selectedBlocks, setSelectedBlocks] = React.useState<Array<number>>([]);
   const [selectedClip, setSelectedClip] = React.useState<Array<number>>([-1, -1]);
 
-  const [createdBlocks, setCreatedBlocks] = React.useState<Array<Block>>([]);
-
   const [selectedMapping, setSelectedMapping] = React.useState<number | null>(null);
   const [modifyMode, setModifyMode] = React.useState<boolean>(false);
 
@@ -124,6 +122,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     ) {
       return;
     }
+    removeCreatedBlocks(selectedBlocks);
     setSelectedBlocks([]);
     setSelectedMapping(null);
     setHighlightMode(false);
@@ -168,8 +167,6 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
       }
     });
     if(inbetweenBlocks.length == 0) return true;
-
-    console.log(inbetweenBlocks);
     for(var i = 0; i < inbetweenBlocks.length; i++) {
       if(inbetweenBlocks[i].type == 'Paragraph') return false;
     }
@@ -193,9 +190,6 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     listOfList.push(currentList);
     return listOfList;
   };
-
-  // TODO: create drag blocks, then add to splitblocks based on page when creating them
-  // TODO: drag blocks ids should be negative?
 
   const createMapping = () => {
     let topTop = 0;
@@ -271,7 +265,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     const newSyncSegments = { ...syncSegments };
     newSyncSegments[clipId] = [];
     setSyncSegments(newSyncSegments);
-
+    
     setSelectedBlocks([]);
     setSelectedClip([-1, -1]);
     setSelectedMapping(clipId);
@@ -293,6 +287,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setHighlights(newHighlights);
     setSelectedMapping(null);
     setHighlightMode(false);
+    // TODO: remove any created blocks
   };
 
   const changeClip = (clipId: number, start: number, end: number) => {
@@ -321,9 +316,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSyncSegments(newSyncSegments);
   };
 
-  const changeHighlight = (clipId: number, blockId: number, operation: number) => {
+  const changeHighlight = (clipId: number, currBlock: Block, operation: number) => {
     const newHighlights = { ...highlights };
-    var currBlock = blocks[blockId];
     if (operation == 1) {
       var highlightId: any = null;
       for (var i = 0; i < clips[clipId].highlights.length; i++) {
@@ -358,17 +352,17 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
           type: 'text',
           rects: [
             {
-              page: blocks[blockId].page,
-              top: blocks[blockId].top,
-              left: blocks[blockId].left,
-              height: blocks[blockId].height,
-              width: blocks[blockId].width,
+              page: currBlock.page,
+              top: currBlock.top,
+              left: currBlock.left,
+              height: currBlock.height,
+              width: currBlock.width,
             },
           ],
           clip: clipId,
           tokens: [],
-          section: blocks[blockId]['section'],
-          blocks: [blockId],
+          section: currBlock['section'],
+          blocks: [currBlock.id],
         };
 
         newHighlights[highlightId] = newHighlight;
@@ -378,27 +372,27 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
         setClips(newClips);
       } else {
         if (newHighlights[highlightId].blocks) {
-          newHighlights[highlightId].blocks?.push(blockId);
+          newHighlights[highlightId].blocks?.push(currBlock.id);
         } else {
-          newHighlights[highlightId].blocks = [blockId];
+          newHighlights[highlightId].blocks = [currBlock.id];
         }
         newHighlights[highlightId].rects.push({
-          page: blocks[blockId].page,
-          top: blocks[blockId].top,
-          left: blocks[blockId].left,
-          height: blocks[blockId].height,
-          width: blocks[blockId].width,
+          page: currBlock.page,
+          top: currBlock.top,
+          left: currBlock.left,
+          height: currBlock.height,
+          width: currBlock.width,
         });
         newHighlights[highlightId].blocks?.sort((a: number, b: number) => a - b);
         setHighlights(newHighlights);
       }
     } else if (operation == -1) {
       var highlightId: any = clips[clipId].highlights.find(hId =>
-        highlights[hId].blocks?.includes(blockId)
+        highlights[hId].blocks?.includes(currBlock.id)
       );
       if (highlightId == undefined) return;
 
-      const blockIdx = newHighlights[highlightId].blocks?.indexOf(blockId);
+      const blockIdx = newHighlights[highlightId].blocks?.indexOf(currBlock.id);
       let newBlocks = newHighlights[highlightId].blocks;
 
       if (blockIdx == null || blockIdx == -1 || newBlocks == undefined) return;
@@ -406,6 +400,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
       newBlocks = [...newBlocks];
       newBlocks.splice(blockIdx, 1);
       newBlocks.sort((a, b) => a - b);
+      
+      if(currBlock.created) {
+        setBlocks(blocks.filter((b: Block) => b.id != currBlock.id));
+      }
 
       if (newBlocks.length == 0) {
         delete newHighlights[highlightId];
@@ -527,6 +525,27 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     }
   }
 
+  const createBlock = (bbox: BoundingBoxType) => {
+    var blockId = Math.max(...blocks.map((blk: Block) => blk.id)) + 1;
+    const newBlocks: Array<Block> = [...blocks];
+    var nextBlockIdx = blocks.findIndex((blk: Block) => blk.page >= bbox.page && blk.top > bbox.top);
+    var section = "Title";
+    if(nextBlockIdx - 1 >= 0) {
+      section = blocks[nextBlockIdx - 1].section;
+    }
+    newBlocks.push({ ...bbox, id: blockId, index: blockId, created: true, type: "Created", section: section, tokens: []});
+    setBlocks(newBlocks);
+    if(selectedMapping == null) {
+      setSelectedBlocks([...selectedBlocks, blockId]); 
+    } else {
+      changeHighlight(selectedMapping, newBlocks[blockId], 1);
+    }
+  }
+
+  const removeCreatedBlocks = (blockIds: Array<number>) => {
+    setBlocks(blocks.filter((blk: Block) =>  !(blk.created && blockIds.includes(blk.id))))
+  }
+
   if (videoWidth == 0) {
     return <div>Loading...</div>;
   } else {
@@ -584,8 +603,13 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           removeSegment={removeSegment}
                           shiftDown={shiftDown}
                           changeClipPosition={changeClipPosition}
+                          removeCreatedBlocks={removeCreatedBlocks}
                         />
-                        <AuthorDragOverlay pageIndex={i} altDown={altDown}/>
+                        <AuthorDragOverlay 
+                          pageIndex={i} 
+                          altDown={!highlightMode && altDown}
+                          createBlock={createBlock}
+                        />
                       </Overlay>
                     </PageWrapper>
                   ))}
