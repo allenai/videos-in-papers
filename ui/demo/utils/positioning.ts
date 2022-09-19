@@ -104,6 +104,7 @@ export function spreadOutClips(
     heights[clip.id] = curr_spacing / scaledPageHeight;
   }
 
+  var num_loops = 0;
   let overlaps = checkOverlap(sortedClips, heights);
   while (overlaps.length > 0) {
     for (var i = 0; i < overlaps.length; i++) {
@@ -115,7 +116,7 @@ export function spreadOutClips(
       const vectors = positions.map(v => v * positions.length - repel_vector);
       for (let j = 0; j < vectors.length; j++) {
         var clipId = overlap_group[j];
-        if (clipId == focusId) {
+        if (clipId == focusId && num_loops < 100) {
           continue;
         }
         const newTop = clips[clipId].top + vectors[j] * 0.05;
@@ -144,7 +145,9 @@ export function spreadOutClips(
           clips[clipId].top = 0;
         }
       }
+      num_loops += 1;
     }
+    console.log(num_loops);
     sortedClips = originalOrder.map(id => clips[id]);
     overlaps = checkOverlap(sortedClips, heights);
   }

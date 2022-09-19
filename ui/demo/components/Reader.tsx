@@ -8,6 +8,7 @@ import {
   UiContext,
   ZoomInButton,
   ZoomOutButton,
+  BoundingBoxType
 } from '@allenai/pdf-components';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
@@ -91,8 +92,25 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     fetch('/api/annotation/' + DOI + '.json')
       .then(res => res.json())
       .then(data => {
-        setClips(data['clips']);
-        setHighlights(data['highlights']);
+        var highlights = data['highlights'];
+        var highlightIds = Object.keys(highlights);
+        for(var i = 0; i < highlightIds.length; i++) {
+          var highlightId = highlightIds[i];
+          highlights[highlightId].rects.sort((a: BoundingBoxType, b: BoundingBoxType) => (a.page + a.top) - (b.page + b.top));
+        }
+        var clips = data['clips'];
+        var clipIds = Object.keys(clips);
+        for(var i = 0; i < clipIds.length; i++) {
+          var clipId = clipIds[i];
+          var clip = clips[clipId];
+          highlightId = clip['highlights'][clip['position']];
+          var highlight = data['highlights'][highlightId];
+          clips[i].top = highlight['rects'][0].top;
+          clips[i].page = highlight['rects'][0].page;
+        }
+        console.log(clips);
+        setClips(clips);
+        setHighlights(highlights);
       });
   }, []);
 
@@ -211,12 +229,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         setScrollOverflow(0);
       }
 
-      if(focusId != -1) {
-        var player = document.getElementById('video__note-' + focusId) as HTMLDivElement; 
-        if(player && player.getBoundingClientRect().top < 0) {
-          setLock({ clipId: focusId, relativePosition: -1 });
-        }
-      }
+      // TODO: Make video lock on scroll out
+      // if(focusId != -1) {
+      //   var player = document.getElementById('video__note-' + focusId) as HTMLDivElement; 
+      //   if(player && player.getBoundingClientRect().top < 0) {
+      //     setLock({ clipId: focusId, relativePosition: -1 });
+      //   }
+      // }
       return;
     }
     if (navigating.scrollTo != e.target.scrollTop) return;

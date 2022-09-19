@@ -13,6 +13,7 @@ import { BrowserRouter, Route } from 'react-router-dom';
 
 import { Block, Caption, Clip, Highlight, SyncWords } from '../types/clips';
 import { AuthorBlockOverlay } from './AuthorBlockOverlay';
+import { AuthorDragOverlay } from './AuthorDragOverlay';
 import { AuthorMappingControls } from './AuthorMappingControls';
 import { AuthorVideoSegmenter } from './AuthorVideoSegmenter';
 import { Header } from './Header';
@@ -43,6 +44,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [selectedBlocks, setSelectedBlocks] = React.useState<Array<number>>([]);
   const [selectedClip, setSelectedClip] = React.useState<Array<number>>([-1, -1]);
 
+  const [createdBlocks, setCreatedBlocks] = React.useState<Array<Block>>([]);
+
   const [selectedMapping, setSelectedMapping] = React.useState<number | null>(null);
   const [modifyMode, setModifyMode] = React.useState<boolean>(false);
 
@@ -59,6 +62,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   } | null>(null);
 
   const [shiftDown, setShiftDown] = React.useState(false);
+  const [altDown, setAltDown] = React.useState(false);
 
   const [saving, setSaving] = React.useState(false);
 
@@ -88,8 +92,13 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   }, []);
 
   React.useEffect(() => {
-    // If data has been loaded then return directly to prevent sending multiple requests
-    const videoWidth = window.innerWidth - pageDimensions.width * scale - 48 - 48;
+    window.innerHeight
+    var videoWidth = window.innerWidth - pageDimensions.width * scale - 48 - 24;
+    var videoHeight = videoWidth / 16 * 9;
+    if(videoHeight > (window.innerHeight - 64 - 16) * 0.45) {
+      videoHeight = (window.innerHeight - 64 - 16) * 0.45;
+      videoWidth = videoHeight / 9 * 16;
+    }
 
     setVideoWidth(videoWidth);
   }, [pageDimensions, scale]);
@@ -110,7 +119,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     const targetClasses = (e.target as HTMLElement).className;
     if (
       targetClasses.includes('reader_highlight_color') ||
-      targetClasses.includes('reader_highlight_token')
+      targetClasses.includes('reader_highlight_token') ||
+      targetClasses.includes('reader__page-overlay__drag')
     ) {
       return;
     }
@@ -120,31 +130,26 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSelectedWords({ tokenIds: [], captionIds: [], clipId: -1 });
   };
 
-  const checkContinuousBlocks = (blockIdOne: number, blockIdTwo: number) => {
-    console.log(blockIdOne, blockIdTwo);
-    const smallerBlockId = Math.min(blockIdOne, blockIdTwo);
-    const largerBlockId = Math.max(blockIdOne, blockIdTwo);
-    const blockOne = blocks[smallerBlockId];
-    const blockTwo = blocks[largerBlockId];
-    if (blockOne.page == blockTwo.page) return true;
-    if (smallerBlockId + 1 == largerBlockId) return true;
-    for (let i = smallerBlockId + 1; i < largerBlockId; i++) {
-      if (blocks[i].type == 'Paragraph' || blocks[i].type == 'Margin') return false;
+  const checkContinuousBlocks = (smallerBlock: Block, biggerBlock: Block) => {
+    if (smallerBlock.page == biggerBlock.page) return true;
+    if (smallerBlock.id + 1 == biggerBlock.id) return true;
+    for (let i = smallerBlock.id + 1; i < biggerBlock.id; i++) {
+      if (blocks[i].type == 'Paragraph') return false;
     }
     return true;
   };
 
-  const splitBlocks = (blockIds: Array<number>) => {
-    const listOfList: Array<Array<number>> = [];
-    let currentList: Array<number> = [];
+  const splitBlocks = (blockList: Array<Block>) => {
+    const listOfList: Array<Array<Block>> = [];
+    let currentList: Array<Block> = [];
     let lastBlock = null;
-    for (let i = 0; i < blockIds.length; i++) {
-      const block = blocks[blockIds[i]];
-      if (lastBlock == null || checkContinuousBlocks(lastBlock.id, block.id)) {
-        currentList.push(blockIds[i]);
+    for (let i = 0; i < blockList.length; i++) {
+      const block = blockList[i];
+      if (lastBlock == null || checkContinuousBlocks(lastBlock, block)) {
+        currentList.push(blockList[i]);
       } else {
         listOfList.push(currentList);
-        currentList = [blockIds[i]];
+        currentList = [blockList[i]];
       }
       lastBlock = block;
     }
@@ -152,11 +157,15 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     return listOfList;
   };
 
+  // TODO: correct checking for if they are continous blocks (using index instead of id)
+  // TODO: create drag blocks, then add to splitblocks based on page when creating them
+  // TODO: drag blocks ids should be negative?
+
   const createMapping = () => {
     let topTop = 0;
     let topPage = 0;
-    const copyBlocks = [...selectedBlocks];
-    copyBlocks.sort();
+    const copyBlocks = selectedBlocks.map(id => blocks[id]);
+    copyBlocks.sort((a, b) => (a.page + a.top) - (b.page + b.top));
     let clipId = Math.max(...Object.values(clips).map(c => c.id)) + 1;
     if (Object.values(clips).length == 0) {
       clipId = 0;
@@ -170,8 +179,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
       if (Object.values(copyHighlights).length == 0) {
         highlightId = 0;
       }
-      const rects: Array<BoundingBoxType> = splitBlocksList[i].map((id: number) => {
-        const blk = blocks[id];
+      const rects: Array<BoundingBoxType> = splitBlocksList[i].map((blk: Block) => {
         if (i == 0) {
           if (blk.page < topPage) {
             topPage = blk.page;
@@ -194,8 +202,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
         rects: rects,
         clip: clipId,
         tokens: [],
-        section: blocks[splitBlocksList[i][0]]['section'],
-        blocks: splitBlocksList[i],
+        section: splitBlocksList[i][0]['section'],
+        blocks: splitBlocksList[i].map(b => b.id),
       };
       copyHighlights[highlightId] = highlight;
       newHighlightIds.push(highlightId);
@@ -230,6 +238,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
     setSelectedBlocks([]);
     setSelectedClip([-1, -1]);
+    setSelectedMapping(clipId);
   };
 
   const removeMapping = () => {
@@ -278,7 +287,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
   const changeHighlight = (clipId: number, blockId: number, operation: number) => {
     const newHighlights = { ...highlights };
-
+    var currBlock = blocks[blockId];
     if (operation == 1) {
       var highlightId: any = null;
       for (var i = 0; i < clips[clipId].highlights.length; i++) {
@@ -287,9 +296,17 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
         for (let j = 0; j < highlight.blocks.length; j++) {
           const hlBlockId = highlight.blocks[j];
-          if (checkContinuousBlocks(hlBlockId, blockId)) {
-            highlightId = highlight.id;
-            break;
+          var hlBlock = blocks[hlBlockId];
+          if(hlBlock.page + hlBlock.top > currBlock.page + currBlock.top) {
+            if (checkContinuousBlocks(currBlock, hlBlock)) {
+              highlightId = highlight.id;
+              break;
+            }
+          } else {
+            if (checkContinuousBlocks(hlBlock, currBlock)) {
+              highlightId = highlight.id;
+              break;
+            }
           }
         }
 
@@ -466,6 +483,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setClips(newClips);
   };
 
+  const handleKey = (e: any, isDown: boolean) => {
+    if (e.key == 'Shift') {
+      setShiftDown(isDown);
+    } else if(e.key == 'Alt') {
+      setAltDown(isDown);
+    }
+  }
+
   if (videoWidth == 0) {
     return <div>Loading...</div>;
   } else {
@@ -475,8 +500,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
           <Header saveAnnotations={saveAnnotations} saving={saving} />
           <div
             className="reader__container"
-            onKeyDown={(e: React.KeyboardEvent) => (e.key == 'Shift' ? setShiftDown(true) : null)}
-            onKeyUp={(e: React.KeyboardEvent) => (e.key == 'Shift' ? setShiftDown(false) : null)}
+            onKeyDown={(e: React.KeyboardEvent) => handleKey(e, true)}
+            onKeyUp={(e: React.KeyboardEvent) => handleKey(e, false)}
             tabIndex={0}>
             <AuthorMappingControls
               clips={clips}
@@ -495,7 +520,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
             <DocumentWrapper
               className="reader__main"
               file={'/api/pdf/' + doi + '.pdf'}
-              inputRef={pdfContentRef}>
+              inputRef={pdfContentRef}
+            >
               <div className="reader__main-inner" onClick={handleClickOutside}>
                 <Outline parentRef={pdfContentRef} />
                 <div className="reader__page-list" ref={pdfScrollableRef}>
@@ -523,6 +549,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           shiftDown={shiftDown}
                           changeClipPosition={changeClipPosition}
                         />
+                        <AuthorDragOverlay pageIndex={i} altDown={altDown}/>
                       </Overlay>
                     </PageWrapper>
                   ))}

@@ -74,6 +74,9 @@ export function AuthorVideoSegmenter({
   removeSegment,
   shiftDown,
 }: Props) {
+  const { pageDimensions, numPages } = React.useContext(DocumentContext);
+  const { scale } = React.useContext(TransformContext);
+
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
@@ -184,26 +187,31 @@ export function AuthorVideoSegmenter({
     }
   };
 
-  const equalTimes = (timeA: number, timeB: number) => {
-    return timeA - 500 <= timeB && timeB <= timeA + 500;
-  };
-
   const handleSelectCaption = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (highlightMode) return;
     if (!modifyMode) {
       var newClip = [...selectedClip];
       var caption = captions[idx];
-      if (equalTimes(caption.end, newClip[0])) {
+
+      var startCaptionIdx = captions.findIndex(c => c.start <= newClip[0] && newClip[0] < c.end);
+      var endCaptionIdx = captions.findIndex(c => c.start < newClip[1] && newClip[1] <= c.end);
+
+      if(caption.start == newClip[0]) {
+        newClip[0] = startCaptionIdx + 1 < captions.length ? captions[startCaptionIdx + 1].start : -1;
+      } else if(caption.end == newClip[1]) {
+        newClip[1] = endCaptionIdx - 1 >= 0 ? captions[endCaptionIdx - 1].end : -1;
+      } else if(idx == startCaptionIdx) {
         newClip[0] = caption.start;
-      } else if (equalTimes(caption.start, newClip[1])) {
+      } else if(idx == endCaptionIdx) {
         newClip[1] = caption.end;
-      } else if (equalTimes(caption.end, newClip[1])) {
-        newClip[1] = caption.start;
-      } else if (equalTimes(caption.start, newClip[0])) {
-        newClip[0] = caption.end;
+      } else if(idx == startCaptionIdx - 1) {
+        newClip[0] = caption.start;
+      } else if(idx == endCaptionIdx + 1) {
+        newClip[1] = caption.end;
       } else {
-        newClip = [caption.start, caption.end];
+        newClip[0] = caption.start;
+        newClip[1] = caption.end;
       }
 
       changeClipWrapper(newClip, -1);
@@ -211,14 +219,22 @@ export function AuthorVideoSegmenter({
     } else if (modifyMode && selectedMapping != null) {
       var newClip = [clips[selectedMapping].start, clips[selectedMapping].end];
       var caption = captions[idx];
-      if (equalTimes(caption.end, newClip[0])) {
+
+      var startCaptionIdx = captions.findIndex(c => c.start <= newClip[0] && newClip[0] < c.end);
+      var endCaptionIdx = captions.findIndex(c => c.start < newClip[1] && newClip[1] <= c.end);
+      
+      if(caption.start == newClip[0]) {
+        newClip[0] = startCaptionIdx + 1 < captions.length ? captions[startCaptionIdx + 1].start : -1;
+      } else if(caption.end == newClip[1]) {
+        newClip[1] = endCaptionIdx - 1 >= 0 ? captions[endCaptionIdx - 1].end : -1;
+      } else if(idx == startCaptionIdx) {
         newClip[0] = caption.start;
-      } else if (equalTimes(caption.start, newClip[1])) {
+      } else if(idx == endCaptionIdx) {
         newClip[1] = caption.end;
-      } else if (equalTimes(caption.end, newClip[1])) {
-        newClip[1] = caption.start;
-      } else if (equalTimes(caption.start, newClip[0])) {
-        newClip[0] = caption.end;
+      } else if(idx == startCaptionIdx - 1) {
+        newClip[0] = caption.start;
+      } else if(idx == endCaptionIdx + 1) {
+        newClip[1] = caption.end;
       }
 
       changeClipWrapper(newClip, selectedMapping);
@@ -420,6 +436,8 @@ export function AuthorVideoSegmenter({
   const adjustedVideoWidth = videoWidth;
   const videoHeight = (adjustedVideoWidth / 16) * 9;
 
+  const realWidth = (window.innerWidth - pageDimensions.width * scale - 48 - 24);
+
   return (
     <div className="video__segmenter-container" onClick={handleClickOutside}>
       <div className="video__segmenter-container-inner">
@@ -480,7 +498,7 @@ export function AuthorVideoSegmenter({
         </div>
         <AuthorTimeline
           duration={duration}
-          width={adjustedVideoWidth}
+          width={realWidth}
           clips={clips}
           selectedClip={selectedClip}
           changeClip={changeClipWrapper}
@@ -489,11 +507,11 @@ export function AuthorVideoSegmenter({
           modifyMode={modifyMode}
           scale={timelineScale}
         />
-        <div className="video__segmenter-transcript" ref={captionRef} style={{width: adjustedVideoWidth+'px'}}>
+        <div className="video__segmenter-transcript" ref={captionRef} style={{width: realWidth + 'px'}}>
           {renderCaptions()}
         </div>
       </div>
-      <div className="video__segmenter-placeholder" style={{ width: videoWidth + 48 + 'px' }}></div>
+      <div className="video__segmenter-placeholder" style={{ width: realWidth + 'px' }}></div>
     </div>
   );
 }

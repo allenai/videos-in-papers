@@ -285,10 +285,10 @@ export function Player({
           <b>Transcript</b>&nbsp;&nbsp;
           {clip['captions'].map((caption: Caption, i: number) => {
             const words = caption.caption.split(' ');
-            const passed = caption.start / 1000 < clip.start + progress;
+            const passed = caption.start < clip.start + progress*1000;
             return words.map((text, j) => {
               const style = {
-                backgroundColor: hoveredWordId == i + '-' + j ? color + '77' : passed ? color + '33' : 'transparent',
+                backgroundColor: hoveredWordId == i + '-' + j ? color + '77' : (passed ? color + '33' : 'transparent'),
                 fontWeight: tokens.includes(text) ? 700 : 400,
                 textDecoration: hoveredWordId == i + '-' + j ? 'underline' : 'none',
                 display: 'inline-block',
@@ -348,13 +348,16 @@ export function Player({
   if(container.length > 0) {
     var rect = container[0].getBoundingClientRect();  
     if(isLocked) {
-      adjustedVideoWidth = pageDimensions.width * scale * 0.3;
-      videoHeight = (adjustedVideoWidth/16) * 9;
-      left = rect.left - 28 - adjustedVideoWidth;
+      // TODO: decide where to lock the video to
+      // adjustedVideoWidth = pageDimensions.width * scale * 0.3;
+      // videoHeight = (adjustedVideoWidth/16) * 9;
+      // left = rect.left - 28 - adjustedVideoWidth;
       top = 64;
-    } else {
-      left = 0;
+      isLocked = false;
     }
+    // } else {
+    //   left = 0;
+    // }
   }
   return (
     <div

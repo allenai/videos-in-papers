@@ -61,13 +61,8 @@ export function AuthorTimeline({
   }, [clips]);
 
   React.useEffect(() => {
-    if (previousSelectedClip != undefined) {
-      if (
-        selectedClip[0] != previousSelectedClip[0] &&
-        selectedClip[1] != previousSelectedClip[1]
-      ) {
-        setEdit(null);
-      }
+    if (previousSelectedClip != undefined && selectedClip[0] != -1) {
+      setEdit(-1);
     }
   }, [selectedClip]);
 
