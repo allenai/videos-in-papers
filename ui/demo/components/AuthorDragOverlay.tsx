@@ -25,6 +25,13 @@ import {
     const [ startPosition, setStartPosition ] = React.useState<{x: number, y: number} | null>(null);
     const [ currPosition, setCurrPosition ] = React.useState<{x: number, y: number} | null>(null);
 
+    React.useEffect(() => {
+        if(!altDown) {
+            setStartPosition(null);
+            setCurrPosition(null);
+        }
+    }, [altDown]);
+
     const getBoundingBoxStyle = (boxSize: BoundingBoxType) => {
       return computeBoundingBoxStyle(boxSize, pageDimensions, rotation, scale);
     };

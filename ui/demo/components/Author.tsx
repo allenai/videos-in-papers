@@ -132,9 +132,46 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
   const checkContinuousBlocks = (smallerBlock: Block, biggerBlock: Block) => {
     if (smallerBlock.page == biggerBlock.page) return true;
-    if (smallerBlock.id + 1 == biggerBlock.id) return true;
-    for (let i = smallerBlock.id + 1; i < biggerBlock.id; i++) {
-      if (blocks[i].type == 'Paragraph') return false;
+
+    var inbetweenBlocks = blocks.filter((blk: Block) => {
+      var isGreaterThanSmaller = false;
+      if(blk.page >= smallerBlock.page) {
+        if(smallerBlock.page == blk.page) {
+          if(smallerBlock.left >= 0.5) {
+            if(blk.left >= 0.5 && blk.top > smallerBlock.top) {
+              isGreaterThanSmaller = true;
+            }
+          } else {
+            if(blk.left >= 0.5 || blk.top > smallerBlock.top) {
+              isGreaterThanSmaller = true;
+            }
+          }
+        } else {
+          isGreaterThanSmaller = true;
+        }
+      }
+      if(!isGreaterThanSmaller) return false;
+      if(blk.page <= biggerBlock.page) {
+        if(biggerBlock.page == blk.page) {
+          if(biggerBlock.left >= 0.5) {
+            if(blk.left < 0.5 || blk.top < biggerBlock.top) {
+              return true;
+            }
+          } else {
+            if(blk.left < 0.5 && blk.top < biggerBlock.top) {
+              return true;
+            }
+          }
+        } else {
+          return true;
+        }
+      }
+    });
+    if(inbetweenBlocks.length == 0) return true;
+
+    console.log(inbetweenBlocks);
+    for(var i = 0; i < inbetweenBlocks.length; i++) {
+      if(inbetweenBlocks[i].type == 'Paragraph') return false;
     }
     return true;
   };
@@ -146,10 +183,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     for (let i = 0; i < blockList.length; i++) {
       const block = blockList[i];
       if (lastBlock == null || checkContinuousBlocks(lastBlock, block)) {
-        currentList.push(blockList[i]);
+        currentList.push(block);
       } else {
         listOfList.push(currentList);
-        currentList = [blockList[i]];
+        currentList = [block];
       }
       lastBlock = block;
     }
@@ -157,7 +194,6 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     return listOfList;
   };
 
-  // TODO: correct checking for if they are continous blocks (using index instead of id)
   // TODO: create drag blocks, then add to splitblocks based on page when creating them
   // TODO: drag blocks ids should be negative?
 
