@@ -194,7 +194,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const createMapping = () => {
     let topTop = 0;
     let topPage = 0;
-    const copyBlocks = selectedBlocks.map(id => blocks[id]);
+    const copyBlocks = blocks.filter((b) => selectedBlocks.includes(b.id));
     copyBlocks.sort((a, b) => (a.page + a.top) - (b.page + b.top));
     let clipId = Math.max(...Object.values(clips).map(c => c.id)) + 1;
     if (Object.values(clips).length == 0) {
@@ -265,7 +265,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     const newSyncSegments = { ...syncSegments };
     newSyncSegments[clipId] = [];
     setSyncSegments(newSyncSegments);
-    
+
     setSelectedBlocks([]);
     setSelectedClip([-1, -1]);
     setSelectedMapping(clipId);
@@ -280,14 +280,20 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     const newSyncSegments = { ...syncSegments };
     delete newClips[clipId];
     delete newSyncSegments[clipId];
+    var blocksToRemove: Array<Number> = [];
     for (let i = 0; i < highlightIds.length; i++) {
+      var highlight = newHighlights[highlightIds[i]];
+      if(highlight.blocks != null) {
+        blocksToRemove = blocksToRemove.concat(highlight.blocks);
+      }
       delete newHighlights[highlightIds[i]];
     }
+    var newBlocks = blocks.filter((b: Block) => !(blocksToRemove.includes(b.id) && b.created == true));
     setClips(newClips);
     setHighlights(newHighlights);
     setSelectedMapping(null);
     setHighlightMode(false);
-    // TODO: remove any created blocks
+    setBlocks(newBlocks);
   };
 
   const changeClip = (clipId: number, start: number, end: number) => {
@@ -316,7 +322,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setSyncSegments(newSyncSegments);
   };
 
-  const changeHighlight = (clipId: number, currBlock: Block, operation: number) => {
+  const changeHighlight = (clipId: number, currBlock: Block | undefined, operation: number) => {
+    if(currBlock == undefined) return;
+
     const newHighlights = { ...highlights };
     if (operation == 1) {
       var highlightId: any = null;
@@ -326,7 +334,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
         for (let j = 0; j < highlight.blocks.length; j++) {
           const hlBlockId = highlight.blocks[j];
-          var hlBlock = blocks[hlBlockId];
+          var hlBlock = blocks.find((b) => b.id == hlBlockId);
+          if (hlBlock == undefined) continue;
           if(hlBlock.page + hlBlock.top > currBlock.page + currBlock.top) {
             if (checkContinuousBlocks(currBlock, hlBlock)) {
               highlightId = highlight.id;
@@ -391,14 +400,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
         highlights[hId].blocks?.includes(currBlock.id)
       );
       if (highlightId == undefined) return;
+      var highlight = newHighlights[highlightId];
+      if(highlight.blocks == undefined) return;
 
-      const blockIdx = newHighlights[highlightId].blocks?.indexOf(currBlock.id);
-      let newBlocks = newHighlights[highlightId].blocks;
-
-      if (blockIdx == null || blockIdx == -1 || newBlocks == undefined) return;
-
-      newBlocks = [...newBlocks];
-      newBlocks.splice(blockIdx, 1);
+      var newBlocks = highlight.blocks.filter((b: number) => b != currBlock.id);
       newBlocks.sort((a, b) => a - b);
       
       if(currBlock.created) {
@@ -422,8 +427,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
         setClips(newClips);
         setHighlights(newHighlights);
       } else {
-        const rects: Array<BoundingBoxType> = newBlocks.map((id: number) => {
-          const blk = blocks[id];
+        const newBlocksList = blocks.filter((b: Block) => newBlocks.includes(b.id));
+        const rects: Array<BoundingBoxType> = newBlocksList.map((blk: Block) => {
           return {
             page: blk.page,
             top: blk.top,
@@ -434,7 +439,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
         });
         newHighlights[highlightId].blocks = newBlocks;
         newHighlights[highlightId].rects = rects;
-        newHighlights[highlightId].section = blocks[newBlocks[0]]['section'];
+        newHighlights[highlightId].section = newBlocksList[0]['section'];
 
         const segments = syncSegments[clipId];
         const newSegments = [];
@@ -538,12 +543,13 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     if(selectedMapping == null) {
       setSelectedBlocks([...selectedBlocks, blockId]); 
     } else {
-      changeHighlight(selectedMapping, newBlocks[blockId], 1);
+      changeHighlight(selectedMapping, newBlocks.find(b => b.id == blockId), 1);
     }
   }
 
   const removeCreatedBlocks = (blockIds: Array<number>) => {
-    setBlocks(blocks.filter((blk: Block) =>  !(blk.created && blockIds.includes(blk.id))))
+    const newBlocks = blocks.filter((blk: Block) => !(blockIds.includes(blk.id) && blk.created));
+    setBlocks(newBlocks);
   }
 
   if (videoWidth == 0) {

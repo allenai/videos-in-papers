@@ -16,7 +16,7 @@ type Props = {
   selectedBlocks: Array<number>;
   setSelectedBlocks: (blocks: Array<number>) => void;
   highlights: { [id: number]: Highlight };
-  changeHighlight: (clipId: number, block: Block, operation: number) => void;
+  changeHighlight: (clipId: number, block: Block | undefined, operation: number) => void;
   clips: { [id: number]: Clip };
   selectedMapping: number | null;
   setSelectedMapping: (clipId: number | null) => void;
@@ -119,21 +119,23 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
 
   function handleClick(blockId: number) {
     if (highlightMode) return;
+    var block = blocks.find((b) => b.id == blockId);
     if (!modifyMode) {
       if (selectedBlocks.includes(blockId)) {
         const copySelBlocks = [...selectedBlocks];
         const index = selectedBlocks.indexOf(blockId);
-        console.log(selectedBlocks, blockId, index);
         copySelBlocks.splice(index, 1);
         setSelectedBlocks(copySelBlocks);
-        if(blocks[blockId].created)
+        console.log(blockId);
+        if(block && block.created) {
           removeCreatedBlocks([blockId]);
+        }
       } else {
         setSelectedBlocks([...selectedBlocks, blockId]);
       }
       setSelectedMapping(null);
     } else if (modifyMode && selectedMapping != null) {
-      changeHighlight(selectedMapping, blocks[blockId], 1);
+      changeHighlight(selectedMapping, block, 1);
     }
   }
 
@@ -153,7 +155,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     if (!modifyMode) {
       setSelectedMapping(clipId == selectedMapping ? null : clipId);
     } else if (modifyMode && selectedMapping != null) {
-      changeHighlight(selectedMapping, blocks[blockId], -1);
+      changeHighlight(selectedMapping, blocks.find(b => b.id == blockId), -1);
     }
   }
 
@@ -224,7 +226,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         className: 'reader_highlight_color-' + (selectedBlocks.includes(prop.id) ? 'sel' : 'unsel'),
         // Set isHighlighted to true for highlighted styling
         isHighlighted: true,
-        key: i,
+        key: prop.id,
         onClick: () => handleClick(prop.id),
       };
       if (clipId != -1) {
@@ -241,7 +243,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
             (clipId == selectedMapping ? ' reader_highlight_color-mapped-sel' : ''),
           // Set isHighlighted to true for highlighted styling
           isHighlighted: true,
-          key: i,
+          key: prop.id,
           onClick: () => handleClickMapped(clipId, prop.id),
         };
 
