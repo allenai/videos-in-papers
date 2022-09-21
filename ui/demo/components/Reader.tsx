@@ -17,7 +17,7 @@ import { isRegExp } from 'util';
 
 import { Annotations, generateCitations, PageToAnnotationsMap } from '../types/annotations';
 import { RawCitation } from '../types/citations';
-import { Clip, Highlight } from '../types/clips';
+import { Clip, Highlight, SyncWords, Token, Block } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
 import { CitationsDemo } from './CitationsDemo';
 import { Header } from './Header';
@@ -64,6 +64,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // Load data
   const [highlights, setHighlights] = React.useState<{ [index: number]: Highlight }>({});
   const [clips, setClips] = React.useState<{ [index: number]: Clip }>({});
+  const [syncSegments, setSyncSegments] = React.useState<{[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}}>({});
+  const [tokens, setTokens] = React.useState<Token[]>([]);
 
   const [videoWidth, setVideoWidth] = React.useState(((pageDimensions.height * 0.25) / 9) * 16);
   const [focusId, setFocusId] = React.useState(-1);
@@ -74,7 +76,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     clip: number;
     progress: number;
   } | null>(null);
-  const [hoveredWord, setHoveredWord] = React.useState<{ clipId: number; text: string } | null>(
+  const [hoveredWord, setHoveredWord] = React.useState<{ clipId: number; syncIdx: number } | null>(
     null
   );
   const [thumbnail, setThumbnail] = React.useState<{
@@ -108,11 +110,47 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
           clips[i].top = highlight['rects'][0].top;
           clips[i].page = highlight['rects'][0].page;
         }
-        console.log(clips);
         setClips(clips);
         setHighlights(highlights);
+
+        var newSyncSegments: {[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}} = {};
+        Object.keys(data['syncSegments']).forEach(clipId => {
+          var segments: Array<SyncWords> = data['syncSegments'][clipId];
+          var paperToIdx: {[id: string]: number} = {};
+          var captionToIdx: {[id: string]: number} = {};
+          for(var i = 0; i < segments.length; i++) {
+            segments[i].captionIds.forEach(({captionIdx, wordIdx}) => {
+              captionToIdx[captionIdx + '-' + wordIdx] = i;
+            })
+            segments[i].tokenIds.forEach(({blockIdx, tokenIdx}) => {
+              paperToIdx[blockIdx + '-' + tokenIdx] = i;
+            })
+          }
+          newSyncSegments[parseInt(clipId)] = {paperToIdx, captionToIdx};
+        });
+        setSyncSegments(newSyncSegments);
       });
   }, []);
+
+  React.useEffect(() => {
+    if(Object.keys(highlights).length == 0 || Object.keys(syncSegments).length == 0) return;
+    fetch('/api/blocks/' + DOI + '.json')
+      .then(res => res.json())
+      .then(data => {
+        var tokens: Token[] = [];
+        Object.values(syncSegments).forEach(({paperToIdx}) => {
+          Object.keys(paperToIdx).forEach(id => {
+            var blockIdx = parseInt(id.split('-')[0]);
+            var tokenIdx = parseInt(id.split('-')[1]);
+            var block = data.find((blk: Block) => blk.id == blockIdx);
+            var token = block.tokens.find((tok: Token) => tok.id == tokenIdx);
+            token.syncIdx = paperToIdx[id];
+            tokens.push(token);
+          })
+        });
+        setTokens(tokens);
+      });
+  }, [highlights, syncSegments]);
 
   React.useEffect(() => {
     // If data has been loaded then return directly to prevent sending multiple requests
@@ -398,9 +436,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                       <Overlay>
                         <WordOverlay
                           pageIndex={i}
-                          clips={clips}
-                          highlights={highlights}
                           hoveredWord={hoveredWord}
+                          syncSegments={syncSegments}
+                          tokens={tokens}
                         />
                         <SidebarOverlay
                           pageIndex={i}
@@ -434,6 +472,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   setFocusId={setFocusId}
                   setHoveredWord={setHoveredWord}
                   lock={lock}
+                  syncSegments={syncSegments}
                 />
               </div>
               {scrollOverflow == 1 ? <div style={{ height: '2000px' }}></div> : ''}
@@ -462,9 +501,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                       <Overlay>
                         <WordOverlay
                           pageIndex={i}
-                          clips={clips}
-                          highlights={highlights}
                           hoveredWord={hoveredWord}
+                          syncSegments={syncSegments}
+                          tokens={tokens}
                         />
                         <SidebarOverlay
                           pageIndex={i}
@@ -497,6 +536,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   updatePlayedHistory={updatePlayedHistory}
                   setFocusId={setFocusId}
                   setHoveredWord={setHoveredWord}
+                  syncSegments={syncSegments}
                 />
               </div>
               {scrollOverflow == 1 ? <div style={{ height: '2000px' }}></div> : ''}

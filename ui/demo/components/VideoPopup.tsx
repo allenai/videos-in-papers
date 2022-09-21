@@ -1,7 +1,7 @@
 import { DocumentContext, TransformContext } from '@allenai/pdf-components';
 import * as React from 'react';
 
-import { Clip, Highlight } from '../types/clips';
+import { Clip, Highlight, SyncWords } from '../types/clips';
 import { positionSingleClip } from '../utils/positioning';
 import { Player } from './Player';
 
@@ -27,7 +27,8 @@ type Props = {
   playedHistory: Array<number>;
   updatePlayedHistory: (clipId: number) => void;
   setFocusId: (clipId: number) => void;
-  setHoveredWord: (data: { clipId: number; text: string } | null) => void;
+  setHoveredWord: (data: { clipId: number; syncIdx: number } | null) => void;
+  syncSegments: {[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}};
 };
 
 export const VideoPopup: React.FunctionComponent<Props> = ({
@@ -46,6 +47,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
   updatePlayedHistory,
   setFocusId,
   setHoveredWord,
+  syncSegments
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -77,7 +79,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
       pageDimensions.height,
       pageDimensions.width
     );
-    console.log(clipPosition);
+
     let top =
       (clipPosition.top + clipPosition.page) * pageDimensions.height * scale +
       (24 + clip.page * 48);
@@ -120,6 +122,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
         updatePlayedHistory={updatePlayedHistory}
         setFocusId={setFocusId}
         setHoveredWord={setHoveredWord}
+        syncSegments={syncSegments[focusId]}
       />
     );
   }

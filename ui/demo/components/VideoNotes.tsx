@@ -1,7 +1,7 @@
 import { DocumentContext, TransformContext } from '@allenai/pdf-components';
 import * as React from 'react';
 
-import { Clip, Highlight } from '../types/clips';
+import { Clip, Highlight, SyncWords } from '../types/clips';
 import { spreadOutClips } from '../utils/positioning';
 import { Player } from './Player';
 
@@ -27,8 +27,9 @@ type Props = {
   playedHistory: Array<number>;
   updatePlayedHistory: (clipId: number) => void;
   setFocusId: (clipId: number) => void;
-  setHoveredWord: (data: { clipId: number; text: string } | null) => void;
+  setHoveredWord: (data: { clipId: number; syncIdx: number } | null) => void;
   lock: { clipId: number; relativePosition: number } | null;
+  syncSegments: {[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}};
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -48,6 +49,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   setFocusId,
   setHoveredWord,
   lock,
+  syncSegments
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -158,6 +160,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           setFocusId={setFocusId}
           setHoveredWord={setHoveredWord}
           sections={sections}
+          syncSegments={syncSegments[id]}
         />
       );
     });

@@ -37,6 +37,7 @@ export type Token = BoundingBoxType & {
   text: string;
   page: number;
   clip?: number;
+  syncIdx?: number,
 };
 
 export type Block = BoundingBoxType & {

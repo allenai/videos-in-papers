@@ -147,7 +147,6 @@ export function spreadOutClips(
       }
       num_loops += 1;
     }
-    console.log(num_loops);
     sortedClips = originalOrder.map(id => clips[id]);
     overlaps = checkOverlap(sortedClips, heights);
   }

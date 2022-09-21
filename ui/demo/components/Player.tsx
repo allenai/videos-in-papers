@@ -29,8 +29,9 @@ interface Props {
   playedHistory: Array<number>;
   updatePlayedHistory?: (clipId: number) => void;
   setFocusId?: (clipId: number) => void;
-  setHoveredWord?: (data: { clipId: number; text: string } | null) => void;
+  setHoveredWord?: (data: { clipId: number; syncIdx: number } | null) => void;
   sections?: { [id: number]: string };
+  syncSegments?: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}};
 }
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -65,6 +66,7 @@ export function Player({
   setFocusId,
   setHoveredWord,
   sections,
+  syncSegments,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -74,7 +76,7 @@ export function Player({
   const [duration, setDuration] = React.useState(0);
   const [pushable, setPushable] = React.useState(false);
 
-  const [hoveredWordId, setHoveredWordId] = React.useState('');
+  const [hoveredWordId, setHoveredWordId] = React.useState<number>(-1);
 
   const videoRef = React.useRef<ReactPlayerProps>(null);
 
@@ -152,7 +154,12 @@ export function Player({
       if (setFocusId) {
         setFocusId(id);
       }
-    } else if (toggleCaptions) {
+    }
+  }
+
+  function handleToggleCaption(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (toggleCaptions) {
       toggleCaptions(id, !clip['expanded']);
     }
   }
@@ -238,16 +245,16 @@ export function Player({
     );
   }
 
-  function handleWordEnter(wordId: string, text: string) {
+  function handleWordEnter(syncIdx: number) {
     if (setHoveredWord) {
-      setHoveredWord({ clipId: id, text: text });
-      setHoveredWordId(wordId);
+      setHoveredWord({ clipId: id, syncIdx: syncIdx });
+      setHoveredWordId(syncIdx);
     }
   }
   function handleWordLeave() {
     if (setHoveredWord) {
       setHoveredWord(null);
-      setHoveredWordId('');
+      setHoveredWordId(-1);
     }
   }
 
@@ -287,17 +294,18 @@ export function Player({
             const words = caption.caption.split(' ');
             const passed = caption.start < clip.start + progress*1000;
             return words.map((text, j) => {
+              var syncIdx = syncSegments?.captionToIdx[caption.id + '-' + j];
               const style = {
-                backgroundColor: hoveredWordId == i + '-' + j ? color + '77' : (passed ? color + '33' : 'transparent'),
-                fontWeight: tokens.includes(text) ? 700 : 400,
-                textDecoration: hoveredWordId == i + '-' + j ? 'underline' : 'none',
+                backgroundColor: (syncIdx != undefined && syncIdx == hoveredWordId) ? color + '77' : (passed ? color + '33' : 'transparent'),
+                fontWeight: (syncIdx != undefined && syncIdx != null) ? 600 : 400,
+                textDecoration: (syncIdx != undefined && syncIdx == hoveredWordId) ? 'underline' : 'none',
                 display: 'inline-block',
               };
               return (
                 <span
                   key={j}
                   style={style}
-                  onMouseEnter={() => handleWordEnter(i + '-' + j, text)}
+                  onMouseEnter={() => handleWordEnter(syncIdx != undefined ? syncIdx : -1)}
                   onMouseLeave={handleWordLeave}>
                   {text}&nbsp;
                 </span>
@@ -313,7 +321,7 @@ export function Player({
         {summary}
         {transcript}
         {isFocus ? (
-          <div style={{ textAlign: 'center', color: '#999' }}>
+          <div style={{ textAlign: 'center', color: '#999', cursor: 'pointer' }} onClick={handleToggleCaption}>
             <i className={'fa fa-' + (clip.expanded ? 'minus' : 'plus')}></i>
           </div>
         ) : (

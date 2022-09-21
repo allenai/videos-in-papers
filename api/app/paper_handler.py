@@ -469,7 +469,7 @@ def process_interval_str(interval_str):
     return result
 
 def process_paper_blocks(doi, input_path, output_path):
-    parsed_path = '/api/app/data/parsed_pdf'
+    parsed_path = './data/parsed_pdf'
     pipeline(
         input_pdf=Path(f'{input_path}/{doi}.pdf'),
         output_path=Path(f'{parsed_path}'),
@@ -565,3 +565,12 @@ def process_paper_blocks(doi, input_path, output_path):
 
         with open(f"{output_path}/{doi}.json", "w") as output_f:
             json.dump(json_obj, output_f)
+
+
+if __name__ == "__main__":
+    input_path = './data/pdf'
+    output_path = './data/blocks'
+    url = "https://paper-video-nav.apps.allenai.org/api/pdf/3491102.3517729.pdf"
+    doi = "3491102.3517729"
+    get_paper(url, doi, input_path)
+    process_paper_blocks(doi, input_path, output_path)
