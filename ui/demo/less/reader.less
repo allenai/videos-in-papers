@@ -185,14 +185,11 @@ body {
 
 .reader__page-overlay__sidebar {
   position: absolute;
-  opacity: 0.3;
   border-radius: 6px;
   z-index: @z-index-bounding-box-overlay;
   cursor: pointer;
   border: solid 2px;
-  &:hover {
-    opacity: 0.6;
-  }
+  pointer-events: none;
 }
 
 .reader__page-overlay__sidebar-notcurrent {
@@ -202,8 +199,16 @@ body {
 .reader__page-overlay__sidebar-highlighted {
   opacity: 1;
   border: solid 3px;
+}
+
+.reader__page-overlay__sidebar-holder {
+  position: absolute;
+  z-index: @z-index-bounding-box-overlay;
+  cursor: pointer;
+  background-color: transparent;
+  opacity: 0.3;
   &:hover {
-    opacity: 1;
+    opacity: 0.6;
   }
 }
 

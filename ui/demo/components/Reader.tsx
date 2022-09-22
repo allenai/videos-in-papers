@@ -107,8 +107,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
           var clip = clips[clipId];
           highlightId = clip['highlights'][clip['position']];
           var highlight = data['highlights'][highlightId];
-          clips[i].top = highlight['rects'][0].top;
-          clips[i].page = highlight['rects'][0].page;
+          clips[clipId].top = highlight['rects'][0].top;
+          clips[clipId].page = highlight['rects'][0].page;
         }
         setClips(clips);
         setHighlights(highlights);
@@ -138,13 +138,15 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       .then(res => res.json())
       .then(data => {
         var tokens: Token[] = [];
-        Object.values(syncSegments).forEach(({paperToIdx}) => {
+        Object.keys(syncSegments).forEach((clipId) => {
+          var paperToIdx = syncSegments[parseInt(clipId)].paperToIdx;
           Object.keys(paperToIdx).forEach(id => {
             var blockIdx = parseInt(id.split('-')[0]);
             var tokenIdx = parseInt(id.split('-')[1]);
             var block = data.find((blk: Block) => blk.id == blockIdx);
             var token = block.tokens.find((tok: Token) => tok.id == tokenIdx);
             token.syncIdx = paperToIdx[id];
+            token.clip = parseInt(clipId);
             tokens.push(token);
           })
         });
@@ -437,6 +439,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         <WordOverlay
                           pageIndex={i}
                           hoveredWord={hoveredWord}
+                          setHoveredWord={setHoveredWord}
                           syncSegments={syncSegments}
                           tokens={tokens}
                         />
@@ -502,6 +505,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         <WordOverlay
                           pageIndex={i}
                           hoveredWord={hoveredWord}
+                          setHoveredWord={setHoveredWord}
                           syncSegments={syncSegments}
                           tokens={tokens}
                         />

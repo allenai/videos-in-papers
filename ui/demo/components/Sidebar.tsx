@@ -59,7 +59,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
     }
   }, [position]);
 
-  const getBoundingBoxStyle = React.useCallback(() => {
+  const getBoundingBoxStyle = React.useCallback((boxSize) => {
     return computeBoundingBoxStyle(boxSize, pageDimensions, rotation, scale);
   }, [pageDimensions, rotation, scale]);
 
@@ -72,20 +72,26 @@ export const Sidebar: React.FunctionComponent<Props> = ({
       <div
         id={id}
         ref={sidebarRef}
-        className={`${componentClassName} ${rotationClassName()}`}
-        style={getBoundingBoxStyle()}
+        className={`reader__page-overlay__sidebar-holder ${rotationClassName()}`}
+        style={{...getBoundingBoxStyle({...boxSize, left: scaledPosition != -1 ? boxSize.left-18 : boxSize.left}), width: scaledPosition != -1 ? 48: 12}}
         onClick={onClick}
         onMouseMove={onMouseMove}
         onMouseOut={onMouseOut}
-        {...extraProps}>
-        {scaledPosition != -1 ? (
-          <div
-            className="reader__page-overlay__sidebar-tick"
-            style={{ top: scaledPosition + 'px' }}
-          />
-        ) : (
-          ''
-        )}
+        {...extraProps}
+      >
+        <div
+          className={`${componentClassName} ${rotationClassName()}`}
+          style={getBoundingBoxStyle({...boxSize, top: 0, left: scaledPosition != -1 ? 18 : 0, width: 12})}
+        >
+          {scaledPosition != -1 ? (
+            <div
+              className="reader__page-overlay__sidebar-tick"
+              style={{ top: scaledPosition + 'px' }}
+            />
+          ) : (
+            ''
+          )}
+        </div>
       </div>
     </React.Fragment>
   );
