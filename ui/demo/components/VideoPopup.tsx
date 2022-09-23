@@ -55,6 +55,8 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
   // ID of the clip that is currently playing
   const [playingClip, setPlayingClip] = React.useState(-1);
 
+  const [playbackRate, setPlaybackRate] = React.useState(1.0);
+
   // Navigate and change playingClip if autoplaying
   function handleNavigateWrapper(fromId: number, toId: number, isPlay: boolean) {
     handleNavigate(fromId, toId);
@@ -123,6 +125,8 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
         setFocusId={setFocusId}
         setHoveredWord={setHoveredWord}
         syncSegments={syncSegments[focusId]}
+        playbackRate={playbackRate}
+        setPlaybackRate={setPlaybackRate}
       />
     );
   }

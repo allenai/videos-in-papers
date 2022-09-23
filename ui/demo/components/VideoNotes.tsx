@@ -58,6 +58,8 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   // ID of the clip that is currently playing
   const [playingClip, setPlayingClip] = React.useState(-1);
 
+  const [playbackRate, setPlaybackRate] = React.useState(1.0);
+
   // On load, find top positions of clips so that they are spread out
   React.useEffect(() => {
     if (pageDimensions.height == 0 || videoWidth == 0) return;
@@ -161,6 +163,8 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           setHoveredWord={setHoveredWord}
           sections={sections}
           syncSegments={syncSegments[id]}
+          playbackRate={playbackRate}
+          setPlaybackRate={setPlaybackRate}
         />
       );
     });

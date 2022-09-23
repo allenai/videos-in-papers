@@ -28,7 +28,7 @@ export function PlayerTimeline({
   const [hovered, setHovered] = React.useState(-1);
 
   React.useEffect(() => {
-    setRatio(width / clips[clips.length - 1].end);
+    setRatio((width) / clips[clips.length - 1].end);
   }, [width]);
 
   const handleMouseEnter = (e: React.MouseEvent) => {
@@ -59,8 +59,8 @@ export function PlayerTimeline({
         const isCurrentClip = clip.id == id;
         const isStart = i == 0;
         const isEnd = i == clips.length - 1;
-        const left = ratio * clip.start + (!isStart ? 2 : 0);
-        const blockWidth = ratio * (clip.end - clip.start) + (!isEnd ? -2 : -1);
+        const left = ratio * clip.start + (!isStart ? 3 : 2);
+        const blockWidth = ratio * (clip.end - clip.start) + (!isEnd ? -2 : 1);
         const color = isCurrentClip ? colors[id % 7] : '#f6f6f6';
         const borderRadius = isStart ? '4px 0 0 4px' : isEnd ? '0 4px 4px 0' : '';
         const opacity = playedHistory.includes(

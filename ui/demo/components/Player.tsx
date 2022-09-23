@@ -32,6 +32,8 @@ interface Props {
   setHoveredWord?: (data: { clipId: number; syncIdx: number } | null) => void;
   sections?: { [id: number]: string };
   syncSegments?: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}};
+  playbackRate?: number;
+  setPlaybackRate?: (rate: number) => void;
 }
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -67,6 +69,8 @@ export function Player({
   setHoveredWord,
   sections,
   syncSegments,
+  playbackRate,
+  setPlaybackRate
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -75,6 +79,8 @@ export function Player({
   const [progress, setProgress] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
   const [pushable, setPushable] = React.useState(false);
+
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const [hoveredWordId, setHoveredWordId] = React.useState<number>(-1);
 
@@ -397,7 +403,8 @@ export function Player({
           )}
           <div
             className="video__note-container"
-            style={{ width: adjustedVideoWidth + 'px', borderColor: color }}>
+            style={{ width: adjustedVideoWidth + 'px', borderColor: color }}
+          >
             <div style={{ height: videoHeight + 'px' }} onClick={handleClickNote}>
               {!isFocus ? (
                 <div className="video__note-timestamp" style={{ backgroundColor: color }}>
@@ -424,24 +431,46 @@ export function Player({
               ) : (
                 ''
               )}
-              <ReactPlayer
-                ref={videoRef}
-                url={'/api/clips/' + doi + '/' + id + '.mp4'}
-                playing={isPlaying}
-                controls={isFocus}
-                onReady={e => {
-                  videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration());
-                }}
-                onProgress={e => {
-                  updateProgress(e);
-                }}
-                onPlay={handlePlay}
-                onPause={handlePause}
-                onEnded={handleEnd}
-                width="100%"
-                height="100%"
-                light={false}
-              />
+              <div                
+                onMouseOver={() => isFocus && setIsHovered(true)} 
+                onMouseLeave={() => isFocus && setIsHovered(false)}
+              >
+                <ReactPlayer
+                  ref={videoRef}
+                  url={'/api/clips/' + doi + '/' + id + '.mp4'}
+                  playing={isPlaying}
+                  controls={isFocus}
+                  onReady={e => {
+                    videoRef.current == null ? 0 : setDuration(videoRef.current.getDuration());
+                  }}
+                  onProgress={e => {
+                    updateProgress(e);
+                  }}
+                  onPlay={handlePlay}
+                  onPause={handlePause}
+                  onEnded={handleEnd}
+                  width="100%"
+                  height="100%"
+                  playbackRate={playbackRate}
+                  light={false}
+                />
+                {isHovered ? 
+                  <div className="video__note-player-rate-tray">
+                    {[1.0, 1.25, 1.5, 1.75, 2.0].map((rate, i) => {
+                      return (
+                        <div 
+                          key={i}
+                          className="video__note-player-rate"
+                          style={rate == playbackRate? {backgroundColor: "#1890ff", fontWeight: "bold", color: "#f6f6f6"} : {}}
+                          onClick={() => setPlaybackRate && setPlaybackRate(rate)}>
+                          {(rate == 1 || rate == 2) ? rate + '.00' : (rate == 1.5 ? rate + '0' : rate)}
+                        </div>
+                      )
+                    })}
+                  </div> 
+                  : ''
+                }
+              </div>
             </div>
             {!isLocked ? renderCaptions() : ""}
           </div>
