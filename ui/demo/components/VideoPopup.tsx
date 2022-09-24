@@ -27,6 +27,7 @@ type Props = {
   playedHistory: Array<number>;
   updatePlayedHistory: (clipId: number) => void;
   setFocusId: (clipId: number) => void;
+  hoveredWord: { clipId: number; syncIdx: number } | null;
   setHoveredWord: (data: { clipId: number; syncIdx: number } | null) => void;
   syncSegments: {[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}};
 };
@@ -46,6 +47,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
   playedHistory,
   updatePlayedHistory,
   setFocusId,
+  hoveredWord,
   setHoveredWord,
   syncSegments
 }: Props) => {
@@ -123,6 +125,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
         playedHistory={playedHistory}
         updatePlayedHistory={updatePlayedHistory}
         setFocusId={setFocusId}
+        hoveredWord={hoveredWord}
         setHoveredWord={setHoveredWord}
         syncSegments={syncSegments[focusId]}
         playbackRate={playbackRate}

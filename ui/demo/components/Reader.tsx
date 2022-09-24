@@ -227,6 +227,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       }
     }
     setClips(spreadClips);
+    if (!playedHistory.includes(focusId)) {
+      setPlayedHistory([...playedHistory, focusId]);
+    }
   }, [focusId]);
 
   React.useEffect(() => {
@@ -358,9 +361,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     }
     setClips(newClips);
 
-    if (!playedHistory.includes(toId)) {
-      setPlayedHistory([...playedHistory, toId]);
-    }
     setFocusId(toId);
 
     setNavigating({
@@ -390,10 +390,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     );
     setClips(spreadClips);
     setFocusId(clipId);
-
-    if (!playedHistory.includes(clipId)) {
-      setPlayedHistory([...playedHistory, clipId]);
-    }
   };
 
   // Expand or contract captions
@@ -473,6 +469,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   playedHistory={playedHistory}
                   updatePlayedHistory={updatePlayedHistory}
                   setFocusId={setFocusId}
+                  hoveredWord={hoveredWord}
                   setHoveredWord={setHoveredWord}
                   lock={lock}
                   syncSegments={syncSegments}
@@ -539,6 +536,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   playedHistory={playedHistory}
                   updatePlayedHistory={updatePlayedHistory}
                   setFocusId={setFocusId}
+                  hoveredWord={hoveredWord}
                   setHoveredWord={setHoveredWord}
                   syncSegments={syncSegments}
                 />

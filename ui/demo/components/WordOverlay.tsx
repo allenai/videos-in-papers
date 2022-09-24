@@ -60,7 +60,7 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
         isHighlighted: true,
         key: pageIndex + '-' + token.id,
         onMouseOver: () => { token.clip != undefined && token.syncIdx != undefined ? setHoveredWord({clipId: token.clip, syncIdx: token.syncIdx}) : null},
-        onMouseLeave: () => { token.clip != undefined && token.syncIdx != undefined != undefined ? setHoveredWord(null) : null},
+        onMouseLeave: () => { token.clip != undefined && token.syncIdx != undefined ? setHoveredWord(null) : null},
       };
 
       boxes.push(<BoundingBox {...props} />);

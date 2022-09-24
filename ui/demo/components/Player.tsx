@@ -29,6 +29,7 @@ interface Props {
   playedHistory: Array<number>;
   updatePlayedHistory?: (clipId: number) => void;
   setFocusId?: (clipId: number) => void;
+  hoveredWord?: { clipId: number; syncIdx: number } | null;
   setHoveredWord?: (data: { clipId: number; syncIdx: number } | null) => void;
   sections?: { [id: number]: string };
   syncSegments?: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}};
@@ -66,6 +67,7 @@ export function Player({
   playedHistory,
   updatePlayedHistory,
   setFocusId,
+  hoveredWord,
   setHoveredWord,
   sections,
   syncSegments,
@@ -83,6 +85,7 @@ export function Player({
   const [isHovered, setIsHovered] = React.useState(false);
 
   const [hoveredWordId, setHoveredWordId] = React.useState<number>(-1);
+  const [ended, setEnded] = React.useState(false);
 
   const videoRef = React.useRef<ReactPlayerProps>(null);
 
@@ -92,18 +95,10 @@ export function Player({
       const currentTime = e.playedSeconds;
       setProgress(currentTime);
 
-      const clipStart = clip.start;
-      const actualTime = currentTime + clipStart;
-
-      for (let i = 0; i < clip.captions.length; i++) {
-        const caption = clip.captions[i];
-        if (
-          caption.start / 1000 <= actualTime &&
-          actualTime <= caption.end / 1000 &&
-          updatePlayedHistory
-        ) {
-          updatePlayedHistory(id);
-        }
+      if(currentTime < duration) {
+        setEnded(false);
+      } else {
+        setEnded(true);
       }
     }
   };
@@ -178,12 +173,15 @@ export function Player({
 
   // When clip finishes, autoplay the next one
   function handleEnd() {
-    return;
-    // var fromIdx = clips.findIndex((c) => c.id == id);
-    // if(fromIdx == clips.length - 1) return;
-    // var toId = clips[fromIdx + 1].id;
-    // if(handleNavigate)
-    //   handleNavigate(id, toId, true);
+    setEnded(true);
+  }
+
+  function goToNext() {
+    var fromIdx = clips.findIndex((c) => c.id == id);
+    if(fromIdx == clips.length - 1) return;
+    var toId = clips[fromIdx + 1].id;
+    if(handleNavigate)
+      handleNavigate(id, toId, true);
   }
 
   function handlePlay() {
@@ -301,10 +299,12 @@ export function Player({
             const passed = caption.start < clip.start + progress*1000;
             return words.map((text, j) => {
               var syncIdx = syncSegments?.captionToIdx[caption.id + '-' + j];
+              var synced = hoveredWord && hoveredWord.clipId == clip.id && hoveredWord.syncIdx == syncIdx;
+              var syncable = syncIdx != undefined && syncIdx != null;
               const style = {
-                backgroundColor: (syncIdx != undefined && syncIdx == hoveredWordId) ? color + '77' : (passed ? color + '33' : 'transparent'),
-                fontWeight: (syncIdx != undefined && syncIdx != null) ? 600 : 400,
-                textDecoration: (syncIdx != undefined && syncIdx == hoveredWordId) ? 'underline' : 'none',
+                backgroundColor: synced ? color + '77' : (passed ? color + '11' : 'transparent'),
+                fontWeight: syncable ? 600 : 400,
+                textDecoration: synced ? 'underline' : 'none',
                 display: 'inline-block',
               };
               return (
@@ -413,27 +413,10 @@ export function Player({
               ) : (
                 ''
               )}
-              {isFocus && id != 0 ? (
-                <i
-                  key={0}
-                  className="fa fa-chevron-left video__note-chevron-left"
-                  style={{ top: videoHeight / 2 + 6 + 'px' }}
-                  onClick={e => handleMove(e, -1)}></i>
-              ) : (
-                ''
-              )}
-              {isFocus && id != clips.length - 1 ? (
-                <i
-                  key={1}
-                  className="fa fa-chevron-right video__note-chevron-right"
-                  style={{ top: videoHeight / 2 + 6 + 'px' }}
-                  onClick={e => handleMove(e, 1)}></i>
-              ) : (
-                ''
-              )}
               <div                
-                onMouseOver={() => isFocus && setIsHovered(true)} 
-                onMouseLeave={() => isFocus && setIsHovered(false)}
+                style={{position: "relative"}}
+                onMouseOver={() => setIsHovered(true)} 
+                onMouseLeave={() => setIsHovered(false)}
               >
                 <ReactPlayer
                   ref={videoRef}
@@ -454,7 +437,7 @@ export function Player({
                   playbackRate={playbackRate}
                   light={false}
                 />
-                {isHovered ? 
+                {isHovered && isFocus ? 
                   <div className="video__note-player-rate-tray">
                     {[1.0, 1.25, 1.5, 1.75, 2.0].map((rate, i) => {
                       return (
@@ -469,6 +452,29 @@ export function Player({
                     })}
                   </div> 
                   : ''
+                }
+                {isFocus && ended ? 
+                  <div className="video__note-player-endscreen">
+                    <div 
+                      className="video__note-player-endscreen-inner" 
+                      onClick={() => {
+                        videoRef.current == null ? 0 : videoRef.current.seekTo(0);
+                        setEnded(false);
+                        setIsPlaying(true);
+                      }}
+                    >
+                      <i className="fa-solid fa-repeat"></i>
+                      <div>Replay</div>
+                    </div>
+                    <div 
+                      className="video__note-player-endscreen-inner"
+                      onClick={(e) => handleMove(e, 1)}
+                    >
+                      <i className="fa-solid fa-forward"></i>
+                      <div>Next</div>
+                    </div>
+                  </div>
+                  : ""
                 }
               </div>
             </div>

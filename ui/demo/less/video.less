@@ -463,8 +463,8 @@ iframe {
 
 .video__note-player-rate-tray {
     position: absolute;
-    top: 36px;
-    right: 12px;
+    top: 8px;
+    right: 8px;
     font-size: 12px;
     display: flex;
     justify-content: center;
@@ -484,4 +484,37 @@ iframe {
     &:hover {
         opacity: 1;
     }
+}
+
+.video__note-player-endscreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 5px);
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.video__note-player-endscreen-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    opacity: 0.7;
+    font-size: 24px;
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.video__note-player-endscreen-inner i {
+    font-size: 48px;
 }
