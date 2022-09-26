@@ -366,15 +366,14 @@ export function Player({
     var rect = container[0].getBoundingClientRect();  
     if(isLocked) {
       // TODO: decide where to lock the video to
-      // adjustedVideoWidth = pageDimensions.width * scale * 0.3;
-      // videoHeight = (adjustedVideoWidth/16) * 9;
-      // left = rect.left - 28 - adjustedVideoWidth;
+      adjustedVideoWidth = pageDimensions.width * scale * 0.3;
+      videoHeight = (adjustedVideoWidth/16) * 9;
+      left = rect.left - 28 - adjustedVideoWidth;
       top = 64;
       isLocked = false;
+    } else {
+      left = 0;
     }
-    // } else {
-    //   left = 0;
-    // }
   }
   return (
     <div
