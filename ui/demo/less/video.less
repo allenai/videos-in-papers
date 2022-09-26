@@ -519,3 +519,72 @@ iframe {
 .video__note-player-endscreen-inner i {
     font-size: 48px;
 }
+
+.video__note-autoplay {
+    position: absolute;
+    top: 10px;
+    left: 8px;
+}
+
+.video__note-autoplay-inner {
+    position: relative;
+}
+
+.video__note-autoplay-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 20px;
+    opacity: 0.8;
+    &:hover {
+        opacity: 1;
+    }
+}
+  
+/* Hide default HTML checkbox */
+.video__note-autoplay-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+.video__note-autoplay-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.video__note-autoplay-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.video__note-autoplay-switch input:checked + .video__note-autoplay-slider {
+    background-color: #2196F3;
+}
+
+.video__note-autoplay-switch input:focus + .video__note-autoplay-slider {
+    box-shadow: 0 0 2px #fff;
+}
+
+.video__note-autoplay-switch input:checked + .video__note-autoplay-slider:before {
+    -webkit-transform: translateX(24px);
+    -ms-transform: translateX(24px);
+    transform: translateX(24px);
+}

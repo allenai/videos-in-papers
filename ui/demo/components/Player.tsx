@@ -35,6 +35,8 @@ interface Props {
   syncSegments?: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}};
   playbackRate?: number;
   setPlaybackRate?: (rate: number) => void;
+  autoplay?: boolean;
+  setAutoplay?: (autoplay: boolean) => void;
 }
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -72,7 +74,9 @@ export function Player({
   sections,
   syncSegments,
   playbackRate,
-  setPlaybackRate
+  setPlaybackRate,
+  autoplay,
+  setAutoplay
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -173,15 +177,11 @@ export function Player({
 
   // When clip finishes, autoplay the next one
   function handleEnd() {
-    setEnded(true);
-  }
-
-  function goToNext() {
-    var fromIdx = clips.findIndex((c) => c.id == id);
-    if(fromIdx == clips.length - 1) return;
-    var toId = clips[fromIdx + 1].id;
-    if(handleNavigate)
-      handleNavigate(id, toId, true);
+    if(!autoplay) {
+      setEnded(true);
+    } else {
+      handleMove(null, 1);
+    }
   }
 
   function handlePlay() {
@@ -345,8 +345,10 @@ export function Player({
     }
   }
 
-  function handleMove(e: React.MouseEvent, direction: number) {
-    e.stopPropagation();
+  function handleMove(e: React.MouseEvent | null, direction: number) {
+    if(e != null) {
+      e.stopPropagation();
+    }
     const fromIdx = clips.findIndex(c => c.id == id);
     const toId = clips[fromIdx + direction].id;
     if (handleNavigate) handleNavigate(id, toId, true);
@@ -453,6 +455,17 @@ export function Player({
                     })}
                   </div> 
                   : ''
+                }
+                {isHovered && isFocus && autoplay != undefined && autoplay != null ? (
+                  <div className="video__note-autoplay">
+                    <div className="video__note-autoplay-inner">
+                      <label className="video__note-autoplay-switch">
+                        <input type="checkbox" onChange={() => setAutoplay && setAutoplay(!autoplay)} checked={autoplay}/>
+                        <span className="video__note-autoplay-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                  ): ""
                 }
                 {isFocus && ended ? 
                   <div className="video__note-player-endscreen">

@@ -61,6 +61,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   const [playingClip, setPlayingClip] = React.useState(-1);
 
   const [playbackRate, setPlaybackRate] = React.useState(1.0);
+  const [autoplay, setAutoplay] = React.useState(false);
 
   // On load, find top positions of clips so that they are spread out
   React.useEffect(() => {
@@ -168,6 +169,8 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           syncSegments={syncSegments[id]}
           playbackRate={playbackRate}
           setPlaybackRate={setPlaybackRate}
+          autoplay={autoplay}
+          setAutoplay={setAutoplay}
         />
       );
     });
