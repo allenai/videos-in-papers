@@ -73,7 +73,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
         id={id}
         ref={sidebarRef}
         className={`reader__page-overlay__sidebar-holder ${rotationClassName()}`}
-        style={{...getBoundingBoxStyle({...boxSize, left: scaledPosition != -1 ? boxSize.left-18 : boxSize.left}), width: scaledPosition != -1 ? 48: 12}}
+        style={{...getBoundingBoxStyle({...boxSize, left: scaledPosition != -1 ? boxSize.left-26 : boxSize.left}), width: scaledPosition != -1 ? 64: 12}}
         onClick={onClick}
         onMouseMove={onMouseMove}
         onMouseOut={onMouseOut}
@@ -81,7 +81,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
       >
         <div
           className={`${componentClassName} ${rotationClassName()}`}
-          style={getBoundingBoxStyle({...boxSize, top: 0, left: scaledPosition != -1 ? 18 : 0, width: 12})}
+          style={getBoundingBoxStyle({...boxSize, top: 0, left: scaledPosition != -1 ? 26 : 0, width: 12})}
         >
           {scaledPosition != -1 ? (
             <div

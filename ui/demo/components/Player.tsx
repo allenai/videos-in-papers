@@ -272,24 +272,26 @@ export function Player({
         <b>Summary</b>&nbsp;&nbsp;{clip.captions[0].caption}
       </div>
     );
-    if ((scrubPosition != -1 || isPlaying) && !clip.expanded) {
-      let captionTime = (clip.start + progress) * 1000;
-      if (scrubPosition != -1) {
-        captionTime = (scrubPosition * duration + clip.start) * 1000;
-      }
+    let transcript = <></>;
+
+    if (true || ((scrubPosition != -1 || isPlaying) && !clip.expanded)) {
+      let captionTime = clip.start + progress * 1000;
+      // if (scrubPosition != -1) {
+      //   captionTime = scrubPosition * duration + clip.start;
+      // }
       const caption = clip['captions'].find(
         (c: Caption) => c.start <= captionTime && captionTime < c.end
       );
       if (caption) {
-        summary = (
-          <div style={{ color: color + 'cc' }}>
-            <b style={{ color: '#333' }}>Transcript</b>&nbsp;&nbsp;{caption.caption}
+        transcript = (
+          <div>
+            <b style={{ color: '#333' }}>Transcript</b>&nbsp;&nbsp;
+            <span style={{backgroundColor: scrubPosition == -1 ? "" : color + "11"}}>{caption.caption}</span>
           </div>
         );
       }
     }
 
-    let transcript = <></>;
     if (isFocus && !!clip.expanded) {
       transcript = (
         <div>
@@ -324,7 +326,6 @@ export function Player({
 
     return (
       <div className="video__note-captions" onClick={handleCaptionClick}>
-        {summary}
         {transcript}
         {isFocus ? (
           <div style={{ textAlign: 'center', color: '#999', cursor: 'pointer' }} onClick={handleToggleCaption}>
