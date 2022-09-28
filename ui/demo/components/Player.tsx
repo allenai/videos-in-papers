@@ -370,9 +370,6 @@ export function Player({
       videoHeight = (adjustedVideoWidth/16) * 9;
       left = rect.left - 28 - adjustedVideoWidth;
       top = 64;
-      isLocked = false;
-    } else {
-      left = 0;
     }
   }
   return (
@@ -384,7 +381,7 @@ export function Player({
         zIndex: isOverlay ? 3 : 1,
         position: isOverlay ? 'fixed' : 'absolute',
         top: top + 'px',
-        left: left + 'px',
+        left: left ? left + 'px' : undefined,
         opacity: isPhantom ? 0.2 : 1,
         pointerEvents: isPhantom ? 'none' : 'auto',
         transition: pushable ? 'top 0.5s' : 'none',

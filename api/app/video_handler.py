@@ -24,7 +24,7 @@ def parse_xml(xml):
     parser.feed(xml)
     results = []
     for i in range(len(parser.data)):
-        print(parser.data[i])
+        print(i, parser.data[i], parser.attributes[i])
         results.append([
             parser.data[i],
             int(parser.attributes[i][0][1]),
@@ -44,8 +44,8 @@ def get_captions(yt, doi, output_path):
         lang = code.split(".")[0]
         if code == 'a.en':
             xml = caption.xml_captions
-        # if lang == 'en':
-        #     xml = caption.xml_captions.split("\n")[2:-3]
+        if lang == 'en':
+            break
     
     # if xml is None:
     #     xml = auto_captions
