@@ -2,6 +2,7 @@ import re
 import json
 from utils import *
 import numpy as np
+import random
 import evaluate
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -13,7 +14,7 @@ class Comparer():
 
         self.embedder = model
         self.rouge = evaluate.load('rouge')
-    
+
     def _read_paper_blocks(self, id):
         """
         Read the paper blocks from the input path
@@ -25,7 +26,7 @@ class Comparer():
         for block in blocks:
             if block['type'] != 'Paragraph': continue
             text = ' '.join(map(lambda x: x['text'], block['tokens']))
-            output.append({'id': block['id'], 'index': block['index'], 'text': text})
+            output.append({'id': block['id'], 'index': block['index'], 'text': text, 'section': block['section']})
 
         return output
 
@@ -34,69 +35,64 @@ class Comparer():
         Read the caption blocks
         """
         # Read the captions
-        sentences, sentence_keys, captions = read_captions(f"{self.caption_dir}/{id}.json")
+        _, _, captions = read_captions(f"{self.caption_dir}/{id}.json")
 
         caption_blocks = []
         for i, segment in enumerate(segments):
             block = ""
             for caption in captions:
-                if segment[0] <= caption['start']/1000 and caption['end']/1000 <= segment[1]:
+                if segment[0] <= caption['start'] and caption['end'] <= segment[1]:
                     block += caption['caption'].strip() + " "
             caption_blocks.append(block.strip())
 
         return caption_blocks
 
-    def extract_salient(self, paragraph, num_sentences=5):
+    def extract_salient(self, paragraph, is_embedding=True, num_sentences=5):
         """
         Extract the salient sentences from the paragraph
         """
-        # Split into sentences considering different punctuation and speechmarks
-        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s', paragraph)
+        if is_embedding:
+            # Split into sentences, calculate embeddings, and calculate similarity matrix
+            sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s', paragraph)
+            embeddings = self.embedder.encode(sentences)
+            similarity = cosine_similarity(embeddings)
+            scores = np.sum(similarity, axis=1)
 
-        # Calculate the embeddings
-        embeddings = self.embedder.encode(sentences)
+            # Sort the sentences and return top
+            if len(sentences) <= num_sentences:
+                return paragraph
 
-        # Calculate the similarity matrix
-        similarity = cosine_similarity(embeddings)
+            sorted_indices = np.argsort(scores)[::-1][:num_sentences]
+            #sorted_indices = np.append(sorted_indices, np.argsort(scores)[::-1][-num_sentences//2+1:])
+            sorted_indices.sort()
+            return ' '.join([sentences[i].strip() for i in sorted_indices])
+        else:
+            doc = self.textrank(paragraph)
+            top_sentences = [sent.text for sent in doc._.textrank.summary(limit_phrases=15, limit_sentences=num_sentences)]
+            return ' '.join(top_sentences)
 
-        # Calculate the saliency scores
-        scores = np.sum(similarity, axis=1)
+    def summarize(self, paragraphs):
+        """
+        Summarize the paragraphs
+        """
+        inputs = self.summary_tokenizer(paragraphs, max_length=1024, return_tensors="pt", padding="max_length")
 
-        # Sort the sentences
-        sorted_indices = np.argsort(scores)[::-1][:num_sentences]
-        sorted_indices.sort()
+        # Generate Summary
+        summary_ids = self.summary_model.generate(inputs["input_ids"], num_beams=2, min_length=0, max_length=64)
+        return self.summary_tokenizer.batch_decode(summary_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)
 
-        # Return the top sentences
-        return ' '.join([sentences[i].strip() for i in sorted_indices[:num_sentences]])
-
-    def compare_embedding(self, id, segments):
+    def compare_embedding(self, caption_blocks, paper_blocks):
         """
         Compare the captions to the blocks
         """
-        # Read caption blocks
-        caption_blocks = self._read_caption_blocks(id, segments)
-
-        # Read paper blocks
-        paper_blocks = self._read_paper_blocks(id)
-        paper_block_ids = list(map(lambda x: x['id'], paper_blocks))
-        paper_blocks = list(map(lambda x: self.extract_salient(x['text']), paper_blocks))
-
         # Calculate the similarity between the caption chunks and the blocks
         caption_embeddings = self.embedder.encode(caption_blocks)
         paper_embeddings = self.embedder.encode(paper_blocks)
         comparisons = cosine_similarity(caption_embeddings, paper_embeddings)
 
-        return comparisons, paper_block_ids
+        return comparisons
 
-    def compare_rouge(self, id, segments):
-        # Read caption blocks
-        caption_blocks = self._read_caption_blocks(id, segments)
-
-        # Read paper blocks
-        paper_blocks = self._read_paper_blocks(id)
-        paper_block_ids = list(map(lambda x: x['id'], paper_blocks))
-        paper_blocks = list(map(lambda x: self.extract_salient(x['text']), paper_blocks))
-
+    def compare_rouge(self, caption_blocks, paper_blocks):
         # Calculate the similarity between the caption chunks and the blocks
         comparisons = []
         for caption_block in caption_blocks:
@@ -108,78 +104,97 @@ class Comparer():
             )
             comparisons.append([(scores['rouge1'][i] + scores['rouge2'][i] + scores['rougeL'][i])/3 for i in range(len(scores['rouge1']))])
 
-        return np.array(comparisons), paper_block_ids
+        return np.array(comparisons)
 
-    def compare(self, id, segments, method='embedding', ratio=0.5):
+    def compare(self, id, segments, method='embedding', preprocess='extract', normalize=False, ratio=0.5):
+        """
+        Compare the captions to the blocks
+        """
+
+        # Read caption blocks
+        caption_blocks = self._read_caption_blocks(id, segments)
+
+        # Read paper blocks
+        paper_blocks = self._read_paper_blocks(id)
+        paper_block_ids = list(map(lambda x: x['id'], paper_blocks))
+        if preprocess == 'extract':
+            paper_blocks = list(map(lambda x: self.extract_salient(x['text']), paper_blocks))
+        elif preprocess == 'summarize':
+            paper_blocks = self.summarize(list(map(lambda x: x['text'], paper_blocks)))
+        else:
+            paper_blocks = list(map(lambda x: x['text'], paper_blocks))
+
+        # Compare the blocks based on method
         if method == 'embedding':
-            comparisons, block_ids = self.compare_embedding(id, segments)
+            comparisons = self.compare_embedding(caption_blocks, paper_blocks)
         elif method == 'rouge':
-            comparisons, block_ids = self.compare_rouge(id, segments)
+            comparisons = self.compare_rouge(caption_blocks, paper_blocks)
         elif method == 'joint':
-            comparisons_embed, block_ids = self.compare_embedding(id, segments)
-            comparisons_rouge, block_ids = self.compare_rouge(id, segments)
-            row_sums = comparisons_embed.sum(axis=1)
-            comparisons_embed = comparisons_embed / row_sums[:, np.newaxis]
-            row_sums = comparisons_rouge.sum(axis=1)
-            comparisons_rouge = comparisons_rouge / row_sums[:, np.newaxis]
+            comparisons_embed = self.compare_embedding(caption_blocks, paper_blocks)
+            comparisons_rouge = self.compare_rouge(caption_blocks, paper_blocks)
+            if normalize:
+                row_sums = comparisons_embed.sum(axis=1)
+                comparisons_embed = comparisons_embed / row_sums[:, np.newaxis]
+                row_sums = comparisons_rouge.sum(axis=1)
+                comparisons_rouge = comparisons_rouge / row_sums[:, np.newaxis]
 
-            print(np.sum(comparisons_embed[0]))
             comparisons = comparisons_embed * ratio + comparisons_rouge * (1 - ratio)
 
-        return comparisons, block_ids
+        return comparisons, paper_block_ids
 
-    def evaluate(self, predicted, actual, block_ids, top_k=5):
+    def evaluate(self, predicted, actual, paper_block_ids, top_k=5):
+        predicted_top = np.argsort(predicted, axis=1)[:, -top_k:]
+        
         total = 0
         correct = 0
-        predicted_top = np.argsort(predicted, axis=1)[:, -top_k:]
-        for i in range(predicted.shape[0]):
-            predicted_blocks = list(map(lambda x: block_ids[x], predicted_top[i]))
+
+        for i in range(predicted.shape[0]): # For each clip
             is_text = False
+            
+            predicted_blocks = list(map(lambda idx: paper_block_ids[idx], predicted_top[i]))
+
             for block_id in actual[i]:
-                if block_id not in block_ids: continue
+                if block_id not in paper_block_ids: continue
                 is_text = True
                 if block_id in predicted_blocks:
                     correct += 1
                     break
+            
             if is_text: 
                 total += 1
-            # else:
-            #     print(f"Caption {i} not mapped to any block")
         
-        return correct/total
+        return correct, total
+    
+    def evaluate_random(self, id, actual, top_k=5):
+        paper_blocks = self._read_paper_blocks(id)
+        paper_block_ids = list(map(lambda x: x['id'], paper_blocks))
 
-    def evaluate_compare(self, predicted_1, predicted_2, actual, block_ids, top_k=5):
+        first_in_section_ids = []
+        curr_section = ""
+        for i in range(len(paper_blocks)):
+            if paper_blocks[i]['section'] != curr_section:
+                first_in_section_ids.append(paper_blocks[i]['id'])
+                curr_section = paper_blocks[i]['section']
+
+        correct = 0
         total = 0
-        correct_1 = 0
-        correct_2 = 0
-        predicted_1_top = np.argsort(predicted_1, axis=1)[:, -top_k:]
-        predicted_2_top = np.argsort(predicted_2, axis=1)[:, -top_k:]
-        for i in range(predicted_1.shape[0]):
-            predicted_1_blocks = list(map(lambda x: block_ids[x], predicted_1_top[i]))
-            predicted_2_blocks = list(map(lambda x: block_ids[x], predicted_2_top[i]))
+
+        for i in range(len(actual)): # For each clip
             is_text = False
-            found_1 = False
-            found_2 = False
+            
+            predicted_blocks = random.sample(first_in_section_ids, top_k)
+
             for block_id in actual[i]:
-                if block_id not in block_ids: continue
+                if block_id not in paper_block_ids: continue
                 is_text = True
-                if block_id in predicted_1_blocks and not found_1:
-                    found_1 = True
-                if block_id in predicted_2_blocks and not found_2:
-                    found_2 = True
-                if found_1 and found_2:
+                if block_id in predicted_blocks:
+                    correct += 1
                     break
             
-            if found_1: correct_1 += 1
-            if found_2: correct_2 += 1
-
-
             if is_text: 
                 total += 1
-            # else:
-            #     print(f"Caption {i} not mapped to any block")
-        
-        return correct_1/total, correct_2/total
+
+        return correct, total
 
 
 if __name__ == "__main__":
@@ -197,54 +212,56 @@ if __name__ == "__main__":
         "3491102.3501931", "3491102.3501967", "3491102.3502081", "3491102.3502087", "3491102.3517505",
         "3491102.3517729"
     ]
-
+    
     is_separate = False
 
     if is_separate:
-        total_accuracy_emb = 0
-        total_accuracy_rouge = 0
+        total_correct_emb = 0
+        total_correct_rouge = 0
         total_count = 0
         for id in ids:
             if id in not_include: continue
 
-            print(f"Processing {id}")
-
             segments, actual_comparisons = read_annotated_clips(f"{annotation_dir}/{id}.json")
-            predicted_comparisons_1, block_ids = comparer.compare(id, segments, method='embedding')
-            predicted_comparisons_2, block_ids = comparer.compare(id, segments, method='rouge')
-            accuracy_emb, accuracy_rouge  = comparer.evaluate_compare(
-                predicted_comparisons_1, 
-                predicted_comparisons_2, 
-                actual_comparisons, 
-                block_ids,
-            )
 
-            print(f"(Embedding) {accuracy_emb}, (ROUGE) {accuracy_rouge}")
-            total_count += 1
-            total_accuracy_emb += accuracy_emb
-            total_accuracy_rouge += accuracy_rouge
+            for i in range(2):
+                if i == 0:
+                    comparisons, paper_block_ids = comparer.compare(id, segments, method='embedding')
+                else:
+                    comparisons, paper_block_ids = comparer.compare(id, segments, method='rouge')
+
+                correct, total = comparer.evaluate(comparisons, actual_comparisons, paper_block_ids, top_k=5)
+                print(f"{id} - {correct} / {total}")
+
+                if i == 0:
+                    total_correct_emb += correct
+                    total_count += total
+                else:
+                    total_correct_rouge += correct
         
         print()
-        print(f"Embedding Accuracy: {total_accuracy_emb/total_count}")
-        print(f"ROUGE Accuracy: {total_accuracy_rouge/total_count}")
+        print(f"EMBEDDING ACCURACY: {total_correct_emb/total_count}")
+        print(f"ROUGE ACCURACY: {total_correct_rouge/total_count}")
     else:
-        for i in range(1,10):
-            total_accuracy = 0
-            total_count = 0
-            for id in ids:
-                if id in not_include: continue
+        total_correct = 0
+        total_count = 0
+        total_random_correct = 0
+        for id in ids:
+            if id in not_include: continue
 
-                segments, actual_comparisons = read_annotated_clips(f"{annotation_dir}/{id}.json")
-                predicted_comparisons, block_ids = comparer.compare(id, segments, method='joint', ratio=i/10)
-                accuracy = comparer.evaluate(
-                    predicted_comparisons, 
-                    actual_comparisons, 
-                    block_ids,
-                )
+            segments, actual_comparisons = read_annotated_clips(f"{annotation_dir}/{id}.json")
+            predicted_comparisons, block_ids = comparer.compare(id, segments, method='joint')
+            results = comparer.evaluate(
+                predicted_comparisons, 
+                actual_comparisons, 
+                block_ids,
+                top_k=1
+            )
 
-                total_count += 1
-                total_accuracy += accuracy
-            
-            print()
-            print(f"[Ratio: {i/10}] Accuracy: {total_accuracy/total_count}")
+            total_count += results[1]
+            total_correct += results[0]
+            total_random_correct += comparer.evaluate_random(id, actual_comparisons, top_k=1)[0]
         
+        print()
+        print(f"ACCURACY: {total_correct/total_count}")
+        print(f"RANDOM ACCURACY: {total_random_correct/total_count}")

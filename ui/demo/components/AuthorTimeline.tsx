@@ -20,6 +20,8 @@ interface Props {
   setSelectedMapping: (clipId: number | null) => void;
   modifyMode: boolean;
   scale: number;
+  scrubDirection: number;
+  setScrubDirection: (direction: number) => void;
 }
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -41,14 +43,14 @@ export function AuthorTimeline({
   setSelectedMapping,
   modifyMode,
   scale,
+  scrubDirection,
+  setScrubDirection,
 }: Props) {
   const [ratio, setRatio] = React.useState(0);
   const [hovered, setHovered] = React.useState(-1);
   const [clipList, setClipList] = React.useState<Array<Clip>>([]);
   const [edit, setEdit] = React.useState<number | null>(null);
   const previousSelectedClip: any | undefined = usePreviousValue(selectedClip);
-
-  const [scrubDirection, setScrubDirection] = React.useState<number>(0);
 
   React.useEffect(() => {
     setRatio((width * scale) / 100 / duration);

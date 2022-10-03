@@ -12,6 +12,8 @@ def read_captions(file_path):
     sentence_keys = []
     for i, caption in enumerate(captions):
         text = caption['caption'].replace('\n', ' ').strip()
+        captions[i]['start'] /= 1000
+        captions[i]['end'] /= 1000
         for punc in ['.', '?', '!']:
             if punc in text:
                 punc_idx = text.index(punc)

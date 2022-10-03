@@ -83,6 +83,13 @@ export function AuthorVideoSegmenter({
   const [timelineScale, setTimelineScale] = React.useState(100);
 
   const [currentCaption, setCurrentCaption] = React.useState<number>(0);
+  const [hoverCaption, setHoverCaption] = React.useState<number>(-1);
+
+  const [suggestions, setSuggestions] = React.useState<Array<Array<number>>>([
+    [0, 16000],
+    [16010, 32000],
+    [32010, 48000]
+  ]);
 
   const previousSelectedClip: any | undefined = usePreviousValue(selectedClip);
   const previousMappingClip: any | undefined = usePreviousValue(
@@ -92,6 +99,21 @@ export function AuthorVideoSegmenter({
   const videoRef = React.useRef<ReactPlayerProps>(null);
   const captionRef = React.useRef<HTMLDivElement>(null);
 
+  const [scrubDirection, setScrubDirection] = React.useState<number>(0);
+
+  const removeSuggestions = (start: number, end: number) => {
+    var tempSuggestions = suggestions.map((suggestion) => {
+      if((start <= suggestion[0] && suggestion[0] < end) ||
+        (start < suggestion[1] && suggestion[1] <= end) ||
+        (suggestion[0] <= start && end <= suggestion[1])) {
+        return [-1, -1];
+      } else {
+        return suggestion;
+      }
+    })
+    setSuggestions(tempSuggestions);
+  }
+
   React.useEffect(() => {
     if (previousSelectedClip != undefined && videoRef.current) {
       if (
@@ -99,13 +121,21 @@ export function AuthorVideoSegmenter({
         selectedClip[1] == previousSelectedClip[1]
       ) {
         videoRef.current.seekTo(selectedClip[0] / 1000);
-        setIsPlaying(true);
+        setIsPlaying(scrubDirection != 0);
+        removeSuggestions(selectedClip[0], selectedClip[1]);
       } else if (
         selectedClip[0] == previousSelectedClip[0] &&
         selectedClip[1] != previousSelectedClip[1]
       ) {
-        videoRef.current.seekTo(selectedClip[1] / 1000 - 0.5);
-        setIsPlaying(true);
+        videoRef.current.seekTo(selectedClip[1] / 1000 - scrubDirection != 0 ? 0.5 : 0);
+        setIsPlaying(scrubDirection != 0);
+        removeSuggestions(selectedClip[0], selectedClip[1]);
+      } else if (
+        selectedClip[0] != previousSelectedClip[0] &&
+        selectedClip[1] != previousSelectedClip[1]
+      ) {
+        videoRef.current.seekTo(selectedClip[0] / 1000);
+        removeSuggestions(selectedClip[0], selectedClip[1]);
       }
     }
   }, [selectedClip]);
@@ -117,13 +147,15 @@ export function AuthorVideoSegmenter({
         clips[selectedMapping].end == previousMappingClip[1]
       ) {
         videoRef.current.seekTo(clips[selectedMapping].start / 1000);
-        setIsPlaying(true);
+        setIsPlaying(scrubDirection != 0);
+        removeSuggestions(clips[selectedMapping].start, clips[selectedMapping].end);
       } else if (
         clips[selectedMapping].start == previousMappingClip[0] &&
         clips[selectedMapping].end != previousMappingClip[1]
       ) {
-        videoRef.current.seekTo(clips[selectedMapping].end / 1000 - 0.5);
-        setIsPlaying(true);
+        videoRef.current.seekTo(clips[selectedMapping].end / 1000 - scrubDirection != 0 ? 0.5 : 0);
+        setIsPlaying(scrubDirection != 0);
+        removeSuggestions(clips[selectedMapping].start, clips[selectedMapping].end);
       }
     }
   }, [clips]);
@@ -190,56 +222,76 @@ export function AuthorVideoSegmenter({
   const handleSelectCaption = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (highlightMode) return;
+    var newClip = [...selectedClip];
+
+    if (modifyMode && selectedMapping != null) {
+      newClip = [clips[selectedMapping].start, clips[selectedMapping].end];
+    }
+
+    var caption = captions[idx];
+
+    var startCaptionIdx = captions.findIndex(c => c.start <= newClip[0] && newClip[0] < c.end);
+    var endCaptionIdx = captions.findIndex(c => c.start < newClip[1] && newClip[1] <= c.end);
+  
+    if(caption.start == newClip[0]) {
+      newClip[0] = startCaptionIdx + 1 < captions.length ? captions[startCaptionIdx + 1].start : -1;
+    } else if(caption.end == newClip[1]) {
+      newClip[1] = endCaptionIdx - 1 >= 0 ? captions[endCaptionIdx - 1].end : -1;
+    } else if(idx == startCaptionIdx) {
+      newClip[0] = caption.start;
+    } else if(idx == endCaptionIdx) {
+      newClip[1] = caption.end;
+    } else if(idx == startCaptionIdx - 1) {
+      newClip[0] = caption.start;
+    } else if(idx == endCaptionIdx + 1) {
+      newClip[1] = caption.end;
+    } else if(!modifyMode) {
+      newClip = [caption.start, caption.end];
+    }
+
     if (!modifyMode) {
-      var newClip = [...selectedClip];
-      var caption = captions[idx];
-
-      var startCaptionIdx = captions.findIndex(c => c.start <= newClip[0] && newClip[0] < c.end);
-      var endCaptionIdx = captions.findIndex(c => c.start < newClip[1] && newClip[1] <= c.end);
-
-      if(caption.start == newClip[0]) {
-        newClip[0] = startCaptionIdx + 1 < captions.length ? captions[startCaptionIdx + 1].start : -1;
-      } else if(caption.end == newClip[1]) {
-        newClip[1] = endCaptionIdx - 1 >= 0 ? captions[endCaptionIdx - 1].end : -1;
-      } else if(idx == startCaptionIdx) {
-        newClip[0] = caption.start;
-      } else if(idx == endCaptionIdx) {
-        newClip[1] = caption.end;
-      } else if(idx == startCaptionIdx - 1) {
-        newClip[0] = caption.start;
-      } else if(idx == endCaptionIdx + 1) {
-        newClip[1] = caption.end;
-      } else {
-        newClip[0] = caption.start;
-        newClip[1] = caption.end;
-      }
-
       changeClipWrapper(newClip, -1);
       setSelectedMapping(null);
     } else if (modifyMode && selectedMapping != null) {
-      var newClip = [clips[selectedMapping].start, clips[selectedMapping].end];
-      var caption = captions[idx];
-
-      var startCaptionIdx = captions.findIndex(c => c.start <= newClip[0] && newClip[0] < c.end);
-      var endCaptionIdx = captions.findIndex(c => c.start < newClip[1] && newClip[1] <= c.end);
-      
-      if(caption.start == newClip[0]) {
-        newClip[0] = startCaptionIdx + 1 < captions.length ? captions[startCaptionIdx + 1].start : -1;
-      } else if(caption.end == newClip[1]) {
-        newClip[1] = endCaptionIdx - 1 >= 0 ? captions[endCaptionIdx - 1].end : -1;
-      } else if(idx == startCaptionIdx) {
-        newClip[0] = caption.start;
-      } else if(idx == endCaptionIdx) {
-        newClip[1] = caption.end;
-      } else if(idx == startCaptionIdx - 1) {
-        newClip[0] = caption.start;
-      } else if(idx == endCaptionIdx + 1) {
-        newClip[1] = caption.end;
-      }
-
       changeClipWrapper(newClip, selectedMapping);
     }
   };
+
+  const handleSelectSuggestion = (suggestion: Array<number>, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (highlightMode) return;
+    var newClip = [...selectedClip];
+    
+    if (modifyMode && selectedMapping != null) {
+      newClip = [clips[selectedMapping].start, clips[selectedMapping].end];
+    }
+
+    var suggestionStartIdx = captions.findIndex(c => c.start <= suggestion[0] && suggestion[0] < c.end);
+    var suggestionEndIdx = captions.findIndex(c => c.start < suggestion[1] && suggestion[1] <= c.end);
+
+    var startCaptionIdx = captions.findIndex(c => c.start <= newClip[0] && newClip[0] < c.end);
+    var endCaptionIdx = captions.findIndex(c => c.start < newClip[1] && newClip[1] <= c.end);
+
+    if(suggestionEndIdx == startCaptionIdx) {
+      newClip[0] = suggestion[0];
+    } else if(suggestionStartIdx == endCaptionIdx) {
+      newClip[1] = suggestion[1];
+    } else if(suggestionEndIdx == startCaptionIdx - 1) {
+      newClip[0] = suggestion[0];
+    } else if(suggestionStartIdx == endCaptionIdx + 1) {
+      newClip[1] = suggestion[1];
+    } else {
+      newClip[0] = suggestion[0];
+      newClip[1] = suggestion[1];
+    }
+
+    if(!modifyMode) {
+      changeClipWrapper(newClip, -1);
+      setSelectedMapping(null);
+    } else if(modifyMode && selectedMapping != null) {
+      changeClipWrapper(newClip, selectedMapping);
+    }
+  }
 
   const changeClipWrapper = (clip: Array<number>, id: number) => {
     if (highlightMode) return;
@@ -338,6 +390,9 @@ export function AuthorVideoSegmenter({
   };
 
   const renderCaptions = () => {
+    var suggestedCaptions = suggestions.map(suggestion => {
+      return captions.filter(c => (suggestion[0] <= c.start && c.start <= suggestion[1]) || (suggestion[0] <= c.end && c.end <= suggestion[1])).map(c => c.id);
+    })
     return captions.map((c, i) => {
       let selected = selectedClip[0] <= c.start && c.start < selectedClip[1];
       selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
@@ -350,22 +405,40 @@ export function AuthorVideoSegmenter({
           break;
         }
       }
+
+      var suggestedIdx = suggestedCaptions.findIndex(s => s.includes(c.id));
+      var suggestedInfo = suggestedCaptions[suggestedIdx];
+
+      var style = {};
+      if(selectedMapping == usedClipId) {
+        style = { backgroundColor: colors[usedClipId % 7] + (hoverCaption == i ? '33' : '1A') };
+      } else if(usedClipId != -1) {
+        style = { opacity: 0.5 };
+      } else if(selected) {
+        style = { backgroundColor: "#1890ff" + (hoverCaption == i ? '33' : '1A') };
+      } else if(suggestedInfo != null) {
+        style = { borderLeft: '2px solid #1890ff33', borderRight: '2px solid #1890ff33'};
+        if(suggestedInfo[0] == i) {
+          style = { ...style, borderTop: '2px solid #1890ff33', borderRadius: '4px 4px 0 0' };
+        } else if(suggestedInfo[suggestedInfo.length - 1] == i) {
+          style = { ...style, borderBottom: '2px solid #1890ff33', borderRadius: '0 0 4px 4px' };
+        }
+        if(hoverCaption != -1 && suggestedInfo.includes(hoverCaption)) {
+          style = { ...style, backgroundColor: '#1890ff33' };
+        }
+      } else {
+        style = { backgroundColor: hoverCaption == i ? "#ddd" : "#f6f6f6" }
+      }
+
       return (
         <div
           key={i}
           id={'caption-' + i}
-          className={
-            'video__segmenter-transcript-container' +
-            (selected ? ' video__segmenter-transcript-container-selected' : '')
-          }
-          style={
-            selectedMapping == usedClipId
-              ? { backgroundColor: colors[usedClipId % 7] + '33' }
-              : usedClipId != -1
-              ? { opacity: 0.5 }
-              : {}
-          }
-          onClick={e => handleSelectCaption(i, e)}>
+          className={'video__segmenter-transcript-container'}
+          style={style}
+          onClick={e => suggestedInfo != null ? handleSelectSuggestion(suggestions[suggestedIdx], e) : handleSelectCaption(i, e)}
+          onMouseEnter={() => setHoverCaption(i)}
+          onMouseLeave={() => setHoverCaption(-1)}>
           <div
             className="video__segmenter-transcript-timestamp"
             style={currentCaption == i ? { color: '#1075ff' } : {}}>
@@ -506,6 +579,8 @@ export function AuthorVideoSegmenter({
           setSelectedMapping={setSelectedMapping}
           modifyMode={modifyMode}
           scale={timelineScale}
+          scrubDirection={scrubDirection}
+          setScrubDirection={setScrubDirection}
         />
         <div className="video__segmenter-transcript" ref={captionRef} style={{width: realWidth + 'px'}}>
           {renderCaptions()}
