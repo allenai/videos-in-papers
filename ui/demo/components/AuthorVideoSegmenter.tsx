@@ -366,21 +366,35 @@ export function AuthorVideoSegmenter({
         let closestDist = null;
         for (var i = 0; i < captionIds.length; i++) {
           const caption = captionIds[i];
-          if (caption.captionIdx != captionIdx) continue;
-          const dist = Math.abs(caption.wordIdx - wordIdx);
+          const dist = Math.abs(caption.captionIdx*1000 + caption.wordIdx - captionIdx*1000 + wordIdx);
           if (closest == null || closestDist == null || dist < closestDist) {
             closestDist = dist;
             closest = caption;
           }
         }
         if (closest != null) {
-          const start = Math.min(closest.wordIdx, wordIdx);
-          const end = Math.max(closest.wordIdx, wordIdx);
-          for (var i = start; i <= end; i++) {
-            captionIds.push({
-              captionIdx: captionIdx,
-              wordIdx: i,
-            });
+          if(closest.captionIdx <= captionIdx) {
+            for (var j = closest.captionIdx; j <= captionIdx; j++) {
+              var startWordIdx = j == closest.captionIdx ? closest.wordIdx : 0;
+              var endWordIdx = j == captionIdx ? wordIdx : captions[j]['caption'].split(/\n| /).length - 1;
+              for (var k = startWordIdx; k <= endWordIdx; k++) {
+                captionIds.push({
+                  captionIdx: j,
+                  wordIdx: k,
+                });
+              }
+            }
+          } else {
+            for (var j = captionIdx; j <= closest.captionIdx; j++) {
+              var startWordIdx = j == captionIdx ? wordIdx : 0;
+              var endWordIdx = j == closest.captionIdx ? closest.wordIdx : captions[j]['caption'].split(/\n| /).length - 1;
+              for (var k = startWordIdx; k <= endWordIdx; k++) {
+                captionIds.push({
+                  captionIdx: j,
+                  wordIdx: k,
+                });
+              }
+            }
           }
         } else {
           captionIds.push({
