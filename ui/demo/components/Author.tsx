@@ -16,7 +16,6 @@ import { AuthorBlockOverlay } from './AuthorBlockOverlay';
 import { AuthorDragOverlay } from './AuthorDragOverlay';
 import { AuthorMappingControls } from './AuthorMappingControls';
 import { AuthorVideoSegmenter } from './AuthorVideoSegmenter';
-import { AuthorSuggestionsNavigator } from './AuthorSuggestionsNavigator';
 import { Header } from './Header';
 import { Outline } from './Outline';
 
