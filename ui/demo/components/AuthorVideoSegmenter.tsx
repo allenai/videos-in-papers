@@ -85,11 +85,23 @@ export function AuthorVideoSegmenter({
   const [currentCaption, setCurrentCaption] = React.useState<number>(0);
   const [hoverCaption, setHoverCaption] = React.useState<number>(-1);
 
-  const [suggestions, setSuggestions] = React.useState<Array<Array<number>>>([
-    [0, 16000],
-    [16010, 32000],
-    [32010, 48000]
-  ]);
+  const [suggestions, setSuggestions] = React.useState<Array<Array<number>>>([]);
+
+  React.useEffect(() => {
+    if(suggestions.length > 0) return;
+    var baseSuggestions = [];
+    var lastIdx = 0;
+    for(var i = 0; i < captions.length; i++) {
+      if(captions[i].caption.match(/[.?!]/)) {
+        baseSuggestions.push([
+          captions[lastIdx].start,
+          captions[i].end
+        ]);
+        lastIdx = i + 1;
+      }
+    }
+    setSuggestions(baseSuggestions);
+  }, [captions]);
 
   const previousSelectedClip: any | undefined = usePreviousValue(selectedClip);
   const previousMappingClip: any | undefined = usePreviousValue(
@@ -280,7 +292,7 @@ export function AuthorVideoSegmenter({
       newClip[0] = suggestion[0];
     } else if(suggestionStartIdx == endCaptionIdx + 1) {
       newClip[1] = suggestion[1];
-    } else {
+    } else if(!modifyMode) {
       newClip[0] = suggestion[0];
       newClip[1] = suggestion[1];
     }
@@ -391,7 +403,7 @@ export function AuthorVideoSegmenter({
 
   const renderCaptions = () => {
     var suggestedCaptions = suggestions.map(suggestion => {
-      return captions.filter(c => (suggestion[0] <= c.start && c.start <= suggestion[1]) || (suggestion[0] <= c.end && c.end <= suggestion[1])).map(c => c.id);
+      return captions.filter(c => (suggestion[0] <= c.start && c.start < suggestion[1]) || (suggestion[0] < c.end && c.end <= suggestion[1])).map(c => c.id);
     })
     return captions.map((c, i) => {
       let selected = selectedClip[0] <= c.start && c.start < selectedClip[1];
@@ -417,11 +429,12 @@ export function AuthorVideoSegmenter({
       } else if(selected) {
         style = { backgroundColor: "#1890ff" + (hoverCaption == i ? '33' : '1A') };
       } else if(suggestedInfo != null) {
-        style = { borderLeft: '2px solid #1890ff33', borderRight: '2px solid #1890ff33'};
+        style = { borderLeftColor: '#1890ff33', borderRightColor: '#1890ff33'};
         if(suggestedInfo[0] == i) {
-          style = { ...style, borderTop: '2px solid #1890ff33', borderRadius: '4px 4px 0 0' };
-        } else if(suggestedInfo[suggestedInfo.length - 1] == i) {
-          style = { ...style, borderBottom: '2px solid #1890ff33', borderRadius: '0 0 4px 4px' };
+          style = { ...style, borderTopColor: '#1890ff33', borderTopLeftRadius: '4px', borderTopRightRadius: '4px', marginTop: '1px', paddingTop: '1px' };
+        }
+        if(suggestedInfo[suggestedInfo.length - 1] == i) {
+          style = { ...style, borderBottomColor: '#1890ff33', borderBottomLeftRadius: '4px', borderBottomRightRadius: '4px', marginBottom: '1px', paddingBottom: '1px' };
         }
         if(hoverCaption != -1 && suggestedInfo.includes(hoverCaption)) {
           style = { ...style, backgroundColor: '#1890ff33' };

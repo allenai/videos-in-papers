@@ -8,6 +8,7 @@ from typing import List, Tuple
 
 from app.video_handler import download_video, split_video
 from app.paper_handler import get_paper, process_paper_blocks
+from app.pipeline.comparer import Comparer
 
 env = os.getenv('FLASK_ENV', 'production')
 DIR_PATH = '/api/app'
@@ -27,6 +28,13 @@ def create_api() -> Blueprint:
     command line flags or other inputs, add them as arguments to this function.
     """
     api = Blueprint('api', __name__)
+
+    comparer = Comparer(
+        blocks_dir=f"{DIR_PATH}/data/blocks",
+        captions_dir=f"{DIR_PATH}/data/captions",
+        embeds_dir=f"{DIR_PATH}/data/embeddings",
+        model_name='sentence-transformers/all-MiniLM-L6-v2'
+    )
 
     def error(message: str, status: int = 400) -> Tuple[str, int]:
         return jsonify({ 'error': message}), status
@@ -131,7 +139,7 @@ def create_api() -> Blueprint:
 
         try:
             get_paper(paper_url, doi, f"{DIR_PATH}/data/pdf")
-            process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks")
+            process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", comparer)
             return jsonify({'message': 200})
         except AssertionError as e:
             print(e)
@@ -157,6 +165,29 @@ def create_api() -> Blueprint:
         try:
             split_video(doi, f"{DIR_PATH}/data/clips", clips)
             return jsonify({'message': 200})
+        except AssertionError as e:
+            print(e)
+            return jsonify({'message': 400, 'error': str(e)})
+        except Exception as e:
+            print(e)
+            return jsonify({'message': 400, 'error': str(e)})
+
+    @api.route('/api/suggest_blocks', methods=['POST'])
+    def suggest_blocks():
+        data = request.json
+        if data is None:
+            return error("No request body")
+
+        doi = data.get("doi")
+        mappings = data.get("mappings")
+        mappings.sort(key=lambda x: x['start'])
+        segments = list(map(lambda x: [x['start'], x['end']], mappings))
+
+        try:
+            predicted_comparisons, block_ids = comparer.compare(doi, segments, method='joint', is_load=True)
+            predicted_blocks = comparer.mapping(mappings, predicted_comparisons, block_ids)
+
+            return jsonify({'message': 200, 'suggestions': predicted_blocks})
         except AssertionError as e:
             print(e)
             return jsonify({'message': 400, 'error': str(e)})

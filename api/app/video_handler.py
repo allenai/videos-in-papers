@@ -24,7 +24,6 @@ def parse_xml(xml):
     parser.feed(xml)
     results = []
     for i in range(len(parser.data)):
-        print(i, parser.data[i], parser.attributes[i])
         results.append([
             parser.data[i],
             int(parser.attributes[i][0][1]),

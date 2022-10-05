@@ -468,7 +468,7 @@ def process_interval_str(interval_str):
         result.append(list(map(lambda txt: int(txt), t.split(", "))))
     return result
 
-def process_paper_blocks(doi, input_path, output_path):
+def process_paper_blocks(doi, input_path, output_path, comparer):
     parsed_path = './data/parsed_pdf'
     pipeline(
         input_pdf=Path(f'{input_path}/{doi}.pdf'),
@@ -565,6 +565,8 @@ def process_paper_blocks(doi, input_path, output_path):
 
         with open(f"{output_path}/{doi}.json", "w") as output_f:
             json.dump(json_obj, output_f)
+
+        comparer.save_paper_embeddings(doi)
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ import { AuthorBlockOverlay } from './AuthorBlockOverlay';
 import { AuthorDragOverlay } from './AuthorDragOverlay';
 import { AuthorMappingControls } from './AuthorMappingControls';
 import { AuthorVideoSegmenter } from './AuthorVideoSegmenter';
+import { AuthorSuggestionsNavigator } from './AuthorSuggestionsNavigator';
 import { Header } from './Header';
 import { Outline } from './Outline';
 
@@ -63,6 +64,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const [altDown, setAltDown] = React.useState(false);
 
   const [saving, setSaving] = React.useState(false);
+  const [suggestionTimer, setSuggestionTimer] = React.useState<NodeJS.Timeout | null>(null);
+  const [suggestedBlocks, setSuggestedBlocks] = React.useState<Array<number>>([]);
+
+  const [currentSuggestion, setCurrentSuggestion] = React.useState(-1);
 
   React.useEffect(() => {
     fetch('/api/annotation/' + doi + '.json')
@@ -113,6 +118,58 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     }
   }, [selectedMapping]);
 
+  React.useEffect(() => {
+    if (selectedClip[0] === -1 || selectedClip[1] === -1) {
+      setSuggestedBlocks([]);
+      setCurrentSuggestion(-1);
+      if(suggestionTimer != null) {
+        clearTimeout(suggestionTimer);
+        setSuggestionTimer(null);
+      }
+      return;
+    }
+    if(suggestionTimer != null) {
+      clearTimeout(suggestionTimer);
+    }
+    setSuggestionTimer(setTimeout(() => {
+      var mappings = Object.keys(clips).map(clipId => {
+        var clip = clips[parseInt(clipId)];
+        var blockIds = clip.highlights.map(highlightId => highlights[highlightId].blocks).flat();
+        return {
+          id: parseInt(clipId),
+          start: clip.start/1000,
+          end: clip.end/1000,
+          blocks: blockIds,
+        };
+      });
+      mappings.push({
+        id: -1,
+        start: selectedClip[0]/1000,
+        end: selectedClip[1]/1000,
+        blocks: [],
+      })
+      const data = { doi: doi, mappings: mappings };
+      fetch('/api/suggest_blocks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      .then(response => {
+        return response.json();
+      })
+      .then(result => {
+        if(result['message'] != 200) {
+          console.log(result);
+        } else {
+          setCurrentSuggestion(-1);
+          setSuggestedBlocks(result['suggestions']);
+        }
+      });
+    }, 500));
+  }, [selectedClip]);
+
   const handleClickOutside = (e: React.MouseEvent<HTMLElement>) => {
     const targetClasses = (e.target as HTMLElement).className;
     if (
@@ -130,7 +187,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   };
 
   const checkContinuousBlocks = (smallerBlock: Block, biggerBlock: Block) => {
-    if (smallerBlock.page == biggerBlock.page) return true;
+    if (smallerBlock.page == biggerBlock.page) { 
+      return true;
+    }
 
     var inbetweenBlocks = blocks.filter((blk: Block) => {
       var isGreaterThanSmaller = false;
@@ -552,6 +611,11 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     setBlocks(newBlocks);
   }
 
+  const scrollTo = (position: number) => {
+    const container = document.getElementsByClassName('reader__container')[0];
+    container.scrollTo({ top: position + container.scrollTop - 120, left: 0, behavior: 'smooth' });
+  }
+
   if (videoWidth == 0) {
     return <div>Loading...</div>;
   } else {
@@ -577,6 +641,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
               setHighlightMode={setHighlightMode}
               changeClipNote={changeClipNote}
               changeClipSupp={changeClipSupp}
+              suggestedBlocks={suggestedBlocks}
+              scrollTo={scrollTo}
+              currentSuggestion={currentSuggestion}
+              setCurrentSuggestion={setCurrentSuggestion}
             />
             <DocumentWrapper
               className="reader__main"
@@ -610,6 +678,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           shiftDown={shiftDown}
                           changeClipPosition={changeClipPosition}
                           removeCreatedBlocks={removeCreatedBlocks}
+                          suggestedBlocks={suggestedBlocks}
+                          currentSuggestion={currentSuggestion}
                         />
                         <AuthorDragOverlay 
                           pageIndex={i} 

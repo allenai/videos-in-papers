@@ -31,6 +31,8 @@ type Props = {
   shiftDown: boolean;
   changeClipPosition: (clipId: number, highlightId: number) => void;
   removeCreatedBlocks: (blockIds: Array<number>) => void;
+  suggestedBlocks: Array<number>;
+  currentSuggestion: number;
 };
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -58,7 +60,9 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
   removeSegment,
   shiftDown,
   changeClipPosition,
-  removeCreatedBlocks
+  removeCreatedBlocks,
+  suggestedBlocks,
+  currentSuggestion,
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
 
@@ -212,9 +216,23 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     const { bboxes, tokens } = getBoundingBoxProps();
     bboxes.map((prop, i) => {
       // Only render this BoundingBox if it belongs on the current page
+      const isSuggested = suggestedBlocks.includes(prop.id);
+
       const found = findInHighlights(prop.id);
       const clipId = found.clipId;
       const highlightId = found.highlightId;
+      var className =  'reader_highlight_color-'; 
+      if(selectedBlocks.includes(prop.id)) {
+        className += 'sel';
+      } else if(isSuggested) {
+        if(currentSuggestion == suggestedBlocks.indexOf(prop.id)) {
+          className += 'suggest-curr';
+        } else {
+          className += 'suggest';
+        }
+      } else {
+        className += 'unsel';
+      }
 
       let props = {
         top: prop.top,
@@ -222,8 +240,8 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         height: prop.height,
         width: prop.width,
         page: prop.page,
-        id: '' + prop.id,
-        className: 'reader_highlight_color-' + (selectedBlocks.includes(prop.id) ? 'sel' : 'unsel'),
+        id: 'block-' + prop.id,
+        className,
         // Set isHighlighted to true for highlighted styling
         isHighlighted: true,
         key: prop.id,
@@ -257,9 +275,9 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
             page: prop.page,
             key: clipId + '-' + prop.id,
             id: '' + clipId,
-            isHighlighted: clips[clipId].highlights[clips[clipId].position] == highlightId,
+            isHighlighted: true, //clips[clipId].highlights[clips[clipId].position] == highlightId,
             color: colors[clipId % 7],
-            onClick: () => changeClipPosition(clipId, highlightId),
+            onClick: () => false && changeClipPosition(clipId, highlightId),
           };
           boxes.push(<AuthorBlockLabel {...labelProp} />);
         }
@@ -267,6 +285,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
 
       boxes.push(<BoundingBox {...props} />);
     });
+
     tokens.map((tok: Token & { clipId: number; segmentIndex: number }, i: number) => {
       const isHovered =
         hoveredSegment != null &&
@@ -278,7 +297,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         height: tok.height,
         width: tok.width,
         page: tok.page,
-        id: '' + tok.id,
+        id: 'token-' + tok.id,
         className:
           'reader_highlight_color_token-used ' +
           (isHovered ? 'reader_highlight_color_token-used-hovered' : ''),
@@ -313,7 +332,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
             );
             const props = {
               ...rect,
-              id: '' + tok.id,
+              id: 'token-' + tok.id,
               className: 'reader_highlight_color_token' + (selected ? '-sel' : ''),
               // Set isHighlighted to true for highlighted styling
               isHighlighted: false,
