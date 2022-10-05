@@ -20,6 +20,8 @@ import { AuthorSuggestionsNavigator } from './AuthorSuggestionsNavigator';
 import { Header } from './Header';
 import { Outline } from './Outline';
 
+import { stopWords } from '../utils/stopWords';
+
 const DOI = window.location.pathname.split('/').pop();
 
 export const Author: React.FunctionComponent<RouteComponentProps> = () => {
@@ -164,7 +166,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
           console.log(result);
         } else {
           setCurrentSuggestion(-1);
-          setSuggestedBlocks(result['suggestions']);
+          setSuggestedBlocks(result['suggestions'].filter((blkId: number) => !selectedBlocks.includes(blkId)));
         }
       });
     }, 500));
@@ -250,6 +252,15 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     return listOfList;
   };
 
+  const filterCaptions = (clip: Array<number>) => {
+    return captions.filter((c: Caption) => {
+      return (
+        (clip[0] <= c.start && c.start < clip[1]) ||
+        (clip[0] < c.end && c.end <= clip[1])
+      );
+    });
+  }
+
   const createMapping = () => {
     let topTop = 0;
     let topPage = 0;
@@ -298,12 +309,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
       newHighlightIds.push(highlightId);
     }
 
-    const filteredCaptions = captions.filter((c: Caption) => {
-      return (
-        (selectedClip[0] <= c.start && c.start < selectedClip[1]) ||
-        (selectedClip[0] < c.end && c.end <= selectedClip[1])
-      );
-    });
+    const filteredCaptions = filterCaptions(selectedClip);
+
     const clip: Clip = {
       id: clipId,
       start: selectedClip[0],
@@ -359,9 +366,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     const newClips = { ...clips };
     newClips[clipId].start = start;
     newClips[clipId].end = end;
-    const filteredCaptions = captions.filter((c: Caption) => {
-      return (start <= c.start && c.start < end) || (start < c.end && c.end <= end);
-    });
+    const filteredCaptions = filterCaptions([start, end]);
     newClips[clipId].captions = filteredCaptions;
     setClips(newClips);
 
@@ -616,6 +621,21 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     container.scrollTo({ top: position + container.scrollTop - 120, left: 0, behavior: 'smooth' });
   }
 
+  const captionsToTokens = (clip: Array<number>) => {
+    const filteredCaptions = filterCaptions(clip);
+    var captionTokens: Array<string> = [];
+    if (filteredCaptions) {
+      // to lower case, remove punctuation and quotation marks, and split into words
+      var temp = filteredCaptions.map(caption => caption.caption.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/"/g, '').split(' '));
+      captionTokens = temp.reduce((a, b) => a.concat(b), []);
+      // remove stop words
+      captionTokens = captionTokens.filter(token => !stopWords.includes(token));
+      return captionTokens;
+    } else {
+      return undefined;
+    }
+  }
+
   if (videoWidth == 0) {
     return <div>Loading...</div>;
   } else {
@@ -679,7 +699,10 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           changeClipPosition={changeClipPosition}
                           removeCreatedBlocks={removeCreatedBlocks}
                           suggestedBlocks={suggestedBlocks}
+                          setSuggestedBlocks={setSuggestedBlocks}
                           currentSuggestion={currentSuggestion}
+                          setCurrentSuggestion={setCurrentSuggestion}
+                          captionTokens={suggestedBlocks.length > 0 && currentSuggestion != -1 ? captionsToTokens(selectedClip): undefined}
                         />
                         <AuthorDragOverlay 
                           pageIndex={i} 

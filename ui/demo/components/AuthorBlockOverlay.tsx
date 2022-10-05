@@ -7,7 +7,7 @@ import {
 } from '@allenai/pdf-components';
 import * as React from 'react';
 
-import { Block, Clip, Highlight, SyncWords, Token } from '../types/clips';
+import { Block, Clip, Highlight, SyncWords, Token, Caption } from '../types/clips';
 import { AuthorBlockLabel } from './AuthorBlockLabel';
 
 type Props = {
@@ -32,7 +32,10 @@ type Props = {
   changeClipPosition: (clipId: number, highlightId: number) => void;
   removeCreatedBlocks: (blockIds: Array<number>) => void;
   suggestedBlocks: Array<number>;
+  setSuggestedBlocks: (blockIds: Array<number>) => void;
   currentSuggestion: number;
+  setCurrentSuggestion: (index: number) => void;
+  captionTokens?: Array<string>
 };
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -62,7 +65,10 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
   changeClipPosition,
   removeCreatedBlocks,
   suggestedBlocks,
+  setSuggestedBlocks,
   currentSuggestion,
+  setCurrentSuggestion,
+  captionTokens,
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
 
@@ -88,32 +94,50 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
       var bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
       bboxes.push({ ...block, ...bbox });
 
-      const clipId = Object.values(highlights).find(highlight =>
-        highlight.blocks?.includes(block.id)
-      )?.clip;
+      if (currentSuggestion != -1 && suggestedBlocks[currentSuggestion] == block.id) {
+        for (let j = 0; j < block.tokens.length; j++) {
+          var token = block.tokens[j];
+          if (token.page !== pageIndex) continue;
+          if (captionTokens?.includes(token.text.toLowerCase())) {
+            var rect = {
+              page: token.page,
+              top: token.top,
+              left: token.left,
+              height: token.height,
+              width: token.width,
+            };
+            var bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
+            tokens.push({ ...token, ...bbox, segmentIndex: -1, clipId: -1 });
+          }
+        }
+      } else {
+        const clipId = Object.values(highlights).find(highlight =>
+          highlight.blocks?.includes(block.id)
+        )?.clip;
 
-      if (clipId == null) continue;
+        if (clipId == null) continue;
 
-      for (let j = 0; j < block.tokens.length; j++) {
-        var token = block.tokens[j];
-        if (token.page !== pageIndex) continue;
-        const segments = syncSegments[clipId];
-        const index = segments.findIndex(
-          segment =>
-            segment.tokenIds.find(
-              value => value.blockIdx == block.id && value.tokenIdx == token.id
-            ) != null
-        );
-        if (index != -1) {
-          var rect = {
-            page: token.page,
-            top: token.top,
-            left: token.left,
-            height: token.height,
-            width: token.width,
-          };
-          var bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
-          tokens.push({ ...token, ...bbox, segmentIndex: index, clipId: clipId });
+        for (let j = 0; j < block.tokens.length; j++) {
+          var token = block.tokens[j];
+          if (token.page !== pageIndex) continue;
+          const segments = syncSegments[clipId];
+          const index = segments.findIndex(
+            segment =>
+              segment.tokenIds.find(
+                value => value.blockIdx == block.id && value.tokenIdx == token.id
+              ) != null
+          );
+          if (index != -1) {
+            var rect = {
+              page: token.page,
+              top: token.top,
+              left: token.left,
+              height: token.height,
+              width: token.width,
+            };
+            var bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
+            tokens.push({ ...token, ...bbox, segmentIndex: index, clipId: clipId });
+          }
         }
       }
     }
@@ -125,7 +149,19 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     if (highlightMode) return;
     var block = blocks.find((b) => b.id == blockId);
     if (!modifyMode) {
-      if (selectedBlocks.includes(blockId)) {
+      if (suggestedBlocks.length > 0 && suggestedBlocks.includes(blockId)) {
+        var index = suggestedBlocks.indexOf(blockId);
+        if(index == currentSuggestion) {
+          var newSuggestedBlocks = suggestedBlocks.filter((id) => id != blockId);
+          setSuggestedBlocks(newSuggestedBlocks);
+          if(newSuggestedBlocks.length <= currentSuggestion) {
+            setCurrentSuggestion(currentSuggestion - 1);
+          }
+          setSelectedBlocks([...selectedBlocks, blockId]);
+        } else {
+          setCurrentSuggestion(index);
+        }
+      } else if (selectedBlocks.includes(blockId)) {
         const copySelBlocks = [...selectedBlocks];
         const index = selectedBlocks.indexOf(blockId);
         copySelBlocks.splice(index, 1);
@@ -304,9 +340,9 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         // Set isHighlighted to true for highlighted styling
         isHighlighted: false,
         key: 'used-' + tok.id,
-        onMouseEnter: () => setHoveredSegment({ clipId: tok.clipId, index: tok.segmentIndex }),
-        onMouseLeave: () => setHoveredSegment(null),
-        onClick: () => removeSegment(tok.clipId, tok.segmentIndex),
+        onMouseEnter: () => tok.segmentIndex != -1 && setHoveredSegment({ clipId: tok.clipId, index: tok.segmentIndex }),
+        onMouseLeave: () => tok.segmentIndex != -1 && setHoveredSegment(null),
+        onClick: () => tok.segmentIndex != -1 && removeSegment(tok.clipId, tok.segmentIndex),
       };
 
       boxes.push(<BoundingBox {...props} />);

@@ -104,7 +104,7 @@ export const AuthorMappingControls: React.FunctionComponent<Props> = ({
         ''
       )}
       {selectedMapping != null ? 
-          <div className="mapping-controls__button-container">
+          <div className="mapping-controls__button-container" style={{flexDirection: 'row'}}>
             <button
               className="mapping-controls__button"
               onClick={() => setHighlightMode(!highlightMode)}
