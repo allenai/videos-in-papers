@@ -102,10 +102,11 @@ export const AuthorDragOverlay: React.FunctionComponent<Props> = ({
                 height: boxSize.y2 - boxSize.y1,
                 page: pageIndex,
             }
+
             return (
                 <div
                     className="reader__page-overlay__drag-box"
-                    style={getBoundingBoxStyle(bbox)}
+                    style={bbox}
                 />
             );
         }

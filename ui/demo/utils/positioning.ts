@@ -1,6 +1,6 @@
 import { Clip, Highlight } from '../types/clips';
 
-const CHAR_WIDTH = 7;
+const CHAR_WIDTH = 14;
 const UNFOCUSED_SCALE = 0.8;
 const BORDER_HEIGHT = 8;
 const HIGHLIGHT_CHEVRON_SPACE = 18 + 8;
@@ -37,7 +37,7 @@ export function checkOverlap(clips: Array<Clip>, heights: { [id: number]: number
         curr_group.push(curr_clip.id);
       }
       curr_group.push(next_clip.id);
-    } else if (next_top <= curr_top && curr_top <= next_bot) {
+    } else if (curr_top >= next_top) {
       if (!curr_group.includes(curr_clip.id)) {
         curr_group.push(curr_clip.id);
       }
@@ -57,7 +57,7 @@ export function checkOverlap(clips: Array<Clip>, heights: { [id: number]: number
 
 function getOriginalPosition(clip: Clip, highlights: { [index: number]: Highlight }) {
   const highlightId = clip.highlights[clip.position];
-  return highlights[highlightId].rects[0].page + highlights[highlightId].rects[0].top;
+  return highlights[highlightId].rects[0];
 }
 
 // Spread out clips in page so that they don't overlap
@@ -69,8 +69,23 @@ export function spreadOutClips(
   scaledPageHeight: number
 ) {
   let sortedClips = Object.values(clips);
-  sortedClips.sort(
-    (a, b) => getOriginalPosition(a, highlights) - getOriginalPosition(b, highlights)
+  sortedClips.sort((a, b) => {
+      var aRect = getOriginalPosition(a, highlights);
+      var bRect = getOriginalPosition(b, highlights);
+      var aIsRight = !(aRect.left < 0.5 && aRect.left + aRect.width > 0.5) && (aRect.left + aRect.width/2 > 0.5);
+      var bIsRight = !(bRect.left < 0.5 && bRect.left + bRect.width > 0.5) && (bRect.left + bRect.width/2 > 0.5);
+      if(aRect.page !== bRect.page) {
+        return aRect.page - bRect.page;
+      } else {
+        if(!aIsRight && bIsRight) {
+          return -1;
+        } else if(aIsRight && !bIsRight) {
+          return 1;
+        } else {
+          return aRect.top - bRect.top;
+        }
+      }
+    }
   );
   const originalOrder = sortedClips.map(c => c.id);
 
@@ -86,10 +101,10 @@ export function spreadOutClips(
       videoHeight + BORDER_HEIGHT + CAPTION_VERTICAL_PADDING + (isFocus ? TIMELINE_SPACE : 0); // timeline + border width + caption padding
 
     const caption_text = 'Transcript   ' + clip['captions'].map(c => c['caption'].trim()).join(' ');
-    const summary_text = 'Summary   ' + caption_text.split('.')[0];
-    let num_lines = getTextLineNum(summary_text, adjustedVideoWidth) + (isFocus ? 1 : 0);
-    if (isFocus && clip.expanded) {
-      num_lines += getTextLineNum(caption_text, adjustedVideoWidth);
+    const summary_text = caption_text.split('.')[0];
+    let num_lines = getTextLineNum(summary_text, adjustedVideoWidth);
+    if (isFocus) {
+      num_lines = getTextLineNum(caption_text, adjustedVideoWidth);
     }
 
     curr_spacing = curr_spacing + num_lines * CAPTION_LINE_HEIGHT;
@@ -116,7 +131,7 @@ export function spreadOutClips(
       const vectors = positions.map(v => v * positions.length - repel_vector);
       for (let j = 0; j < vectors.length; j++) {
         var clipId = overlap_group[j];
-        if (clipId == focusId && num_loops < 100) {
+        if (clipId == focusId && num_loops < 300) {
           continue;
         }
         const newTop = clips[clipId].top + vectors[j] * 0.05;
@@ -137,9 +152,9 @@ export function spreadOutClips(
         ) {
           clips[clipId].top = newTop;
         } else if (clips[clipId].page + newTop <= prevClipPos) {
-          clips[clipId].top = prevClipPos - clips[clipId].page + 0.01;
+          clips[clipId].top = prevClipPos - clips[clipId].page + 0.02;
         } else if (clips[clipId].page + newTop >= nextClipPos) {
-          clips[clipId].top = nextClipPos - clips[clipId].page - 0.01;
+          clips[clipId].top = nextClipPos - clips[clipId].page - 0.02;
         }
         if (clips[clipId].top < 0 && clips[clipId].page == 0) {
           clips[clipId].top = 0;

@@ -273,26 +273,31 @@ export function Player({
       </div>
     );
     let transcript = <></>;
-
-    if (true || ((scrubPosition != -1 || isPlaying) && !clip.expanded)) {
-      let captionTime = clip.start + progress * 1000;
-      // if (scrubPosition != -1) {
-      //   captionTime = scrubPosition * duration + clip.start;
-      // }
-      const caption = clip['captions'].find(
-        (c: Caption) => c.start <= captionTime && captionTime < c.end
+    
+    let captionTime = clip.start + progress * 1000;
+    // if (scrubPosition != -1) {
+    //   captionTime = scrubPosition * duration + clip.start;
+    // }
+    const caption = clip['captions'].find(
+      (c: Caption) => c.start <= captionTime && captionTime < c.end
+    );
+    if (caption) {
+      transcript = (
+        <div>
+          <b style={{ color: '#333' }}>Transcript</b>&nbsp;&nbsp;
+          <span style={{backgroundColor: scrubPosition == -1 ? "" : color + "11"}}>{caption.caption}</span>
+        </div>
       );
-      if (caption) {
-        transcript = (
-          <div>
-            <b style={{ color: '#333' }}>Transcript</b>&nbsp;&nbsp;
-            <span style={{backgroundColor: scrubPosition == -1 ? "" : color + "11"}}>{caption.caption}</span>
-          </div>
-        );
-      }
+    } else if(clip['captions'].length > 0) {
+      transcript = (
+        <div>
+          <b style={{ color: '#333' }}>Transcript</b>&nbsp;&nbsp;
+          {clip['captions'][0].caption}
+        </div>
+      );
     }
 
-    if (isFocus && !!clip.expanded) {
+    if (isFocus) { // && !!clip.expanded) {
       transcript = (
         <div>
           <b>Transcript</b>&nbsp;&nbsp;
@@ -327,7 +332,7 @@ export function Player({
     return (
       <div className="video__note-captions" onClick={handleCaptionClick}>
         {transcript}
-        {isFocus ? (
+        {false && isFocus ? (
           <div style={{ textAlign: 'center', color: '#999', cursor: 'pointer' }} onClick={handleToggleCaption}>
             <i className={'fa fa-' + (clip.expanded ? 'minus' : 'plus')}></i>
           </div>
@@ -378,13 +383,13 @@ export function Player({
       className="video__note"
       data-index={id}
       style={{
-        zIndex: isOverlay ? 3 : 1,
+        zIndex: isOverlay ? 3 : isFocus ? 2 : 1,
         position: isOverlay ? 'fixed' : 'absolute',
         top: top + 'px',
         left: left ? left + 'px' : undefined,
         opacity: isPhantom ? 0.2 : 1,
         pointerEvents: isPhantom ? 'none' : 'auto',
-        transition: pushable ? 'top 0.5s' : 'none',
+        transition: pushable ? 'top 0.3s' : 'none',
       }}>
       <div className="video__note-supercontainer">
         <div>
@@ -490,7 +495,7 @@ export function Player({
             </div>
             {!isLocked ? renderCaptions() : ""}
           </div>
-          {!isLocked ? renderHighlightNavigator() : ""}
+          {false && !isLocked ? renderHighlightNavigator() : ""}
         </div>
       </div>
     </div>

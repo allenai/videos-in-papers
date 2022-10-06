@@ -98,7 +98,21 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         var highlightIds = Object.keys(highlights);
         for(var i = 0; i < highlightIds.length; i++) {
           var highlightId = highlightIds[i];
-          highlights[highlightId].rects.sort((a: BoundingBoxType, b: BoundingBoxType) => (a.page + a.top) - (b.page + b.top));
+          highlights[highlightId].rects.sort((a: BoundingBoxType, b: BoundingBoxType) => {
+            var aIsRight = !(a.left < 0.5 && a.left + a.width > 0.5) && (a.left + a.width/2) > 0.5;
+            var bIsRight = !(b.left < 0.5 && b.left + b.width > 0.5) && (b.left + b.width/2) > 0.5;
+            if(a.page != b.page) {
+              return a.page - b.page;
+            } else {
+              if(!aIsRight && bIsRight) {
+                return -1;
+              } else if(aIsRight && !bIsRight) {
+                return 1;
+              } else {
+                return a.top - b.top;
+              }
+            }
+          });
         }
         var clips = data['clips'];
         var clipIds = Object.keys(clips);
@@ -194,19 +208,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   }, [navigating]);
 
   React.useEffect(() => {
-    const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
-    if (focusId != -1) {
-      const highlightId = newClips[focusId].highlights[newClips[focusId].position];
-      newClips[focusId].top = highlights[highlightId].rects[0].top;
-      newClips[focusId].page = highlights[highlightId].rects[0].page;
-    }
-    const spreadClips = spreadOutClips(
-      newClips,
-      highlights,
-      focusId,
-      videoWidth,
-      pageDimensions.height * scale
-    );
     setLock(null);
     // if (lockable) {
     //   if (focusId == -1) {
@@ -225,7 +226,6 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     //     setLock({ clipId: focusId, relativePosition: lock.relativePosition });
     //   }
     // }
-    setClips(spreadClips);
     if (!playedHistory.includes(focusId)) {
       setPlayedHistory([...playedHistory, focusId]);
     }
@@ -271,16 +271,16 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         setScrollOverflow(0);
       }
 
-      // TODO: Make video lock on scroll out
-      if(focusId != -1) {
-        let videoHeight = (videoWidth / 16) * 9;
-        var clipTop = (clips[focusId].top + clips[focusId].page) * pageDimensions.height * scale
-        if(clipTop + videoHeight < e.target.scrollTop || clipTop > e.target.scrollTop + window.innerHeight - 64) {
-          setLock({ clipId: focusId, relativePosition: -1 });
-        } else if(lock != null && e.target.scrollTop <= clipTop && clipTop <= e.target.scrollTop + window.innerHeight - 64) {
-          setLock(null);
-        }
-      }
+      // // TODO: Make video lock on scroll out
+      // if(focusId != -1) {
+      //   let videoHeight = (videoWidth / 16) * 9;
+      //   var clipTop = (clips[focusId].top + clips[focusId].page) * pageDimensions.height * scale
+      //   if(clipTop + videoHeight < e.target.scrollTop || clipTop > e.target.scrollTop + window.innerHeight - 64) {
+      //     setLock({ clipId: focusId, relativePosition: -1 });
+      //   } else if(lock != null && e.target.scrollTop <= clipTop && clipTop <= e.target.scrollTop + window.innerHeight - 64) {
+      //     setLock(null);
+      //   }
+      // }
       return;
     }
     if (navigating.scrollTo != e.target.scrollTop) return;
@@ -333,6 +333,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     highlightIdx: number | null
   ) => {
     // Find what the clip's top will be in the new position;
+    var newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
+    const highlightId = newClips[toId].highlights[newClips[toId].position];
+    newClips[toId].top = highlights[highlightId].rects[0].top;
+    newClips[toId].page = highlights[highlightId].rects[0].page;
     const spreadClips = spreadOutClips(
       newClips,
       highlights,
@@ -361,10 +365,8 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       setScrollOverflow(1);
       if (scrollOverflow == -1) scrollTo -= 1000;
     }
-    setClips(newClips);
-
     setFocusId(toId);
-
+    setClips(spreadClips);
     setNavigating({
       fromId: fromId != toId ? fromId : -1,
       toId: toId,
@@ -376,13 +378,16 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   };
 
   // Move clip to the position of another paper highlight
-  const changeClipPosition = (highlightId: number) => {
+  const changeClipPosition = (highlightId: number, rectIdx: number) => {
     const clipId: number = highlights[highlightId]['clip'];
     const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
     const newPosition = newClips[clipId].highlights.findIndex(ele => ele == highlightId);
     newClips[clipId].position = newPosition;
-    newClips[clipId].top = highlights[highlightId].rects[0].top;
-    newClips[clipId].page = highlights[highlightId].rects[0].page;
+    if(rectIdx > highlights[highlightId].rects.length - 1) {
+      rectIdx = highlights[highlightId].rects.length - 1;
+    }
+    newClips[clipId].top = highlights[highlightId].rects[rectIdx].top;
+    newClips[clipId].page = highlights[highlightId].rects[rectIdx].page;
     const spreadClips = spreadOutClips(
       newClips,
       highlights,
@@ -414,6 +419,24 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       setPlayedHistory([...playedHistory, clipId]);
     }
   };
+
+  const activateClip = (clipId: number) => {
+    const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
+    if (clipId != -1) {
+      const highlightId = newClips[clipId].highlights[newClips[clipId].position];
+      newClips[clipId].top = highlights[highlightId].rects[0].top;
+      newClips[clipId].page = highlights[highlightId].rects[0].page;
+    }
+    const spreadClips = spreadOutClips(
+      newClips,
+      highlights,
+      focusId,
+      videoWidth,
+      pageDimensions.height * scale
+    );
+    setClips(spreadClips);
+    setFocusId(clipId);
+  }
 
   if (Object.keys(clips).length == 0) {
     return <div>Loading...</div>;
@@ -470,7 +493,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   videoWidth={videoWidth}
                   playedHistory={playedHistory}
                   updatePlayedHistory={updatePlayedHistory}
-                  setFocusId={setFocusId}
+                  setFocusId={activateClip}
                   hoveredWord={hoveredWord}
                   setHoveredWord={setHoveredWord}
                   lock={lock}
@@ -537,7 +560,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   videoWidth={videoWidth}
                   playedHistory={playedHistory}
                   updatePlayedHistory={updatePlayedHistory}
-                  setFocusId={setFocusId}
+                  setFocusId={activateClip}
                   hoveredWord={hoveredWord}
                   setHoveredWord={setHoveredWord}
                   syncSegments={syncSegments}

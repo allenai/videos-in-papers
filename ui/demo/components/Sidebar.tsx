@@ -16,6 +16,7 @@ export type Props = BoundingBoxType & {
   onClick?: (e: React.MouseEvent) => void;
   onMouseMove?: (e: React.MouseEvent) => void;
   onMouseOut?: () => void;
+  rects: Array<BoundingBoxType>;
 };
 
 /*
@@ -26,6 +27,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   left,
   height,
   width,
+  page,
   position,
   className,
   id,
@@ -34,16 +36,17 @@ export const Sidebar: React.FunctionComponent<Props> = ({
   onClick,
   onMouseMove,
   onMouseOut,
+  rects,
   ...extraProps
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
-  const boxSize = { top, left, height, width: 12 };
+  const boxSize = { top, left, height, width };
   const componentClassName = classNames(
     'reader__page-overlay__sidebar',
+    className,
     isCurrent == true ? '' : 'reader__page-overlay__sidebar-notcurrent',
-    isFocus === true ? 'reader__page-overlay__sidebar-highlighted' : '',
-    className
+    isFocus === true ? 'reader__page-overlay__sidebar-highlighted' : ''
   );
   const sidebarRef = React.createRef<HTMLDivElement>();
   const [scaledPosition, setScaledPosition] = React.useState<number>(-1);
@@ -67,13 +70,25 @@ export const Sidebar: React.FunctionComponent<Props> = ({
     return `rotate${rotation}`;
   }, [rotation]);
 
+  var pageCenter = pageDimensions.width/2;
+
+  var sidebarBox = {
+    ...boxSize,
+    left: (boxSize.left + boxSize.width/2 <= pageCenter) || (boxSize.left < pageCenter && boxSize.left+boxSize.width > pageCenter)  ?
+      48:
+      pageDimensions.width - 48 - 12
+  };
+  if(scaledPosition != -1) {
+    sidebarBox.left -= 26 
+  }
+
   return (
     <React.Fragment>
       <div
         id={id}
         ref={sidebarRef}
         className={`reader__page-overlay__sidebar-holder ${rotationClassName()}`}
-        style={{...getBoundingBoxStyle({...boxSize, left: scaledPosition != -1 ? boxSize.left-26 : boxSize.left}), width: scaledPosition != -1 ? 64: 12}}
+        style={{...getBoundingBoxStyle({...sidebarBox}), width: scaledPosition != -1 ? 64: 12}}
         onClick={onClick}
         onMouseMove={onMouseMove}
         onMouseOut={onMouseOut}
@@ -81,7 +96,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
       >
         <div
           className={`${componentClassName} ${rotationClassName()}`}
-          style={getBoundingBoxStyle({...boxSize, top: 0, left: scaledPosition != -1 ? 26 : 0, width: 12})}
+          style={getBoundingBoxStyle({...sidebarBox, top: 0, left: scaledPosition != -1 ? 26 : 0, width: 12})}
         >
           {scaledPosition != -1 ? (
             <div
@@ -93,6 +108,16 @@ export const Sidebar: React.FunctionComponent<Props> = ({
           )}
         </div>
       </div>
+      {isFocus ? rects.map((rect, i) => {
+        if(rect.page != page) return null;
+        return (
+          <div 
+            key={i}
+            className={`reader__page-overlay__sidebar-focus ${componentClassName} ${rotationClassName()}`} 
+            style={{...getBoundingBoxStyle(rect)}}
+          ></div>
+        )
+       }) : ''}
     </React.Fragment>
   );
 };

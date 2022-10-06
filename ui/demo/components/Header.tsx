@@ -30,7 +30,7 @@ export const Header: React.FunctionComponent<Props> = ({
         {renderLabel()}
         <ZoomInButton />
       </div>
-      {lockable != null ? (
+      {false && lockable != null ? (
         <div style={{ display: 'flex', flexDirection: 'row', gap: '8px', paddingRight: '16px' }}>
           Lock Video
           <input
@@ -43,7 +43,7 @@ export const Header: React.FunctionComponent<Props> = ({
           />
         </div>
       ) : (
-        ''
+        <div></div>
       )}
       {saveAnnotations ? (
         <div>

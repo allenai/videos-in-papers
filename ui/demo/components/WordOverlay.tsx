@@ -58,7 +58,7 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
         className,
         // Set isHighlighted to true for highlighted styling
         isHighlighted: true,
-        key: pageIndex + '-' + token.id,
+        key: pageIndex + '-' + token.id + '-' + i,
         onMouseOver: () => { token.clip != undefined && token.syncIdx != undefined ? setHoveredWord({clipId: token.clip, syncIdx: token.syncIdx}) : null},
         onMouseLeave: () => { token.clip != undefined && token.syncIdx != undefined ? setHoveredWord(null) : null},
       };

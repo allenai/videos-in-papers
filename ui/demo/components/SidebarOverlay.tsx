@@ -11,16 +11,18 @@ import { Sidebar } from './Sidebar';
 
 type Bar = BoundingBoxType & {
   id: number;
+  rectIdx: number;
   position: number;
   isCurrent: boolean;
   isFocus: boolean;
+  rects: Array<BoundingBoxType>;
 };
 
 type Props = {
   pageIndex: number;
   highlights: { [index: number]: Highlight };
   clips: { [index: number]: Clip };
-  changeClipPosition: (id: number) => void;
+  changeClipPosition: (id: number, rectIdx: number) => void;
   scrubClip: { highlight: number; clip: number; progress: number } | null;
   setScrubClip: (data: { highlight: number; clip: number; progress: number } | null) => void;
   playedHistory: Array<number>;
@@ -58,76 +60,89 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
       }
 
       const clipId = highlights[id].clip;
+      const bboxes = rects.map((rect) => {
+        const bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
+        return {
+          ...bbox,
+          page: rect.page,
+        };
+      });
 
       for (var j = 0; j < pages.length; j++) {
         const page = pages[j];
         let top = 1000000;
         let bottom = 0;
         let width = 0;
-        let left = 48;
-        let totalCenters = 0;
+        let left = 1000000;
+        let isLeft = null;
         let num_rects = 0;
+        let rectIdx = 0;
+        let skipped = 0;
         for (let k = 0; k < rects.length; k++) {
-          if (rects[k].page !== page) continue;
-          const bbox = scaleRawBoundingBox(rects[k], pageDimensions.height, pageDimensions.width);
+          if (rects[k].page !== page) {
+            skipped++;
+            continue;
+          } else if(skipped > 0) {
+            rectIdx = k;
+            skipped = 0;
+          }
+          const bbox = bboxes[k];
           const currCenter = bbox.left + bbox.width / 2;
-          var avgCenter = totalCenters / num_rects;
+          const currIsLeft = currCenter <= pageDimensions.width/2 || (bbox.left < pageDimensions.width/2 && bbox.left + bbox.width > pageDimensions.width/2);
           if (
-            totalCenters != 0 &&
-            (currCenter < avgCenter - bbox.width || avgCenter + bbox.width < currCenter)
+            currIsLeft != isLeft || bbox.top > bottom + pageDimensions.height/20
           ) {
-            if (avgCenter > pageDimensions.width / 2) {
-              left = pageDimensions.width - left - 12;
-            }
             var position = -1;
             if (scrubClip != null && scrubClip['highlight'] == id) {
               position = scrubClip['progress'];
             }
             sidebars.push({
               id: id,
+              rectIdx: rectIdx,
               top,
               height: bottom - top,
               width,
               left,
               page,
-              isCurrent: clips[clipId].highlights[clips[clipId].position] == id,
+              isCurrent: true, // clips[clipId].highlights[clips[clipId].position] == id,
               isFocus: focusId == clipId,
               position: position,
+              rects: bboxes.slice(rectIdx, k),
             });
+            rectIdx = k;
             top = bbox.top;
             bottom = bbox.height + bbox.top;
-            left = 48;
+            left = bbox.left;
             width = bbox.width;
-            totalCenters = currCenter;
+            isLeft = currIsLeft;
             num_rects = 1;
           } else {
             if (bbox.top < top) top = bbox.top;
             if (bbox.height + bbox.top > bottom) bottom = bbox.height + bbox.top;
             if (bbox.width > width) width = bbox.width;
-            totalCenters += bbox.left + bbox.width / 2;
+            if (bbox.left < left) left = bbox.left;
+            isLeft = currIsLeft;
             num_rects += 1;
           }
         }
-        var avgCenter = totalCenters / num_rects;
-        if (avgCenter > pageDimensions.width / 2) {
-          left = pageDimensions.width - left - 12;
-        }
-
+        
         var position = -1;
         if (scrubClip != null && scrubClip['highlight'] == id) {
           position = scrubClip['progress'];
         }
-
+        
         sidebars.push({
           id: id,
+          rectIdx: rectIdx,
           top,
           height: bottom - top,
           width,
           left,
           page,
-          isCurrent: clips[clipId].highlights[clips[clipId].position] == id,
+          isCurrent: true, //clips[clipId].highlights[clips[clipId].position] == id,
           isFocus: focusId == clipId,
           position: position,
+          rects: bboxes.slice(rectIdx, rects.length),
         });
       }
 
@@ -141,7 +156,11 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
   function onClickSidebar(e: React.MouseEvent) {
     e.stopPropagation();
     const id: string | null = e.currentTarget.getAttribute('id');
-    changeClipPosition(id == null ? 0 : parseInt(id));
+    if (id != null) {
+      var clipId = parseInt(id.split('-')[0]);
+      var rectIdx = parseInt(id.split('-')[1]);
+      changeClipPosition(clipId, rectIdx);
+    }
   }
 
   // Move in sidebar to scrub through video
@@ -167,15 +186,17 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
       // Only render this BoundingBox if it belongs on the current page
       bars.map((prop: Bar, j: number) => {
         if (prop.page === pageIndex) {
-          const props = {
-            ...prop,
-            id: '' + prop.id,
+          var props = {
+            id: prop.id + '-' + prop.rectIdx,
             className: 'reader_sidebar_color-' + (highlights[prop.id].clip % 7),
             // Set isHighlighted to true for highlighted styling
             key: prop.id + '-' + j,
             onClick: onClickSidebar,
             onMouseMove: (e: React.MouseEvent) => onMoveInSidebar(e, prop.id, prop.isCurrent),
             onMouseOut: onMouseOutSidebar,
+            top: prop.top, left: prop.left, width: prop.width, height: prop.height,
+            page: prop.page, position: prop.position, isCurrent: prop.isCurrent, isFocus: prop.isFocus,
+            rects: prop.rects,
           };
 
           boxes.push(<Sidebar {...props} />);

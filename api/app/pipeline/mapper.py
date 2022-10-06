@@ -14,14 +14,14 @@ class Mapper():
         self.block_ids = None
 
         self.comparer = Comparer(
-            blocks_dir="../app/data/blocks",
-            captions_dir="../app/data/captions",
-            model=SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2') #allenai-specter
+            blocks_dir="../data/blocks",
+            captions_dir="../data/captions",
+            model_name='sentence-transformers/all-MiniLM-L6-v2' #allenai-specter
         )
         self.segmenter = Segmenter(
-            video_dir='../app/data/clips', 
-            caption_dir='../app/data/captions',
-            annotation_dir='../app/data/annotation'
+            video_dir='../data/clips', 
+            caption_dir='../data/captions',
+            annotation_dir='../data/annotation'
         )
 
         self.paper_blocks = None
@@ -56,9 +56,9 @@ class Mapper():
                 elif i == j:
                     self.transition_matrix[i][j] = 0
                 elif j > i and self.paper_blocks[i]['section'] != self.paper_blocks[j]['section']:
-                    self.transition_matrix[i][j] = 0.7 #* (1 - (abs(i - j) - 1) / (comparison_matrix.shape[1] - j))
+                    self.transition_matrix[i][j] = 0.4 #* (1 - (abs(i - j) - 1) / (comparison_matrix.shape[1] - j))
                 else:
-                    self.transition_matrix[i][j] = 1
+                    self.transition_matrix[i][j] = 0.6
 
     def viterbi(self, top_k=5):
         """
@@ -184,7 +184,7 @@ class Mapper():
 if __name__ == "__main__":
     mapper = Mapper()
 
-    annotation_dir = "../app/data/annotation"
+    annotation_dir = "../data/annotation"
 
     not_include = ["3491102.3501873", "3491102.3501967", "3462204.3481761"]
     ids = [
@@ -200,13 +200,15 @@ if __name__ == "__main__":
     total_mappings = 0
     total_count = 0
     
+    top_k = 5
+    
     for id in ids:
         if id in not_include: continue
         
         mapper.initialize_data(id, annotation_dir)
-        state_path = mapper.viterbi(top_k=1)
+        state_path = mapper.viterbi(top_k=top_k)
         results = mapper.evaluate(state_path, id, annotation_dir)
-        random_results = mapper.evaluate_random(id, annotation_dir, top_k=1)
+        random_results = mapper.evaluate_random(id, annotation_dir, top_k=top_k)
         print(f"{id}: {results[0] / results[1]}")
         total_correct += results[0]
         total_accuracy += results[0] / results[1]

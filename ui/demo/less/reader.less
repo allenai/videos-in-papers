@@ -218,6 +218,16 @@ body {
   cursor: pointer;
   border: solid 2px;
   pointer-events: none;
+  opacity: 0.4;
+  &:hover {
+    opacity: 0.6;
+  }
+}
+
+.reader__page-overlay__sidebar-focus {
+  position: absolute;
+  z-index: @z-index-bounding-box-overlay;
+  opacity: 0.1 !important;
 }
 
 .reader__page-overlay__sidebar-notcurrent {
@@ -225,7 +235,7 @@ body {
 }
 
 .reader__page-overlay__sidebar-highlighted {
-  opacity: 1;
+  opacity: 0.8;
   border: solid 3px;
 }
 
@@ -234,10 +244,6 @@ body {
   z-index: @z-index-bounding-box-overlay;
   cursor: pointer;
   background-color: transparent;
-  opacity: 0.3;
-  &:hover {
-    opacity: 0.6;
-  }
 }
 
 .reader_sidebar_color-0 {

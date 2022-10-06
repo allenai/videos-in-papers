@@ -34,7 +34,6 @@ export function PlayerTimeline({
   const handleMouseEnter = (e: React.MouseEvent) => {
     const temp = e.currentTarget.getAttribute('data-id');
     const id = temp != null ? parseInt(temp) : -1;
-    console.log(id, sections);
     setHovered(id);
   };
   const handleMouseLeave = (e: React.MouseEvent) => {
