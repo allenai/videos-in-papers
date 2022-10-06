@@ -333,7 +333,6 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
     setSelectedBlocks([]);
     setSelectedClip([-1, -1]);
-    setSelectedMapping(clipId);
   };
 
   const removeMapping = () => {

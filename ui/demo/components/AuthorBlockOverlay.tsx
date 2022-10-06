@@ -94,7 +94,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
       var bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
       bboxes.push({ ...block, ...bbox });
 
-      if (currentSuggestion != -1 && suggestedBlocks[currentSuggestion] == block.id) {
+      if (suggestedBlocks.includes(block.id)) {
         for (let j = 0; j < block.tokens.length; j++) {
           var token = block.tokens[j];
           if (token.page !== pageIndex) continue;
@@ -151,16 +151,16 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     if (!modifyMode) {
       if (suggestedBlocks.length > 0 && suggestedBlocks.includes(blockId)) {
         var index = suggestedBlocks.indexOf(blockId);
-        if(index == currentSuggestion) {
-          var newSuggestedBlocks = suggestedBlocks.filter((id) => id != blockId);
-          setSuggestedBlocks(newSuggestedBlocks);
-          if(newSuggestedBlocks.length <= currentSuggestion) {
-            setCurrentSuggestion(currentSuggestion - 1);
-          }
-          setSelectedBlocks([...selectedBlocks, blockId]);
-        } else {
-          setCurrentSuggestion(index);
+        // if(index == currentSuggestion) {
+        var newSuggestedBlocks = suggestedBlocks.filter((id) => id != blockId);
+        setSuggestedBlocks(newSuggestedBlocks);
+        if(newSuggestedBlocks.length <= currentSuggestion) {
+          setCurrentSuggestion(currentSuggestion - 1);
         }
+        setSelectedBlocks([...selectedBlocks, blockId]);
+        // } else {
+        //   setCurrentSuggestion(index);
+        // }
       } else if (selectedBlocks.includes(blockId)) {
         const copySelBlocks = [...selectedBlocks];
         const index = selectedBlocks.indexOf(blockId);
