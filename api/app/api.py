@@ -148,6 +148,22 @@ def create_api() -> Blueprint:
             print(e)
             return jsonify({'message': 400, 'error': str(e)})
 
+    @api.route('/api/get_annotations', methods=['POST'])
+    def get_annotations():
+        data = request.json
+        if data is None:
+            return error("No request body")
+
+        doi = data.get("doi")
+        userId = data.get("userId")
+
+        # TODO: save that user accessed this paper
+
+        if(os.path.isfile(DIR_PATH + '/data/annotation/' + doi + '.json')):
+            return send_from_directory(DIR_PATH + '/data/annotation/', doi + '.json')
+        else:
+            return jsonify({'clips': {}, 'highlights': {}, 'syncSegments': {}})
+
     @api.route('/api/save_annotations', methods=['POST'])
     def save_annotations():
         data = request.json
@@ -185,7 +201,7 @@ def create_api() -> Blueprint:
 
         try:
             predicted_comparisons, block_ids = comparer.compare(doi, segments, method='joint', is_load=True)
-            predicted_blocks = comparer.mapping(mappings, predicted_comparisons, block_ids)
+            predicted_blocks = comparer.mapping(doi, mappings, predicted_comparisons, block_ids)
 
             return jsonify({'message': 200, 'suggestions': predicted_blocks})
         except AssertionError as e:
