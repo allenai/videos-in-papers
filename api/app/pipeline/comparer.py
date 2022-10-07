@@ -185,10 +185,12 @@ class Comparer():
 
         return comparisons, paper_block_ids
     
-    def mapping(self, mappings, comparison_matrix, paper_block_ids, top_k=5):
+    def mapping(self, id, mappings, comparison_matrix, paper_block_ids, top_k=5):
         """
         Map the segments to the blocks
         """
+        paper_blocks = self._read_paper_blocks(id)
+
         clip_id = None
         for i, mapping in enumerate(mappings):
             if len(mapping['blocks']) > 0:
@@ -199,9 +201,18 @@ class Comparer():
             else:
                 clip_id = i
 
-        # transition: multiply all blocks in different sections and before the latest block with 0.7
         # Get the top k blocks
-        top_blocks = np.argsort(comparison_matrix[clip_id])[-top_k:]
+        transition_vector = np.full(comparison_matrix.shape[1], 0.6)
+        if clip_id != 0:
+            prev_mapping = mappings[clip_id - 1]
+            if len(prev_mapping['blocks']) > 0:
+                blk_id = prev_mapping['blocks'][0]
+                block_indices = [i for i, block in enumerate(paper_blocks) if block['id'] <= blk_id]
+                main_block = paper_blocks[block_indices[-1]]
+                block_indices = list(filter(lambda idx: paper_blocks[idx]['section'] != main_block['section'], block_indices))
+                transition_vector[block_indices] = 0.4
+            
+        top_blocks = np.argsort(comparison_matrix[clip_id]*transition_vector)[-top_k:]
         top_blocks = top_blocks[::-1]
         top_blocks = top_blocks.tolist()
         top_blocks = list(map(lambda x: paper_block_ids[x], top_blocks))
