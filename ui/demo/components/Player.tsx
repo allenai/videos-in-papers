@@ -15,12 +15,10 @@ interface Props {
   clip: Clip;
   clips: Array<Clip>;
   highlights: Array<Highlight>;
-  playingClip: number;
-  setPlayingClip?: (id: number) => void;
   isFocus: boolean;
   isOverlay: boolean;
   isPhantom: boolean;
-  handleNavigate?: (fromId: number, toId: number, isPlay: boolean) => void;
+  handleNavigate?: (fromId: number, toId: number, type: string) => void;
   navigateToPosition?: (clipId: number, highlightIdx: number) => void;
   toggleCaptions?: (clipId: number, isExpand: boolean) => void;
   toggleAltHighlights?: (clipId: number, isShow: boolean) => void;
@@ -37,6 +35,7 @@ interface Props {
   setPlaybackRate?: (rate: number) => void;
   autoplay?: boolean;
   setAutoplay?: (autoplay: boolean) => void;
+  logAction?: (action: string, data: any) => void;
 }
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -55,8 +54,6 @@ export function Player({
   clip,
   clips,
   highlights,
-  playingClip,
-  setPlayingClip,
   isFocus,
   isOverlay,
   isPhantom,
@@ -76,7 +73,8 @@ export function Player({
   playbackRate,
   setPlaybackRate,
   autoplay,
-  setAutoplay
+  setAutoplay,
+  logAction
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -113,12 +111,6 @@ export function Player({
     else setPushable(false);
   }, [top]);
 
-  // Pause or play depending on if it is the currently playing clip
-  React.useEffect(() => {
-    if (playingClip == id) setIsPlaying(true);
-    else setIsPlaying(false);
-  }, [playingClip]);
-
   React.useEffect(() => {
     if (isFocus && videoRef.current) {
       videoRef.current.seekTo(0, 'fraction');
@@ -136,12 +128,7 @@ export function Player({
   }, [scrubPosition]);
 
   function handleNavigateWrapper(fromId: number, toId: number) {
-    if (handleNavigate) {
-      handleNavigate(fromId, toId, false);
-      if (isPlaying && setPlayingClip) {
-        setPlayingClip(-1);
-      }
-    }
+    if (handleNavigate) handleNavigate(fromId, toId, 'timeline');
   }
 
   // Navigate to another highlight in the paper
@@ -180,27 +167,18 @@ export function Player({
     if(!autoplay) {
       setEnded(true);
     } else {
-      handleMove(null, 1);
+      handleMove(null, 1, 'autoplay');
     }
   }
 
   function handlePlay() {
-    if (setPlayingClip) {
-      setPlayingClip(id);
-    }
+    if(logAction) logAction('play', { clipId: id });
+    setIsPlaying(true);
   }
   function handlePause() {
-    if (setPlayingClip) {
-      setPlayingClip(-1);
-    }
+    if(logAction) logAction('play', { clipId: id });
+    setIsPlaying(false);
   }
-
-  const testSummaries = [
-    'This is a presentation of OVRlap.',
-    'The OVRlap technique allows users to see multiple viewpoints from a first-person perspective.',
-    'The idea for OVRlap came from considering why people can only be in one place at a time, and how virtual reality could allow people to be in multiple places at once.',
-    'The OVRlap technique allows users to see and interact with multiple distinct and distant locations from a first-person perspective.',
-  ];
 
   function renderHighlightNavigator() {
     if (!isFocus || highlights.length <= 1) return '';
@@ -350,13 +328,33 @@ export function Player({
     }
   }
 
-  function handleMove(e: React.MouseEvent | null, direction: number) {
+  function handleMove(e: React.MouseEvent | null, direction: number, type: string) {
     if(e != null) {
       e.stopPropagation();
     }
     const fromIdx = clips.findIndex(c => c.id == id);
     const toId = clips[fromIdx + direction].id;
-    if (handleNavigate) handleNavigate(id, toId, true);
+    if (handleNavigate) handleNavigate(id, toId, type);
+  }
+
+  function handleSeek(seconds: number) {
+    if(scrubPosition == -1 && logAction) {
+      logAction('scrubVideo', { clipId: id, seconds: seconds, location: 'video' });
+    }
+  }
+
+  function handleAutoplay() {
+    if(setAutoplay) {
+      if(logAction) logAction('toggleAutoplay', { clipId: id, autoplay: !autoplay });
+      setAutoplay(!autoplay)
+    }
+  }
+
+  function handlePlaybackRate(rate: number) {
+    if(setPlaybackRate) {
+      if(logAction) logAction('playbackRate', { clipId: id, rate: rate });
+      setPlaybackRate(rate);
+    }
   }
 
   var adjustedVideoWidth = videoWidth * (isFocus ? 1 : 0.8);
@@ -370,7 +368,6 @@ export function Player({
   if(container.length > 0) {
     var rect = container[0].getBoundingClientRect();  
     if(isLocked) {
-      // TODO: decide where to lock the video to
       adjustedVideoWidth = pageDimensions.width * scale * 0.3;
       videoHeight = (adjustedVideoWidth/16) * 9;
       left = rect.left - 28 - adjustedVideoWidth;
@@ -435,6 +432,7 @@ export function Player({
                   }}
                   onPlay={handlePlay}
                   onPause={handlePause}
+                  onSeek={handleSeek}
                   onEnded={handleEnd}
                   width="100%"
                   height="100%"
@@ -449,7 +447,7 @@ export function Player({
                           key={i}
                           className="video__note-player-rate"
                           style={rate == playbackRate? {backgroundColor: "#1890ff", fontWeight: "bold", color: "#f6f6f6"} : {}}
-                          onClick={() => setPlaybackRate && setPlaybackRate(rate)}>
+                          onClick={() => handlePlaybackRate(rate)}>
                           {(rate == 1 || rate == 2) ? rate + '.00' : (rate == 1.5 ? rate + '0' : rate)}
                         </div>
                       )
@@ -461,7 +459,7 @@ export function Player({
                   <div className="video__note-autoplay">
                     <div className="video__note-autoplay-inner">
                       <label className="video__note-autoplay-switch">
-                        <input type="checkbox" onChange={() => setAutoplay && setAutoplay(!autoplay)} checked={autoplay}/>
+                        <input type="checkbox" onChange={handleAutoplay} checked={autoplay}/>
                         <span className="video__note-autoplay-slider"></span>
                       </label>
                     </div>
@@ -481,13 +479,16 @@ export function Player({
                       <i className="fa-solid fa-repeat"></i>
                       <div>Replay</div>
                     </div>
-                    <div 
-                      className="video__note-player-endscreen-inner"
-                      onClick={(e) => handleMove(e, 1)}
-                    >
-                      <i className="fa-solid fa-forward"></i>
-                      <div>Next</div>
-                    </div>
+                    {clips.findIndex(c => c.id == id) != clips.length -1 ?
+                      <div 
+                        className="video__note-player-endscreen-inner"
+                        onClick={(e) => handleMove(e, 1, 'next')}
+                      >
+                        <i className="fa-solid fa-forward"></i>
+                        <div>Next</div>
+                      </div> :
+                      ""
+                    }
                   </div>
                   : ""
                 }

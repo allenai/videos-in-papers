@@ -211,4 +211,44 @@ def create_api() -> Blueprint:
             print(e)
             return jsonify({'message': 400, 'error': str(e)})
 
+
+    @api.route('/api/log_action', methods=['POST'])
+    def log_action():
+        data = request.json
+        if data is None:
+            return error("No request body")
+
+        doi = data.get("doi")
+        userId = data.get("userId")
+        action = data.get("action")
+        timestamp = data.get("timestamp")
+        data = data.get("data")
+
+        # save the action
+        try:
+            with open(f"{DIR_PATH}/data/log/{doi}.json", 'a') as f:
+                json.dump({'userId': userId, 'action': action, 'timestamp': timestamp, 'data': data}, f)
+                f.write('\n')
+
+            return jsonify({'message': 200})
+        except AssertionError as e:
+            print(e)
+            return jsonify({'message': 400, 'error': str(e)})
+        except Exception as e:
+            print(e)
+            return jsonify({'message': 400, 'error': str(e)})
+
+    @api.route('/api/file_list', methods=['GET'])
+    def file_list():
+        folders = ['clips', 'blocks', 'captions', 'pdf', 'annotation', 'log']
+        files = {}
+        for folder in folders:
+            files[folder] = os.listdir(f"{DIR_PATH}/data/{folder}")
+
+        return jsonify(files)
+
+    @api.route('/api/log/<path:path>', methods=['GET'])
+    def get_log(path):
+        return send_from_directory(f"{DIR_PATH}/data/log/", path)
+
     return api

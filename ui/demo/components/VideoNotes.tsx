@@ -18,7 +18,7 @@ type Props = {
     scrollTo: number;
     position: number | null;
   } | null;
-  handleNavigate: (fromId: number, toId: number) => void;
+  handleNavigate: (fromId: number, toId: number, type: string) => void;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
   toggleCaptions: (clipId: number, isExpand: boolean) => void;
   toggleAltHighlights: (clipId: number, isShow: boolean) => void;
@@ -31,6 +31,7 @@ type Props = {
   setHoveredWord: (data: { clipId: number; syncIdx: number } | null) => void;
   lock: { clipId: number; relativePosition: number } | null;
   syncSegments: {[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}};
+  logAction: (action: string, data: any) => void;
 };
 
 export const VideoNotes: React.FunctionComponent<Props> = ({
@@ -51,14 +52,12 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   hoveredWord,
   setHoveredWord,
   lock,
-  syncSegments
+  syncSegments,
+  logAction,
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
   const [processedClips, setProcessedClips] = React.useState<{ [index: number]: Clip }>({});
-
-  // ID of the clip that is currently playing
-  const [playingClip, setPlayingClip] = React.useState(-1);
 
   const [playbackRate, setPlaybackRate] = React.useState(1.0);
   const [autoplay, setAutoplay] = React.useState(false);
@@ -70,12 +69,6 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
       spreadOutClips(clips, highlights, focusId, videoWidth, pageDimensions.height * scale)
     );
   }, [pageDimensions, clips, videoWidth, focusId]);
-
-  // Navigate and change playingClip if autoplaying
-  function handleNavigateWrapper(fromId: number, toId: number, isPlay: boolean) {
-    handleNavigate(fromId, toId);
-    if (isPlay) setPlayingClip(toId);
-  }
 
   // Render a phantom clip to act as placeholder for clips during navigation
   function renderPhantom(timeOrderedClips: Array<Clip>): React.ReactElement {
@@ -93,7 +86,6 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
         top={top}
         clip={clip}
         clips={timeOrderedClips}
-        playingClip={playingClip}
         scrubPosition={-1}
         highlights={clip['highlights'].map((id: number) => highlights[id])}
         isFocus={focusId == id}
@@ -142,12 +134,10 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           clip={clip}
           clips={timeOrderedClips}
           highlights={clip['highlights'].map((id: number) => highlights[id])}
-          playingClip={playingClip}
-          setPlayingClip={setPlayingClip}
           isFocus={focusId == id}
           isOverlay={isOverlay}
           isPhantom={isPhantom}
-          handleNavigate={handleNavigateWrapper}
+          handleNavigate={handleNavigate}
           navigateToPosition={navigateToPosition}
           toggleCaptions={toggleCaptions}
           toggleAltHighlights={toggleAltHighlights}
@@ -170,6 +160,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           setPlaybackRate={setPlaybackRate}
           autoplay={autoplay}
           setAutoplay={setAutoplay}
+          logAction={logAction}
         />
       );
     });

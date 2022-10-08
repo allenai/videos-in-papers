@@ -18,7 +18,7 @@ type Props = {
     scrollTo: number;
     position: number | null;
   } | null;
-  handleNavigate: (fromId: number, toId: number) => void;
+  handleNavigate: (fromId: number, toId: number, type: string) => void;
   navigateToPosition: (clipId: number, highlightIdx: number) => void;
   toggleCaptions: (clipId: number, isExpand: boolean) => void;
   toggleAltHighlights: (clipId: number, isShow: boolean) => void;
@@ -30,6 +30,7 @@ type Props = {
   hoveredWord: { clipId: number; syncIdx: number } | null;
   setHoveredWord: (data: { clipId: number; syncIdx: number } | null) => void;
   syncSegments: {[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}};
+  logAction: (action: string, data: any) => void;
 };
 
 export const VideoPopup: React.FunctionComponent<Props> = ({
@@ -49,21 +50,13 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
   setFocusId,
   hoveredWord,
   setHoveredWord,
-  syncSegments
+  syncSegments,
+  logAction
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
 
-  // ID of the clip that is currently playing
-  const [playingClip, setPlayingClip] = React.useState(-1);
-
   const [playbackRate, setPlaybackRate] = React.useState(1.0);
-
-  // Navigate and change playingClip if autoplaying
-  function handleNavigateWrapper(fromId: number, toId: number, isPlay: boolean) {
-    handleNavigate(fromId, toId);
-    if (isPlay) setPlayingClip(toId);
-  }
 
   // Render all the clips
   function renderClips(): React.ReactElement {
@@ -80,8 +73,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
     const clipPosition = positionSingleClip(
       clip,
       highlights,
-      pageDimensions.height,
-      pageDimensions.width
+      adjustedVideoWidth / (pageDimensions.width * scale)
     );
 
     let top =
@@ -105,12 +97,10 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
         clip={clip}
         clips={timeOrderedClips}
         highlights={clip['highlights'].map((id: number) => highlights[id])}
-        playingClip={playingClip}
-        setPlayingClip={setPlayingClip}
         isFocus={true}
         isOverlay={isOverlay}
         isPhantom={isPhantom}
-        handleNavigate={handleNavigateWrapper}
+        handleNavigate={handleNavigate}
         navigateToPosition={navigateToPosition}
         toggleCaptions={toggleCaptions}
         toggleAltHighlights={toggleAltHighlights}
@@ -130,6 +120,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
         syncSegments={syncSegments[focusId]}
         playbackRate={playbackRate}
         setPlaybackRate={setPlaybackRate}
+        logAction={logAction}
       />
     );
   }

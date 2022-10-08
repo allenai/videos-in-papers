@@ -171,8 +171,7 @@ export function spreadOutClips(
 export function positionSingleClip(
   clip: Clip,
   highlights: { [index: number]: Highlight },
-  pageHeight: number,
-  pageWidth: number
+  videoWidth: number,
 ) {
   const highlightId = clip.highlights[clip.position];
   const highlight = highlights[highlightId];
@@ -181,6 +180,7 @@ export function positionSingleClip(
   let finalBbox = rects[0];
   let page = finalBbox.page;
   let top = finalBbox.top;
+  let height = finalBbox.height;
   for (let k = 1; k < rects.length; k++) {
     const bbox = rects[k];
 
@@ -188,9 +188,11 @@ export function positionSingleClip(
       page = bbox.page;
       top = bbox.top;
       finalBbox = bbox;
+      height = bbox.height;
     } else if (page == bbox.page && top > bbox.top) {
       top = bbox.top;
       finalBbox = bbox;
+      height += bbox.height;
     }
   }
 
@@ -198,17 +200,17 @@ export function positionSingleClip(
     return { top: 0, left: 0, page: 0 };
   }
 
-  if (finalBbox.width < 0.5) {
-    let left = finalBbox.left - 0.4 - 0.02;
-    if (finalBbox.left < 0.5) {
-      left = finalBbox.left + finalBbox.width + 0.01;
-    }
-    return { top: top, left: left, page: finalBbox.page };
-  } else {
+  if (finalBbox.left < 0.5 && finalBbox.left + finalBbox.width > 0.5) {
     return {
-      top: finalBbox.top + finalBbox.height,
-      left: finalBbox.left + finalBbox.width / 2,
+      top: finalBbox.top + height + 0.02,
+      left: 0.5 - videoWidth / 2,
       page: finalBbox.page,
     };
+  } else {
+    let left = finalBbox.left - 0.4 - 0.02;
+    if (finalBbox.left < 0.5) {
+      left = 0.51;
+    }
+    return { top: top, left: left, page: finalBbox.page };
   }
 }

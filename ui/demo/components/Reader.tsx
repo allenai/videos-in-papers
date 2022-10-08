@@ -88,12 +88,28 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [lockable, setLockable] = React.useState<boolean>(false);
   const [lock, setLock] = React.useState<{ clipId: number; relativePosition: number } | null>(null);
 
-  const data = new FormData();
-  data.append('json', JSON.stringify({ doi: DOI }));
+  const [scrollPosition, setScrollPosition] = React.useState<number>(0);
+
   React.useEffect(() => {
-    fetch('/api/annotation/' + DOI + '.json')
+    var identifier = localStorage.getItem('s2-paper-video-identifier');
+    if (!identifier) {
+      // generate random 16 character string
+      const randomString = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('s2-paper-video-identifier', randomString);
+      identifier = randomString;
+    }
+
+    const data = { doi: DOI, userId: identifier };
+    fetch('/api/get_annotations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
       .then(res => res.json())
       .then(data => {
+        logAction('enter', {});
         var highlights = data['highlights'];
         var highlightIds = Object.keys(highlights);
         for(var i = 0; i < highlightIds.length; i++) {
@@ -261,6 +277,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const handleScroll = (e: any) => {
     if (navigating == null) {
+      if(Math.abs(scrollPosition - e.target.scrollTop) > 5) {
+        logAction('scroll', { scrollTop: e.target.scrollTop });
+      }
+
       // Remove the padding spaces added to handle overflow
       if (scrollOverflow == -1 && e.target.scrollTop > 1000) {
         setScrollOverflow(0);
@@ -270,6 +290,31 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       ) {
         setScrollOverflow(0);
       }
+
+
+      // if(!(pageDimensions.width > 0 && videoWidth > 150)) return;
+
+      // var sidebars = Array.from(document.getElementsByClassName('reader_sidebars')).filter(element => element.getBoundingClientRect().top >= 0 && element.getBoundingClientRect().top < window.innerHeight);
+      // if(sidebars.length == 0) return;
+
+      // for(var i = 0; i < sidebars.length; i++) {
+      //   var sidebar = sidebars[i];
+      //   var highlightId = parseInt(sidebar.id.split('-')[0]);
+      //   var rectIdx = parseInt(sidebar.id.split('-')[1]);
+      //   if(!highlightId) continue;
+
+      //   var highlight = highlights[highlightId];
+
+      //   var clipId = highlight.clip;
+
+      //   var clipElement = document.getElementById('video__note-' + clipId);
+      //   if(!clipElement) continue;
+      //   var clipPosition = clipElement.getBoundingClientRect();
+
+      //   if(clipPosition.bottom < 0 || clipPosition.top > window.innerHeight) {
+      //     changeClipPosition(highlightId, rectIdx, false);
+      //   }
+      // }
 
       // // TODO: Make video lock on scroll out
       // if(focusId != -1) {
@@ -281,25 +326,27 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       //     setLock(null);
       //   }
       // }
-      return;
+    } else if (navigating.scrollTo == e.target.scrollTop) {
+      // Reached desired scroll position so finish navigation mode
+      if (navigating.position == null) {
+        setNavigating(null);
+      } else {
+        const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
+        newClips[navigating.toId].position = navigating.position;
+        const highlightId = newClips[navigating.toId].highlights[navigating.position];
+        newClips[navigating.toId].position = navigating.position;
+        newClips[navigating.toId].top = highlights[highlightId].rects[0].top;
+        newClips[navigating.toId].page = highlights[highlightId].rects[0].page;
+        setNavigating(null);
+      }
     }
-    if (navigating.scrollTo != e.target.scrollTop) return;
-    // Reached desired scroll position so finish navigation mode
-    if (navigating.position == null) {
-      setNavigating(null);
-    } else {
-      const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
-      newClips[navigating.toId].position = navigating.position;
-      const highlightId = newClips[navigating.toId].highlights[navigating.position];
-      newClips[navigating.toId].position = navigating.position;
-      newClips[navigating.toId].top = highlights[highlightId].rects[0].top;
-      newClips[navigating.toId].page = highlights[highlightId].rects[0].page;
-      setNavigating(null);
-    }
+    setScrollPosition(e.target.scrollTop);
   };
 
   // Scroll from video clip to video clip
-  const handleNavigate = (fromId: number, toId: number) => {
+  const handleNavigate = (fromId: number, toId: number, type: string) => {
+    logAction('navigate', { fromId, toId, type });
+
     if (fromId == toId) return;
 
     const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
@@ -380,6 +427,13 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   // Move clip to the position of another paper highlight
   const changeClipPosition = (highlightId: number, rectIdx: number) => {
     const clipId: number = highlights[highlightId]['clip'];
+
+    if(focusId == clipId) {
+      logAction('changeClipPosition', { highlightId, rectIdx });
+    } else {
+      logAction('focusClip', { clipId, location: 'paper' });
+    }
+
     const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
     const newPosition = newClips[clipId].highlights.findIndex(ele => ele == highlightId);
     newClips[clipId].position = newPosition;
@@ -421,6 +475,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   };
 
   const activateClip = (clipId: number) => {
+    if(clipId == focusId) return;
+
+    logAction('focusClip', { clipId, location: 'video' });
+
     const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
     if (clipId != -1) {
       const highlightId = newClips[clipId].highlights[newClips[clipId].position];
@@ -438,6 +496,49 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     setFocusId(clipId);
   }
 
+  const logAction = (action: string, data: any) => {
+    var timestamp = new Date().getTime();
+    const formdata = { 
+      doi: DOI, 
+      userId: localStorage.getItem('s2-paper-video-identifier'),
+      timestamp: timestamp,
+      action: action,
+      data: data
+    };
+    fetch('/api/log_action', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formdata),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if(data['message'] != 200) console.log('Error:', data);
+      });
+  }
+
+  const clickOutside = () => {
+    logAction('defocusClip', { clipId: focusId });
+    setFocusId(-1);
+  }
+
+  const handleSidebarScrub = (data: {highlight: number, clip: number, progress: number} | null) => {
+    if(data != null && (scrubClip == null || Math.abs(data['progress'] - scrubClip['progress']) > 0.05)) {
+      var clip = clips[data['clip']];
+      var seconds = data['progress'] * (clip['end'] - clip['start']);
+      logAction('scrub', { highlight: data['highlight'], clip: data['clip'], seconds: seconds, location: 'paper' });
+    }
+    setScrubClip(data);
+  }
+
+  const handleHoveredSync = (data: { clipId: number, syncIdx: number } | null, location: string) => {
+    if(data != null && data['syncIdx'] != -1) {
+      logAction('hoverSync', { clipId: data['clipId'], syncIdx: data['syncIdx'], location: location });
+    }
+    setHoveredWord(data);
+  }
+
   if (Object.keys(clips).length == 0) {
     return <div>Loading...</div>;
   } else if (pageDimensions.width > 0 && videoWidth > 150) {
@@ -445,7 +546,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       <BrowserRouter>
         <Route path="/">
           <Header lockable={lockable} setLockable={setLockable} />
-          <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
+          <div className="reader__container" onScroll={handleScroll} onClick={clickOutside}>
             <DocumentWrapper
               className="reader__main"
               file={'/api/pdf/' + DOI + '.pdf'}
@@ -460,7 +561,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         <WordOverlay
                           pageIndex={i}
                           hoveredWord={hoveredWord}
-                          setHoveredWord={setHoveredWord}
+                          setHoveredWord={(data: {clipId: number, syncIdx: number} | null) => handleHoveredSync(data, 'paper')}
                           syncSegments={syncSegments}
                           tokens={tokens}
                         />
@@ -470,7 +571,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                           clips={clips}
                           changeClipPosition={changeClipPosition}
                           scrubClip={scrubClip}
-                          setScrubClip={setScrubClip}
+                          setScrubClip={handleSidebarScrub}
                           focusId={focusId}
                           playedHistory={playedHistory}
                           setThumbnail={setThumbnail}
@@ -495,9 +596,10 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   updatePlayedHistory={updatePlayedHistory}
                   setFocusId={activateClip}
                   hoveredWord={hoveredWord}
-                  setHoveredWord={setHoveredWord}
+                  setHoveredWord={(data: {clipId: number, syncIdx: number} | null) => handleHoveredSync(data, 'video')}
                   lock={lock}
                   syncSegments={syncSegments}
+                  logAction={logAction}
                 />
               </div>
               {scrollOverflow == 1 ? <div style={{ height: '2000px' }}></div> : ''}
@@ -512,7 +614,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
       <BrowserRouter>
         <Route path="/">
           <Header lockable={lockable} setLockable={setLockable} />
-          <div className="reader__container" onScroll={handleScroll} onClick={() => setFocusId(-1)}>
+          <div className="reader__container" onScroll={handleScroll} onClick={clickOutside}>
             <DocumentWrapper
               className="reader__main"
               file={'/api/pdf/' + DOI + '.pdf'}
@@ -527,7 +629,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                         <WordOverlay
                           pageIndex={i}
                           hoveredWord={hoveredWord}
-                          setHoveredWord={setHoveredWord}
+                          setHoveredWord={(data: {clipId: number, syncIdx: number} | null) => handleHoveredSync(data, 'paper')}
                           syncSegments={syncSegments}
                           tokens={tokens}
                         />
@@ -537,7 +639,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                           clips={clips}
                           changeClipPosition={changeClipPosition}
                           scrubClip={scrubClip}
-                          setScrubClip={setScrubClip}
+                          setScrubClip={handleSidebarScrub}
                           focusId={focusId}
                           playedHistory={playedHistory}
                           setThumbnail={setThumbnail}
@@ -562,8 +664,9 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
                   updatePlayedHistory={updatePlayedHistory}
                   setFocusId={activateClip}
                   hoveredWord={hoveredWord}
-                  setHoveredWord={setHoveredWord}
+                  setHoveredWord={(data: {clipId: number, syncIdx: number} | null) => handleHoveredSync(data, 'video')}
                   syncSegments={syncSegments}
+                  logAction={logAction}
                 />
               </div>
               {scrollOverflow == 1 ? <div style={{ height: '2000px' }}></div> : ''}
