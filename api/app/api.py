@@ -226,9 +226,19 @@ def create_api() -> Blueprint:
 
         # save the action
         try:
-            with open(f"{DIR_PATH}/data/log/{doi}.json", 'a') as f:
-                json.dump({'userId': userId, 'action': action, 'timestamp': timestamp, 'data': data}, f)
-                f.write('\n')
+            # if directory does not exist, create it
+            if not os.path.exists(f"{DIR_PATH}/data/logs"):
+                os.makedirs(f"{DIR_PATH}/data/logs")
+
+            # if exists, append
+            if(os.path.isfile(DIR_PATH + '/data/logs/' + doi + '.json')):
+                with open(f"{DIR_PATH}/data/log/{doi}.json", 'a') as f:
+                    json.dump({'userId': userId, 'action': action, 'timestamp': timestamp, 'data': data}, f)
+                    f.write('\n')
+            else:
+                with open(f"{DIR_PATH}/data/log/{doi}.json", 'w') as f:
+                    json.dump({'userId': userId, 'action': action, 'timestamp': timestamp, 'data': data}, f)
+                    f.write('\n')
 
             return jsonify({'message': 200})
         except AssertionError as e:

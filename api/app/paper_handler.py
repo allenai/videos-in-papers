@@ -525,7 +525,7 @@ def process_paper_blocks(doi, input_path, output_path, comparer):
                     block['tokens'].append({
                         'id': tok_idx,
                         'page': int(token['page']),
-                        'text': token['text'],
+                        'text': token['text'] if isinstance(token['text'], str) else '',
                         'left': float(token['x1']),
                         'top': float(token['y1']),
                         'width': float(token['x2']) - float(token['x1']),
