@@ -231,13 +231,13 @@ def create_api() -> Blueprint:
                 os.makedirs(f"{DIR_PATH}/data/logs")
 
             # if exists, append
-            if(os.path.isfile(DIR_PATH + '/data/logs/' + doi + '.json')):
-                with open(f"{DIR_PATH}/data/log/{doi}.json", 'a') as f:
-                    json.dump({'userId': userId, 'action': action, 'timestamp': timestamp, 'data': data}, f)
+            if(os.path.isfile(DIR_PATH + '/data/logs/' + userId + '.json')):
+                with open(f"{DIR_PATH}/data/logs/{userId}.json", 'a') as f:
+                    json.dump({'doi': doi, 'action': action, 'timestamp': timestamp, 'data': data}, f)
                     f.write('\n')
             else:
-                with open(f"{DIR_PATH}/data/log/{doi}.json", 'w') as f:
-                    json.dump({'userId': userId, 'action': action, 'timestamp': timestamp, 'data': data}, f)
+                with open(f"{DIR_PATH}/data/logs/{userId}.json", 'w') as f:
+                    json.dump({'doi': doi, 'action': action, 'timestamp': timestamp, 'data': data}, f)
                     f.write('\n')
 
             return jsonify({'message': 200})

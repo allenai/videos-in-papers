@@ -109,7 +109,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     })
       .then(res => res.json())
       .then(data => {
-        logAction('enter', {});
+        logAction('enter', {condition: 'reader'});
         var highlights = data['highlights'];
         var highlightIds = Object.keys(highlights);
         for(var i = 0; i < highlightIds.length; i++) {

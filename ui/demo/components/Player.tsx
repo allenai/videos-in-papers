@@ -176,7 +176,7 @@ export function Player({
     setIsPlaying(true);
   }
   function handlePause() {
-    if(logAction) logAction('play', { clipId: id });
+    if(logAction) logAction('pause', { clipId: id });
     setIsPlaying(false);
   }
 
