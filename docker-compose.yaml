@@ -17,6 +17,7 @@ services:
             - PYTHONUNBUFFERED=1
             - LOG_LEVEL=DEBUG
             - FLASK_ENV=development
+            - POSTGRES_URL=postgres://foo:bar@db/paper-video-nav?sslmode=disable
     ui:
         build: ./ui
         # We can't mount the entire UI directory, since JavaScript dependencies
@@ -60,3 +61,16 @@ services:
             - proxy
             - ui
             - api
+    db:
+        image: postgres:14
+        restart: always
+        ports: ['5432:5432']
+        environment:
+            POSTGRES_USER: foo
+            POSTGRES_PASSWORD: bar
+            POSTGRES_DB: paper-video-nav
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+
+volumes:
+    pgdata:

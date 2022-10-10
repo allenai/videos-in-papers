@@ -297,6 +297,20 @@ function(
                                 {
                                     name: 'FLASK_ENV',
                                     value: 'production'
+                                },
+                                {
+                                    /**
+                                     * You can and should change this to the name of the environment 
+                                     * variable you'd like to use for accessing the secret value
+                                     * in the container. 
+                                     */
+                                    name: "POSTGRES_URL",
+                                    valueFrom: {
+                                        secretKeyRef: {
+                                            name: "db",
+                                            key: "POSTGRES_URL"
+                                        }
+                                    }
                                 }
                             ]
                         },
