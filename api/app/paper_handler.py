@@ -468,8 +468,7 @@ def process_interval_str(interval_str):
         result.append(list(map(lambda txt: int(txt), t.split(", "))))
     return result
 
-def process_paper_blocks(doi, input_path, output_path, comparer):
-    parsed_path = './data/parsed_pdf'
+def process_paper_blocks(doi, input_path, output_path, parsed_path, comparer):
     pipeline(
         input_pdf=Path(f'{input_path}/{doi}.pdf'),
         output_path=Path(f'{parsed_path}'),
@@ -572,7 +571,8 @@ def process_paper_blocks(doi, input_path, output_path, comparer):
 if __name__ == "__main__":
     input_path = './data/pdf'
     output_path = './data/blocks'
+    parsed_path = './data/parsed_pdf'
     url = "https://paper-video-nav.apps.allenai.org/api/pdf/3491102.3517729.pdf"
     doi = "3491102.3517729"
     get_paper(url, doi, input_path)
-    process_paper_blocks(doi, input_path, output_path)
+    process_paper_blocks(doi, input_path, output_path, parsed_path)

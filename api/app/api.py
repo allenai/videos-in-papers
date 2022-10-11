@@ -10,6 +10,8 @@ from app.video_handler import download_video, split_video
 from app.paper_handler import get_paper, process_paper_blocks
 from app.pipeline.comparer import Comparer
 
+from app.db import db, Log
+
 env = os.getenv('FLASK_ENV', 'production')
 DIR_PATH = '/api/app'
 if env == 'production':
@@ -139,7 +141,7 @@ def create_api() -> Blueprint:
 
         try:
             get_paper(paper_url, doi, f"{DIR_PATH}/data/pdf")
-            process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", comparer)
+            process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", f"{DIR_PATH}/data/parsed_pdf", comparer)
             return jsonify({'message': 200})
         except AssertionError as e:
             print(e)
@@ -226,19 +228,9 @@ def create_api() -> Blueprint:
 
         # save the action
         try:
-            # if directory does not exist, create it
-            if not os.path.exists(f"{DIR_PATH}/data/logs"):
-                os.makedirs(f"{DIR_PATH}/data/logs")
-
-            # if exists, append
-            if(os.path.isfile(DIR_PATH + '/data/logs/' + userId + '.json')):
-                with open(f"{DIR_PATH}/data/logs/{userId}.json", 'a') as f:
-                    json.dump({'doi': doi, 'action': action, 'timestamp': timestamp, 'data': data}, f)
-                    f.write('\n')
-            else:
-                with open(f"{DIR_PATH}/data/logs/{userId}.json", 'w') as f:
-                    json.dump({'doi': doi, 'action': action, 'timestamp': timestamp, 'data': data}, f)
-                    f.write('\n')
+            log = Log(doi=doi, userId=userId, action=action, timestamp=timestamp, data=data)
+            db.session.add(log)
+            db.session.commit()
 
             return jsonify({'message': 200})
         except AssertionError as e:
@@ -248,17 +240,23 @@ def create_api() -> Blueprint:
             print(e)
             return jsonify({'message': 400, 'error': str(e)})
 
-    @api.route('/api/file_list', methods=['GET'])
-    def file_list():
-        folders = ['clips', 'blocks', 'captions', 'pdf', 'annotation', 'log']
-        files = {}
-        for folder in folders:
-            files[folder] = os.listdir(f"{DIR_PATH}/data/{folder}")
+    @api.route('/api/get_file_list/<string:key_secret>', methods=['GET'])
+    def get_file_list(key_secret):
+        if os.getenv('KEY_SECRET') != key_secret:
+            return jsonify({'message': 400, 'error': 'Wrong key secret'})
+        else:
+            folders = ['clips', 'blocks', 'captions', 'pdf', 'annotation']
+            files = {}
+            for folder in folders:
+                files[folder] = os.listdir(f"{DIR_PATH}/data/{folder}")
+            return jsonify(files)
 
-        return jsonify(files)
-
-    @api.route('/api/log/<path:path>', methods=['GET'])
-    def get_log(path):
-        return send_from_directory(f"{DIR_PATH}/data/log/", path)
+    @api.route('/api/get_log/<string:key_secret>', methods=['GET'])
+    def get_log(key_secret):
+        if os.getenv('KEY_SECRET') != key_secret:
+            return jsonify({'message': 400, 'error': 'Invalid key secret'})
+        else:
+            logs = Log.query.all()
+            return jsonify([log.to_dict() for log in logs])
 
     return api

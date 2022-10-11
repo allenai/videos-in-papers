@@ -17,7 +17,8 @@ services:
             - PYTHONUNBUFFERED=1
             - LOG_LEVEL=DEBUG
             - FLASK_ENV=development
-            - POSTGRES_URL=postgres://foo:bar@db/paper-video-nav?sslmode=disable
+            - POSTGRES_URL=postgresql://papeo:papeoreader@db:5432/paper-video-nav?sslmode=disable
+            - KEY_SECRET=secret
     ui:
         build: ./ui
         # We can't mount the entire UI directory, since JavaScript dependencies
@@ -66,8 +67,8 @@ services:
         restart: always
         ports: ['5432:5432']
         environment:
-            POSTGRES_USER: foo
-            POSTGRES_PASSWORD: bar
+            POSTGRES_USER: papeo
+            POSTGRES_PASSWORD: papeoreader
             POSTGRES_DB: paper-video-nav
         volumes:
             - pgdata:/var/lib/postgresql/data

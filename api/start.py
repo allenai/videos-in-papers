@@ -9,6 +9,8 @@ from app.api import create_api
 from app.utils import StackdriverJsonFormatter
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from app.db import db
+
 def start():
     """
     Starts up a HTTP server attached to the provider port, and optionally
@@ -61,11 +63,23 @@ def start():
 
     app = Flask("app")
 
+    uri = os.getenv("POSTGRES_URL")
+    if uri and uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = uri
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # Initialize and create databse
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
+
     # Bind the API functionality to our application. You can add additional
     # API endpoints by editing api.py.
     logger.debug("Starting: init API...")
     app.register_blueprint(create_api(), url_prefix='/')
     logger.debug("Complete: init API...")
+
 
     # In production we use a HTTP server appropriate for production.
     if is_prod:
