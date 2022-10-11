@@ -311,6 +311,15 @@ function(
                                             key: "POSTGRES_URL"
                                         }
                                     }
+                                },
+                                {
+                                    name: "KEY_SECRET",
+                                    valueFrom: {
+                                        secretKeyRef: {
+                                            name: "key",
+                                            key: "KEY_SECRET"
+                                        }
+                                    }
                                 }
                             ]
                         },
