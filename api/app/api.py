@@ -158,9 +158,7 @@ def create_api() -> Blueprint:
 
         doi = data.get("doi")
         userId = data.get("userId")
-
-        # TODO: save that user accessed this paper
-
+        
         if(os.path.isfile(DIR_PATH + '/data/annotation/' + doi + '.json')):
             return send_from_directory(DIR_PATH + '/data/annotation/', doi + '.json')
         else:
@@ -243,20 +241,34 @@ def create_api() -> Blueprint:
     @api.route('/api/get_file_list/<string:key_secret>', methods=['GET'])
     def get_file_list(key_secret):
         if os.getenv('KEY_SECRET') != key_secret:
-            return jsonify({'message': 400, 'error': 'Wrong key secret'})
+            return jsonify({'message': 400, 'error': 'Error'})
         else:
-            folders = ['clips', 'blocks', 'captions', 'pdf', 'annotation']
-            files = {}
-            for folder in folders:
-                files[folder] = os.listdir(f"{DIR_PATH}/data/{folder}")
-            return jsonify(files)
+            try: 
+                folders = ['clips', 'blocks', 'captions', 'pdf', 'annotation']
+                files = {}
+                for folder in folders:
+                    files[folder] = os.listdir(f"{DIR_PATH}/data/{folder}")
+                return jsonify(files)
+            except AssertionError as e:
+                print(e)
+                return jsonify({'message': 400, 'error': str(e)})
+            except Exception as e:
+                print(e)
+                return jsonify({'message': 400, 'error': str(e)})
 
     @api.route('/api/get_log/<string:key_secret>', methods=['GET'])
     def get_log(key_secret):
         if os.getenv('KEY_SECRET') != key_secret:
-            return jsonify({'message': 400, 'error': 'Invalid key secret'})
+            return jsonify({'message': 400, 'error': 'Error'})
         else:
-            logs = Log.query.all()
-            return jsonify([log.to_dict() for log in logs])
+            try:
+                logs = Log.query.all()
+                return jsonify([log.to_dict() for log in logs])
+            except AssertionError as e:
+                print(e)
+                return jsonify({'message': 400, 'error': str(e)})
+            except Exception as e:
+                print(e)
+                return jsonify({'message': 400, 'error': str(e)})
 
     return api

@@ -172,14 +172,14 @@ export const Video: React.FunctionComponent<RouteComponentProps> = () => {
         logAction('changePlaybackRate', { clipId: -1, rate: rate });
     }
 
-    const adjustedVideoWidth = window.innerWidth * 0.7;
+    const adjustedVideoWidth = 800;
     const videoHeight = (adjustedVideoWidth / 16) * 9;
 
     return (
         <BrowserRouter>
             <Route path="/">
                 <div className="video__segmenter-container" style={{backgroundColor: "#666"}}>
-                    <div className="video__segmenter-container-inner" style={{padding: "16px 15% 0 15%", width: "100%", backgroundColor: "#ddd"}}>
+                    <div className="video__segmenter-container-inner" style={{display: "flex", alignItems: "center", paddingTop: "16px", width: "100%", backgroundColor: "#ddd"}}>
                         <div
                             style={{ width: adjustedVideoWidth + 'px', height: videoHeight + 'px', position: 'relative' }}
                             onClick={e => e.stopPropagation()}
@@ -207,7 +207,7 @@ export const Video: React.FunctionComponent<RouteComponentProps> = () => {
                                 playbackRate={playbackRate}
                                 light={false}
                             />
-                            {true || isHovered ? 
+                            {isHovered ? 
                             <div className="video__note-player-rate-tray">
                                 {[1.0, 1.25, 1.5, 1.75, 2.0].map((rate, i) => {
                                 return (

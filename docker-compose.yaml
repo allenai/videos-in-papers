@@ -17,7 +17,6 @@ services:
             - PYTHONUNBUFFERED=1
             - LOG_LEVEL=DEBUG
             - FLASK_ENV=development
-            - POSTGRES_URL=postgresql://papeo:papeoreader@db:5432/paper-video-nav?sslmode=disable
             - KEY_SECRET=secret
     ui:
         build: ./ui
@@ -67,8 +66,6 @@ services:
         restart: always
         ports: ['5432:5432']
         environment:
-            POSTGRES_USER: papeo
-            POSTGRES_PASSWORD: papeoreader
             POSTGRES_DB: paper-video-nav
         volumes:
             - pgdata:/var/lib/postgresql/data
