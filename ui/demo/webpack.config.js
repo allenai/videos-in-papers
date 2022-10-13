@@ -65,7 +65,7 @@ module.exports = {
     // The `ui` host is used by the reverse proxy when requesting the UI while working locally.
     allowedHosts: ['ui'],
     historyApiFallback: {
-      disableDotRule: true
+      disableDotRule: true,
     },
     port: 3000,
     // Apparently webpack's dev server doesn't write files to disk. This makes it hard to

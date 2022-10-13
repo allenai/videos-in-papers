@@ -14,32 +14,34 @@
  *
  */
 
-const http = require('http');
+const http = require("http");
 
 async function checkIfReady(origin) {
-    return new Promise((resolve, reject) => {
-        const req = http.request(origin, (res) => {
-            const isReady = res.statusCode === 200;
-            console.log(`${origin} ~> ${res.statusCode}: ${isReady ? 'OK' : 'Not Ready'}`);
-            if (isReady) {
-                resolve();
-            } else {
-                reject(new Error(`Response status: ${res.statusCode}`));
-            }
-        });
-        req.on('error', reject);
-        req.end();
+  return new Promise((resolve, reject) => {
+    const req = http.request(origin, (res) => {
+      const isReady = res.statusCode === 200;
+      console.log(
+        `${origin} ~> ${res.statusCode}: ${isReady ? "OK" : "Not Ready"}`
+      );
+      if (isReady) {
+        resolve();
+      } else {
+        reject(new Error(`Response status: ${res.statusCode}`));
+      }
     });
+    req.on("error", reject);
+    req.end();
+  });
 }
 
 const origin = process.argv[2];
 if (!origin) {
-    throw Error('You must set an origin. Usage: node is_ready ORIGIN');
+  throw Error("You must set an origin. Usage: node is_ready ORIGIN");
 }
 
 checkIfReady(origin)
-    .then(() => process.exit(0))
-    .catch((err) => {
-        console.error(`Not ready: ${err}`);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(`Not ready: ${err}`);
+    process.exit(1);
+  });

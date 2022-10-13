@@ -118,7 +118,8 @@ export function AuthorTimeline({
           onMouseDown={e => {
             e.preventDefault();
             setScrubDirection(-1);
-          }}>
+          }}
+        >
           <div className="video__segmenter-thumb"></div>
         </div>
       );
@@ -129,7 +130,8 @@ export function AuthorTimeline({
           onMouseDown={e => {
             e.preventDefault();
             setScrubDirection(1);
-          }}>
+          }}
+        >
           <div className="video__segmenter-thumb"></div>
         </div>
       );
@@ -147,7 +149,8 @@ export function AuthorTimeline({
           height: edit == id || selectedMapping == id ? '28px' : '20px',
           zIndex: edit == id || selectedMapping == id ? 5 : 1,
         }}
-        onClick={(e: React.MouseEvent) => handleClickSegment(idx, id, e)}>
+        onClick={(e: React.MouseEvent) => handleClickSegment(idx, id, e)}
+      >
         {thumbs}
       </div>
     );
@@ -172,7 +175,8 @@ export function AuthorTimeline({
         <div
           key={'minor-' + i}
           className="video__segmenter-timeline-tick"
-          style={{ left: i * 10 * ratio + 'px' }}></div>
+          style={{ left: i * 10 * ratio + 'px' }}
+        ></div>
       );
     }
     numTicks = Math.floor(duration / 30);
@@ -181,13 +185,15 @@ export function AuthorTimeline({
         <div
           key={'major-' + i}
           className="video__segmenter-timeline-tick-major"
-          style={{ left: i * 30 * ratio + 'px' }}></div>
+          style={{ left: i * 30 * ratio + 'px' }}
+        ></div>
       );
       ticksHTML.push(
         <div
           key={'label-' + i}
           className="video__segmenter-timeline-tick-label"
-          style={{ left: i * 30 * ratio - 11.5 + 'px' }}>
+          style={{ left: i * 30 * ratio - 11.5 + 'px' }}
+        >
           {timeToStr(i * 30 * 1000)}
         </div>
       );
@@ -200,7 +206,8 @@ export function AuthorTimeline({
       className="video__segmenter-timeline"
       onMouseMove={handleMouseMove}
       onClick={handleTimelineClick}
-      onMouseUp={() => (scrubDirection != 0 ? setScrubDirection(0) : '')}>
+      onMouseUp={() => (scrubDirection != 0 ? setScrubDirection(0) : '')}
+    >
       <div className="video__segmenter-timeline-inner" style={{ width: scale + '%' }}>
         {selectedClip[0] != -1
           ? renderTimelineSegment(-1, -1, selectedClip[0], selectedClip[1])

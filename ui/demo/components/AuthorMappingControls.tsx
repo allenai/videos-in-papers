@@ -50,86 +50,100 @@ export const AuthorMappingControls: React.FunctionComponent<Props> = ({
   setCurrentSuggestion,
 }: Props) => {
   const clickNavigator = (direction: number) => {
-      var nextSuggestion = currentSuggestion;
-      if(currentSuggestion == -1) {
+    var nextSuggestion = currentSuggestion;
+    if (currentSuggestion == -1) {
+      nextSuggestion = 0;
+    } else {
+      nextSuggestion += direction;
+      if (nextSuggestion < 0) {
+        nextSuggestion = suggestedBlocks.length - 1;
+      } else if (nextSuggestion >= suggestedBlocks.length) {
         nextSuggestion = 0;
-      } else {
-        nextSuggestion += direction;
-        if(nextSuggestion < 0) {
-            nextSuggestion = suggestedBlocks.length - 1;
-        } else if(nextSuggestion >= suggestedBlocks.length) {
-            nextSuggestion = 0;
-        }
       }
+    }
 
-      var top = document.getElementById('block-' + suggestedBlocks[nextSuggestion])?.getBoundingClientRect().top;
-      if(top != undefined) {
-          scrollTo(top);
-      }
+    var top = document
+      .getElementById('block-' + suggestedBlocks[nextSuggestion])
+      ?.getBoundingClientRect().top;
+    if (top != undefined) {
+      scrollTo(top);
+    }
 
-      setCurrentSuggestion(nextSuggestion);
-  }
+    setCurrentSuggestion(nextSuggestion);
+  };
 
   return (
     <div className="mapping-controls__container">
-      {suggestedBlocks.length > 0 ?           
+      {suggestedBlocks.length > 0 ? (
         <div className="reader_suggestion_navigator">
           <div className="reader_suggestion_navigator-btn" onClick={() => clickNavigator(-1)}>
-              <i className="fas fa-chevron-left"></i>
+            <i className="fas fa-chevron-left"></i>
           </div>
           <div className="reader_suggestion_navigator-label">
-              {currentSuggestion != -1 ? [
-                <div key={0} style={{fontSize: "10px"}}>
+            {currentSuggestion != -1 ? (
+              [
+                <div key={0} style={{ fontSize: '10px' }}>
                   Suggested Blocks
                 </div>,
                 <div key={1}>
                   {currentSuggestion + 1} / {suggestedBlocks.length}
-                </div>
-                ] : <div style={{fontSize: "12px"}}> Go to a <br/> Suggested Block </div>}
+                </div>,
+              ]
+            ) : (
+              <div style={{ fontSize: '12px' }}>
+                {' '}
+                Go to a <br /> Suggested Block{' '}
+              </div>
+            )}
           </div>
           <div className="reader_suggestion_navigator-btn" onClick={() => clickNavigator(1)}>
-              <i className="fas fa-chevron-right"></i>
+            <i className="fas fa-chevron-right"></i>
           </div>
-        </div> :
+        </div>
+      ) : (
         ''
-      }
+      )}
       {selectedBlocks.length > 0 && selectedClip[0] != -1 ? (
         <button
           className="mapping-controls__button"
           onClick={createMapping}
-          style={{ backgroundColor: '#1890ff', borderColor: '#1890ff' }}>
+          style={{ backgroundColor: '#1890ff', borderColor: '#1890ff' }}
+        >
           Create Mapping
         </button>
       ) : (
         ''
       )}
-      {selectedMapping != null ? 
-          <div className="mapping-controls__button-container" style={{flexDirection: 'row'}}>
-            <button
-              className="mapping-controls__button"
-              onClick={() => setHighlightMode(!highlightMode)}
-              style={{
-                backgroundColor: highlightMode ? '#1890ff' : '#fff',
-                color: highlightMode ? '#fff' : '#1890ff',
-                borderColor: '#1890ff',
-              }}>
-              {highlightMode ? 'Save Sync Highlight' : 'Create Sync Highlight'}
-            </button>
-            <button
-              className="mapping-controls__button"
-              onClick={removeMapping}
-              style={{ backgroundColor: '#b00020', borderColor: '#b00020' }}>
-              Remove Mapping
-            </button>
-          </div>
-        : ''}
+      {selectedMapping != null ? (
+        <div className="mapping-controls__button-container" style={{ flexDirection: 'row' }}>
+          <button
+            className="mapping-controls__button"
+            onClick={() => setHighlightMode(!highlightMode)}
+            style={{
+              backgroundColor: highlightMode ? '#1890ff' : '#fff',
+              color: highlightMode ? '#fff' : '#1890ff',
+              borderColor: '#1890ff',
+            }}
+          >
+            {highlightMode ? 'Save Sync Highlight' : 'Create Sync Highlight'}
+          </button>
+          <button
+            className="mapping-controls__button"
+            onClick={removeMapping}
+            style={{ backgroundColor: '#b00020', borderColor: '#b00020' }}
+          >
+            Remove Mapping
+          </button>
+        </div>
+      ) : (
+        ''
+      )}
     </div>
   );
 };
 
-
-
-{/* <div key="2" className="mapping-controls__note-container">
+{
+  /* <div key="2" className="mapping-controls__note-container">
 <div className="mapping-controls__note-container-inner">
   <div>Note</div>
   <input
@@ -149,4 +163,5 @@ export const AuthorMappingControls: React.FunctionComponent<Props> = ({
     checked={!!clips[selectedMapping].supplementary}
   />
 </div>
-</div>, */}
+</div>, */
+}

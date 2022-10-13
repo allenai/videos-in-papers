@@ -14,7 +14,12 @@ type Props = {
   pageIndex: number;
   hoveredWord: { clipId: number; syncIdx: number } | null;
   setHoveredWord: (data: { clipId: number; syncIdx: number } | null) => void;
-  syncSegments: { [clipId: number]: { paperToIdx: { [id: string]: number }; captionToIdx: { [id: string]: number } } };
+  syncSegments: {
+    [clipId: number]: {
+      paperToIdx: { [id: string]: number };
+      captionToIdx: { [id: string]: number };
+    };
+  };
   tokens: Token[];
 };
 
@@ -46,9 +51,9 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
     const boxes: Array<React.ReactElement> = [];
     getTokens().map((token: Token, i: number) => {
       const bbox = scaleRawBoundingBox(token, pageDimensions.height, pageDimensions.width);
-      var className = "reader_highligh_color-mapped-sel";
-      if(hoveredWord && hoveredWord.clipId == token.clip && hoveredWord.syncIdx == token.syncIdx) {
-        className = "reader_highlight_color-mapped-" + hoveredWord.clipId % 7;
+      var className = 'reader_highligh_color-mapped-sel';
+      if (hoveredWord && hoveredWord.clipId == token.clip && hoveredWord.syncIdx == token.syncIdx) {
+        className = 'reader_highlight_color-mapped-' + (hoveredWord.clipId % 7);
       }
 
       // Only render this BoundingBox if it belongs on the current page
@@ -59,8 +64,14 @@ export const WordOverlay: React.FunctionComponent<Props> = ({
         // Set isHighlighted to true for highlighted styling
         isHighlighted: true,
         key: pageIndex + '-' + token.id + '-' + i,
-        onMouseOver: () => { token.clip != undefined && token.syncIdx != undefined ? setHoveredWord({clipId: token.clip, syncIdx: token.syncIdx}) : null},
-        onMouseLeave: () => { token.clip != undefined && token.syncIdx != undefined ? setHoveredWord(null) : null},
+        onMouseOver: () => {
+          token.clip != undefined && token.syncIdx != undefined
+            ? setHoveredWord({ clipId: token.clip, syncIdx: token.syncIdx })
+            : null;
+        },
+        onMouseLeave: () => {
+          token.clip != undefined && token.syncIdx != undefined ? setHoveredWord(null) : null;
+        },
       };
 
       boxes.push(<BoundingBox {...props} />);

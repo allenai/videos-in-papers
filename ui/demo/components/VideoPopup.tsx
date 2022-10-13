@@ -29,7 +29,12 @@ type Props = {
   setFocusId: (clipId: number) => void;
   hoveredWord: { clipId: number; syncIdx: number } | null;
   setHoveredWord: (data: { clipId: number; syncIdx: number } | null) => void;
-  syncSegments: {[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}};
+  syncSegments: {
+    [clipId: number]: {
+      paperToIdx: { [id: string]: number };
+      captionToIdx: { [id: string]: number };
+    };
+  };
   logAction: (action: string, data: any) => void;
 };
 
@@ -51,7 +56,7 @@ export const VideoPopup: React.FunctionComponent<Props> = ({
   hoveredWord,
   setHoveredWord,
   syncSegments,
-  logAction
+  logAction,
 }: Props) => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);

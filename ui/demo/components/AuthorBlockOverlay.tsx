@@ -35,7 +35,7 @@ type Props = {
   setSuggestedBlocks: (blockIds: Array<number>) => void;
   currentSuggestion: number;
   setCurrentSuggestion: (index: number) => void;
-  captionTokens?: Array<string>
+  captionTokens?: Array<string>;
 };
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -147,14 +147,14 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
 
   function handleClick(blockId: number) {
     if (highlightMode) return;
-    var block = blocks.find((b) => b.id == blockId);
+    var block = blocks.find(b => b.id == blockId);
     if (!modifyMode) {
       if (suggestedBlocks.length > 0 && suggestedBlocks.includes(blockId)) {
         var index = suggestedBlocks.indexOf(blockId);
         // if(index == currentSuggestion) {
-        var newSuggestedBlocks = suggestedBlocks.filter((id) => id != blockId);
+        var newSuggestedBlocks = suggestedBlocks.filter(id => id != blockId);
         setSuggestedBlocks(newSuggestedBlocks);
-        if(newSuggestedBlocks.length <= currentSuggestion) {
+        if (newSuggestedBlocks.length <= currentSuggestion) {
           setCurrentSuggestion(currentSuggestion - 1);
         }
         setSelectedBlocks([...selectedBlocks, blockId]);
@@ -167,7 +167,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         copySelBlocks.splice(index, 1);
         setSelectedBlocks(copySelBlocks);
         console.log(blockId);
-        if(block && block.created) {
+        if (block && block.created) {
           removeCreatedBlocks([blockId]);
         }
       } else {
@@ -195,7 +195,11 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
     if (!modifyMode) {
       setSelectedMapping(clipId == selectedMapping ? null : clipId);
     } else if (modifyMode && selectedMapping != null) {
-      changeHighlight(selectedMapping, blocks.find(b => b.id == blockId), -1);
+      changeHighlight(
+        selectedMapping,
+        blocks.find(b => b.id == blockId),
+        -1
+      );
     }
   }
 
@@ -257,11 +261,11 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
       const found = findInHighlights(prop.id);
       const clipId = found.clipId;
       const highlightId = found.highlightId;
-      var className =  'reader_highlight_color-'; 
-      if(selectedBlocks.includes(prop.id)) {
+      var className = 'reader_highlight_color-';
+      if (selectedBlocks.includes(prop.id)) {
         className += 'sel';
-      } else if(isSuggested) {
-        if(currentSuggestion == suggestedBlocks.indexOf(prop.id)) {
+      } else if (isSuggested) {
+        if (currentSuggestion == suggestedBlocks.indexOf(prop.id)) {
           className += 'suggest-curr';
         } else {
           className += 'suggest';
@@ -340,7 +344,9 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         // Set isHighlighted to true for highlighted styling
         isHighlighted: false,
         key: 'used-' + tok.id,
-        onMouseEnter: () => tok.segmentIndex != -1 && setHoveredSegment({ clipId: tok.clipId, index: tok.segmentIndex }),
+        onMouseEnter: () =>
+          tok.segmentIndex != -1 &&
+          setHoveredSegment({ clipId: tok.clipId, index: tok.segmentIndex }),
         onMouseLeave: () => tok.segmentIndex != -1 && setHoveredSegment(null),
         onClick: () => tok.segmentIndex != -1 && removeSegment(tok.clipId, tok.segmentIndex),
       };

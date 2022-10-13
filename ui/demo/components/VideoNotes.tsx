@@ -30,7 +30,12 @@ type Props = {
   hoveredWord: { clipId: number; syncIdx: number } | null;
   setHoveredWord: (data: { clipId: number; syncIdx: number } | null) => void;
   lock: { clipId: number; relativePosition: number } | null;
-  syncSegments: {[clipId: number]: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}}};
+  syncSegments: {
+    [clipId: number]: {
+      paperToIdx: { [id: string]: number };
+      captionToIdx: { [id: string]: number };
+    };
+  };
   logAction: (action: string, data: any) => void;
 };
 

@@ -114,7 +114,8 @@ export const CitationPopover: React.FunctionComponent<Props> = ({ citation, pare
       getPopupContainer={() => parentRef.current}
       content={renderPopoverContent}
       trigger="click"
-      onVisibleChange={handleVisibleChange}>
+      onVisibleChange={handleVisibleChange}
+    >
       <BoundingBox
         className={classNames('reader__popover__bbox', isPopoverVisible ? 'selected' : '')}
         page={citation.boundingBox.page}

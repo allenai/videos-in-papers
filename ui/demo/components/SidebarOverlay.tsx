@@ -60,7 +60,7 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
       }
 
       const clipId = highlights[id].clip;
-      const bboxes = rects.map((rect) => {
+      const bboxes = rects.map(rect => {
         const bbox = scaleRawBoundingBox(rect, pageDimensions.height, pageDimensions.width);
         return {
           ...bbox,
@@ -82,16 +82,17 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
           if (rects[k].page !== page) {
             skipped++;
             continue;
-          } else if(skipped > 0) {
+          } else if (skipped > 0) {
             rectIdx = k;
             skipped = 0;
           }
           const bbox = bboxes[k];
           const currCenter = bbox.left + bbox.width / 2;
-          const currIsLeft = currCenter <= pageDimensions.width/2 || (bbox.left < pageDimensions.width/2 && bbox.left + bbox.width > pageDimensions.width/2);
-          if (
-            currIsLeft != isLeft || bbox.top > bottom + pageDimensions.height/20
-          ) {
+          const currIsLeft =
+            currCenter <= pageDimensions.width / 2 ||
+            (bbox.left < pageDimensions.width / 2 &&
+              bbox.left + bbox.width > pageDimensions.width / 2);
+          if (currIsLeft != isLeft || bbox.top > bottom + pageDimensions.height / 20) {
             var position = -1;
             if (scrubClip != null && scrubClip['highlight'] == id) {
               position = scrubClip['progress'];
@@ -125,12 +126,12 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             num_rects += 1;
           }
         }
-        
+
         var position = -1;
         if (scrubClip != null && scrubClip['highlight'] == id) {
           position = scrubClip['progress'];
         }
-        
+
         sidebars.push({
           id: id,
           rectIdx: rectIdx,
@@ -194,8 +195,14 @@ export const SidebarOverlay: React.FunctionComponent<Props> = ({
             onClick: onClickSidebar,
             onMouseMove: (e: React.MouseEvent) => onMoveInSidebar(e, prop.id, prop.isCurrent),
             onMouseOut: onMouseOutSidebar,
-            top: prop.top, left: prop.left, width: prop.width, height: prop.height,
-            page: prop.page, position: prop.position, isCurrent: prop.isCurrent, isFocus: prop.isFocus,
+            top: prop.top,
+            left: prop.left,
+            width: prop.width,
+            height: prop.height,
+            page: prop.page,
+            position: prop.position,
+            isCurrent: prop.isCurrent,
+            isFocus: prop.isFocus,
             rects: prop.rects,
           };
 

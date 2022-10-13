@@ -15,7 +15,8 @@ export function ThumbnailPopup({ thumbnail, doi }: Props) {
   return (
     <div
       className="popup-thumbnail__container"
-      style={{ top: thumbnail.top + 'px', left: thumbnail.left + 'px' }}>
+      style={{ top: thumbnail.top + 'px', left: thumbnail.left + 'px' }}
+    >
       <div className="popup-thumbnail__wrapper">
         <ReactPlayer
           className="popup-thumbnail__thumbnail"

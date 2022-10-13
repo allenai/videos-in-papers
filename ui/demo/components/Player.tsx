@@ -30,7 +30,7 @@ interface Props {
   hoveredWord?: { clipId: number; syncIdx: number } | null;
   setHoveredWord?: (data: { clipId: number; syncIdx: number } | null) => void;
   sections?: { [id: number]: string };
-  syncSegments?: {paperToIdx: {[id: string]: number}, captionToIdx: {[id: string]: number}};
+  syncSegments?: { paperToIdx: { [id: string]: number }; captionToIdx: { [id: string]: number } };
   playbackRate?: number;
   setPlaybackRate?: (rate: number) => void;
   autoplay?: boolean;
@@ -74,7 +74,7 @@ export function Player({
   setPlaybackRate,
   autoplay,
   setAutoplay,
-  logAction
+  logAction,
 }: Props) {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -97,7 +97,7 @@ export function Player({
       const currentTime = e.playedSeconds;
       setProgress(currentTime);
 
-      if(currentTime < duration) {
+      if (currentTime < duration) {
         setEnded(false);
       } else {
         setEnded(true);
@@ -164,7 +164,7 @@ export function Player({
 
   // When clip finishes, autoplay the next one
   function handleEnd() {
-    if(!autoplay) {
+    if (!autoplay) {
       setEnded(true);
     } else {
       handleMove(null, 1, 'autoplay');
@@ -172,11 +172,11 @@ export function Player({
   }
 
   function handlePlay() {
-    if(logAction) logAction('play', { clipId: id });
+    if (logAction) logAction('play', { clipId: id });
     setIsPlaying(true);
   }
   function handlePause() {
-    if(logAction) logAction('pause', { clipId: id });
+    if (logAction) logAction('pause', { clipId: id });
     setIsPlaying(false);
   }
 
@@ -196,7 +196,8 @@ export function Player({
             className="video__note-navigator-link"
             data-idx={i}
             onClick={handleSideClick}
-            style={{ opacity: i == clip.position ? '1' : '0.6' }}>
+            style={{ opacity: i == clip.position ? '1' : '0.6' }}
+          >
             <b>{highlight.id}</b> Example Test
           </div>
         );
@@ -213,7 +214,8 @@ export function Player({
             cursor: 'pointer',
             textDecoration: 'underline',
           }}
-          onClick={handleAltClick}>
+          onClick={handleAltClick}
+        >
           {clip.alternatives ? 'Hide Other Mentions' : 'Show Other Mentions'}
         </div>
         {otherHighlights.map((row, i) => {
@@ -251,7 +253,7 @@ export function Player({
       </div>
     );
     let transcript = <></>;
-    
+
     let captionTime = clip.start + progress * 1000;
     // if (scrubPosition != -1) {
     //   captionTime = scrubPosition * duration + clip.start;
@@ -263,10 +265,12 @@ export function Player({
       transcript = (
         <div>
           <b style={{ color: '#333' }}>Transcript</b>&nbsp;&nbsp;
-          <span style={{backgroundColor: scrubPosition == -1 ? "" : color + "11"}}>{caption.caption}</span>
+          <span style={{ backgroundColor: scrubPosition == -1 ? '' : color + '11' }}>
+            {caption.caption}
+          </span>
         </div>
       );
-    } else if(clip['captions'].length > 0) {
+    } else if (clip['captions'].length > 0) {
       transcript = (
         <div>
           <b style={{ color: '#333' }}>Transcript</b>&nbsp;&nbsp;
@@ -275,19 +279,21 @@ export function Player({
       );
     }
 
-    if (isFocus) { // && !!clip.expanded) {
+    if (isFocus) {
+      // && !!clip.expanded) {
       transcript = (
         <div>
           <b>Transcript</b>&nbsp;&nbsp;
           {clip['captions'].map((caption: Caption, i: number) => {
             const words = caption.caption.split(' ');
-            const passed = caption.start < clip.start + progress*1000;
+            const passed = caption.start < clip.start + progress * 1000;
             return words.map((text, j) => {
               var syncIdx = syncSegments?.captionToIdx[caption.id + '-' + j];
-              var synced = hoveredWord && hoveredWord.clipId == clip.id && hoveredWord.syncIdx == syncIdx;
+              var synced =
+                hoveredWord && hoveredWord.clipId == clip.id && hoveredWord.syncIdx == syncIdx;
               var syncable = syncIdx != undefined && syncIdx != null;
               const style = {
-                backgroundColor: synced ? color + '77' : (passed ? color + '11' : 'transparent'),
+                backgroundColor: synced ? color + '77' : passed ? color + '11' : 'transparent',
                 fontWeight: syncable ? 600 : 400,
                 textDecoration: synced ? 'underline' : 'none',
                 display: 'inline-block',
@@ -297,7 +303,8 @@ export function Player({
                   key={j}
                   style={style}
                   onMouseEnter={() => handleWordEnter(syncIdx != undefined ? syncIdx : -1)}
-                  onMouseLeave={handleWordLeave}>
+                  onMouseLeave={handleWordLeave}
+                >
                   {text}&nbsp;
                 </span>
               );
@@ -311,7 +318,10 @@ export function Player({
       <div className="video__note-captions" onClick={handleCaptionClick}>
         {transcript}
         {false && isFocus ? (
-          <div style={{ textAlign: 'center', color: '#999', cursor: 'pointer' }} onClick={handleToggleCaption}>
+          <div
+            style={{ textAlign: 'center', color: '#999', cursor: 'pointer' }}
+            onClick={handleToggleCaption}
+          >
             <i className={'fa fa-' + (clip.expanded ? 'minus' : 'plus')}></i>
           </div>
         ) : (
@@ -329,7 +339,7 @@ export function Player({
   }
 
   function handleMove(e: React.MouseEvent | null, direction: number, type: string) {
-    if(e != null) {
+    if (e != null) {
       e.stopPropagation();
     }
     const fromIdx = clips.findIndex(c => c.id == id);
@@ -338,21 +348,21 @@ export function Player({
   }
 
   function handleSeek(seconds: number) {
-    if(scrubPosition == -1 && logAction) {
+    if (scrubPosition == -1 && logAction) {
       logAction('scrubVideo', { clipId: id, seconds: seconds, location: 'video' });
     }
   }
 
   function handleAutoplay() {
-    if(setAutoplay) {
-      if(logAction) logAction('toggleAutoplay', { clipId: id, autoplay: !autoplay });
-      setAutoplay(!autoplay)
+    if (setAutoplay) {
+      if (logAction) logAction('toggleAutoplay', { clipId: id, autoplay: !autoplay });
+      setAutoplay(!autoplay);
     }
   }
 
   function handlePlaybackRate(rate: number) {
-    if(setPlaybackRate) {
-      if(logAction) logAction('playbackRate', { clipId: id, rate: rate });
+    if (setPlaybackRate) {
+      if (logAction) logAction('playbackRate', { clipId: id, rate: rate });
       setPlaybackRate(rate);
     }
   }
@@ -361,15 +371,14 @@ export function Player({
   var videoHeight = (adjustedVideoWidth / 16) * 9;
 
   // If clip is navigating, adjust the positions to be relative
-  const container = document
-    .getElementsByClassName('video__note-list');
+  const container = document.getElementsByClassName('video__note-list');
   var color = colors[id % 7];
   var isLocked = top == -1;
-  if(container.length > 0) {
-    var rect = container[0].getBoundingClientRect();  
-    if(isLocked) {
+  if (container.length > 0) {
+    var rect = container[0].getBoundingClientRect();
+    if (isLocked) {
       adjustedVideoWidth = pageDimensions.width * scale * 0.3;
-      videoHeight = (adjustedVideoWidth/16) * 9;
+      videoHeight = (adjustedVideoWidth / 16) * 9;
       left = rect.left - 28 - adjustedVideoWidth;
       top = 64;
     }
@@ -387,7 +396,8 @@ export function Player({
         opacity: isPhantom ? 0.2 : 1,
         pointerEvents: isPhantom ? 'none' : 'auto',
         transition: pushable ? 'top 0.3s' : 'none',
-      }}>
+      }}
+    >
       <div className="video__note-supercontainer">
         <div>
           {isFocus && !isLocked ? (
@@ -414,9 +424,9 @@ export function Player({
               ) : (
                 ''
               )}
-              <div                
-                style={{position: "relative"}}
-                onMouseOver={() => setIsHovered(true)} 
+              <div
+                style={{ position: 'relative' }}
+                onMouseOver={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
               >
                 <ReactPlayer
@@ -439,37 +449,44 @@ export function Player({
                   playbackRate={playbackRate}
                   light={false}
                 />
-                {isHovered && isFocus ? 
+                {isHovered && isFocus ? (
                   <div className="video__note-player-rate-tray">
                     {[1.0, 1.25, 1.5, 1.75, 2.0].map((rate, i) => {
                       return (
-                        <div 
+                        <div
                           key={i}
                           className="video__note-player-rate"
-                          style={rate == playbackRate? {backgroundColor: "#1890ff", fontWeight: "bold", color: "#f6f6f6"} : {}}
-                          onClick={() => handlePlaybackRate(rate)}>
-                          {(rate == 1 || rate == 2) ? rate + '.00' : (rate == 1.5 ? rate + '0' : rate)}
+                          style={
+                            rate == playbackRate
+                              ? { backgroundColor: '#1890ff', fontWeight: 'bold', color: '#f6f6f6' }
+                              : {}
+                          }
+                          onClick={() => handlePlaybackRate(rate)}
+                        >
+                          {rate == 1 || rate == 2 ? rate + '.00' : rate == 1.5 ? rate + '0' : rate}
                         </div>
-                      )
+                      );
                     })}
-                  </div> 
-                  : ''
-                }
+                  </div>
+                ) : (
+                  ''
+                )}
                 {isHovered && isFocus && autoplay != undefined && autoplay != null ? (
                   <div className="video__note-autoplay">
                     <div className="video__note-autoplay-inner">
                       <label className="video__note-autoplay-switch">
-                        <input type="checkbox" onChange={handleAutoplay} checked={autoplay}/>
+                        <input type="checkbox" onChange={handleAutoplay} checked={autoplay} />
                         <span className="video__note-autoplay-slider"></span>
                       </label>
                     </div>
                   </div>
-                  ): ""
-                }
-                {isFocus && ended ? 
+                ) : (
+                  ''
+                )}
+                {isFocus && ended ? (
                   <div className="video__note-player-endscreen">
-                    <div 
-                      className="video__note-player-endscreen-inner" 
+                    <div
+                      className="video__note-player-endscreen-inner"
                       onClick={() => {
                         videoRef.current == null ? 0 : videoRef.current.seekTo(0);
                         setEnded(false);
@@ -479,24 +496,26 @@ export function Player({
                       <i className="fa-solid fa-repeat"></i>
                       <div>Replay</div>
                     </div>
-                    {clips.findIndex(c => c.id == id) != clips.length -1 ?
-                      <div 
+                    {clips.findIndex(c => c.id == id) != clips.length - 1 ? (
+                      <div
                         className="video__note-player-endscreen-inner"
-                        onClick={(e) => handleMove(e, 1, 'next')}
+                        onClick={e => handleMove(e, 1, 'next')}
                       >
                         <i className="fa-solid fa-forward"></i>
                         <div>Next</div>
-                      </div> :
-                      ""
-                    }
+                      </div>
+                    ) : (
+                      ''
+                    )}
                   </div>
-                  : ""
-                }
+                ) : (
+                  ''
+                )}
               </div>
             </div>
-            {!isLocked ? renderCaptions() : ""}
+            {!isLocked ? renderCaptions() : ''}
           </div>
-          {false && !isLocked ? renderHighlightNavigator() : ""}
+          {false && !isLocked ? renderHighlightNavigator() : ''}
         </div>
       </div>
     </div>

@@ -25,11 +25,11 @@
     cursor: pointer;
   }
 
-  &:hover, &.selected  {
+  &:hover,
+  &.selected {
     background-color: @hover-active-blue;
     mix-blend-mode: screen;
   }
-
 }
 
 .reader__page-overlay__bounding-box-underline {
@@ -60,7 +60,7 @@
 .reader__page--is-loading-image {
   align-items: center;
   background-color: @loading-outline-yellow;
-  justify-content:center;
+  justify-content: center;
   height: 24px;
   margin: 0 auto;
   padding: 0px 12px;
@@ -85,8 +85,8 @@
 }
 
 // HACK: avoid mis-alignment of selected texts
-.react-pdf__Page__textContent>span {
-  height: 0em!important;
+.react-pdf__Page__textContent > span {
+  height: 0em !important;
 }
 
 .reader__download-btn {
@@ -94,7 +94,7 @@
   display: flex;
 }
 
-.reader__page-number-control__current-page[type="number"]  {
+.reader__page-number-control__current-page[type='number'] {
   border-radius: 3px;
   height: 24px;
   -moz-appearance: textfield;
@@ -111,6 +111,6 @@
 }
 
 .reader__page-number-control__current-page::-webkit-inner-spin-button,
-.reader__page-number-control__current-page::-webkit-outer-spin-button { 
-	-webkit-appearance: none;
+.reader__page-number-control__current-page::-webkit-outer-spin-button {
+  -webkit-appearance: none;
 }

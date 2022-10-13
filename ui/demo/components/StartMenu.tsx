@@ -108,7 +108,8 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             <button
               className="startmenu__button"
               onClick={handleSubmit}
-              style={submitting || finished ? { backgroundColor: '#ccc', cursor: 'auto' } : {}}>
+              style={submitting || finished ? { backgroundColor: '#ccc', cursor: 'auto' } : {}}
+            >
               Submit
             </button>
           </div>

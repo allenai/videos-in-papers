@@ -50,7 +50,8 @@ export const Header: React.FunctionComponent<Props> = ({
           <button
             className="reader__header-save-button"
             onClick={saveAnnotations}
-            style={saving ? { backgroundColor: '#ccc', cursor: 'auto' } : {}}>
+            style={saving ? { backgroundColor: '#ccc', cursor: 'auto' } : {}}
+          >
             {saving ? 'Saving...' : 'Save Mappings'}
           </button>
         </div>

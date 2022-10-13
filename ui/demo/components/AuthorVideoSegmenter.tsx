@@ -88,15 +88,12 @@ export function AuthorVideoSegmenter({
   const [suggestions, setSuggestions] = React.useState<Array<Array<number>>>([]);
 
   React.useEffect(() => {
-    if(suggestions.length > 0) return;
+    if (suggestions.length > 0) return;
     var baseSuggestions = [];
     var lastIdx = 0;
-    for(var i = 0; i < captions.length; i++) {
-      if(captions[i].caption.match(/[.?!]/)) {
-        baseSuggestions.push([
-          captions[lastIdx].start,
-          captions[i].end
-        ]);
+    for (var i = 0; i < captions.length; i++) {
+      if (captions[i].caption.match(/[.?!]/)) {
+        baseSuggestions.push([captions[lastIdx].start, captions[i].end]);
         lastIdx = i + 1;
       }
     }
@@ -114,17 +111,19 @@ export function AuthorVideoSegmenter({
   const [scrubDirection, setScrubDirection] = React.useState<number>(0);
 
   const removeSuggestions = (start: number, end: number) => {
-    var tempSuggestions = suggestions.map((suggestion) => {
-      if((start <= suggestion[0] && suggestion[0] < end) ||
+    var tempSuggestions = suggestions.map(suggestion => {
+      if (
+        (start <= suggestion[0] && suggestion[0] < end) ||
         (start < suggestion[1] && suggestion[1] <= end) ||
-        (suggestion[0] <= start && end <= suggestion[1])) {
+        (suggestion[0] <= start && end <= suggestion[1])
+      ) {
         return [-1, -1];
       } else {
         return suggestion;
       }
-    })
+    });
     setSuggestions(tempSuggestions);
-  }
+  };
 
   React.useEffect(() => {
     if (previousSelectedClip != undefined && videoRef.current) {
@@ -244,20 +243,20 @@ export function AuthorVideoSegmenter({
 
     var startCaptionIdx = captions.findIndex(c => c.start <= newClip[0] && newClip[0] < c.end);
     var endCaptionIdx = captions.findIndex(c => c.start < newClip[1] && newClip[1] <= c.end);
-  
-    if(caption.start == newClip[0]) {
+
+    if (caption.start == newClip[0]) {
       newClip[0] = startCaptionIdx + 1 < captions.length ? captions[startCaptionIdx + 1].start : -1;
-    } else if(caption.end == newClip[1]) {
+    } else if (caption.end == newClip[1]) {
       newClip[1] = endCaptionIdx - 1 >= 0 ? captions[endCaptionIdx - 1].end : -1;
-    } else if(idx == startCaptionIdx) {
+    } else if (idx == startCaptionIdx) {
       newClip[0] = caption.start;
-    } else if(idx == endCaptionIdx) {
+    } else if (idx == endCaptionIdx) {
       newClip[1] = caption.end;
-    } else if(idx == startCaptionIdx - 1) {
+    } else if (idx == startCaptionIdx - 1) {
       newClip[0] = caption.start;
-    } else if(idx == endCaptionIdx + 1) {
+    } else if (idx == endCaptionIdx + 1) {
       newClip[1] = caption.end;
-    } else if(!modifyMode) {
+    } else if (!modifyMode) {
       newClip = [caption.start, caption.end];
     }
 
@@ -273,37 +272,41 @@ export function AuthorVideoSegmenter({
     e.stopPropagation();
     if (highlightMode) return;
     var newClip = [...selectedClip];
-    
+
     if (modifyMode && selectedMapping != null) {
       newClip = [clips[selectedMapping].start, clips[selectedMapping].end];
     }
 
-    var suggestionStartIdx = captions.findIndex(c => c.start <= suggestion[0] && suggestion[0] < c.end);
-    var suggestionEndIdx = captions.findIndex(c => c.start < suggestion[1] && suggestion[1] <= c.end);
+    var suggestionStartIdx = captions.findIndex(
+      c => c.start <= suggestion[0] && suggestion[0] < c.end
+    );
+    var suggestionEndIdx = captions.findIndex(
+      c => c.start < suggestion[1] && suggestion[1] <= c.end
+    );
 
     var startCaptionIdx = captions.findIndex(c => c.start <= newClip[0] && newClip[0] < c.end);
     var endCaptionIdx = captions.findIndex(c => c.start < newClip[1] && newClip[1] <= c.end);
 
-    if(suggestionEndIdx == startCaptionIdx) {
+    if (suggestionEndIdx == startCaptionIdx) {
       newClip[0] = suggestion[0];
-    } else if(suggestionStartIdx == endCaptionIdx) {
+    } else if (suggestionStartIdx == endCaptionIdx) {
       newClip[1] = suggestion[1];
-    } else if(suggestionEndIdx == startCaptionIdx - 1) {
+    } else if (suggestionEndIdx == startCaptionIdx - 1) {
       newClip[0] = suggestion[0];
-    } else if(suggestionStartIdx == endCaptionIdx + 1) {
+    } else if (suggestionStartIdx == endCaptionIdx + 1) {
       newClip[1] = suggestion[1];
-    } else if(!modifyMode) {
+    } else if (!modifyMode) {
       newClip[0] = suggestion[0];
       newClip[1] = suggestion[1];
     }
 
-    if(!modifyMode) {
+    if (!modifyMode) {
       changeClipWrapper(newClip, -1);
       setSelectedMapping(null);
-    } else if(modifyMode && selectedMapping != null) {
+    } else if (modifyMode && selectedMapping != null) {
       changeClipWrapper(newClip, selectedMapping);
     }
-  }
+  };
 
   const changeClipWrapper = (clip: Array<number>, id: number) => {
     if (highlightMode) return;
@@ -366,17 +369,20 @@ export function AuthorVideoSegmenter({
         let closestDist = null;
         for (var i = 0; i < captionIds.length; i++) {
           const caption = captionIds[i];
-          const dist = Math.abs(caption.captionIdx*1000 + caption.wordIdx - captionIdx*1000 + wordIdx);
+          const dist = Math.abs(
+            caption.captionIdx * 1000 + caption.wordIdx - captionIdx * 1000 + wordIdx
+          );
           if (closest == null || closestDist == null || dist < closestDist) {
             closestDist = dist;
             closest = caption;
           }
         }
         if (closest != null) {
-          if(closest.captionIdx <= captionIdx) {
+          if (closest.captionIdx <= captionIdx) {
             for (var j = closest.captionIdx; j <= captionIdx; j++) {
               var startWordIdx = j == closest.captionIdx ? closest.wordIdx : 0;
-              var endWordIdx = j == captionIdx ? wordIdx : captions[j]['caption'].split(/\n| /).length - 1;
+              var endWordIdx =
+                j == captionIdx ? wordIdx : captions[j]['caption'].split(/\n| /).length - 1;
               for (var k = startWordIdx; k <= endWordIdx; k++) {
                 captionIds.push({
                   captionIdx: j,
@@ -387,7 +393,10 @@ export function AuthorVideoSegmenter({
           } else {
             for (var j = captionIdx; j <= closest.captionIdx; j++) {
               var startWordIdx = j == captionIdx ? wordIdx : 0;
-              var endWordIdx = j == closest.captionIdx ? closest.wordIdx : captions[j]['caption'].split(/\n| /).length - 1;
+              var endWordIdx =
+                j == closest.captionIdx
+                  ? closest.wordIdx
+                  : captions[j]['caption'].split(/\n| /).length - 1;
               for (var k = startWordIdx; k <= endWordIdx; k++) {
                 captionIds.push({
                   captionIdx: j,
@@ -417,8 +426,14 @@ export function AuthorVideoSegmenter({
 
   const renderCaptions = () => {
     var suggestedCaptions = suggestions.map(suggestion => {
-      return captions.filter(c => (suggestion[0] <= c.start && c.start < suggestion[1]) || (suggestion[0] < c.end && c.end <= suggestion[1])).map(c => c.id);
-    })
+      return captions
+        .filter(
+          c =>
+            (suggestion[0] <= c.start && c.start < suggestion[1]) ||
+            (suggestion[0] < c.end && c.end <= suggestion[1])
+        )
+        .map(c => c.id);
+    });
     return captions.map((c, i) => {
       let selected = selectedClip[0] <= c.start && c.start < selectedClip[1];
       selected = selected || (selectedClip[0] < c.end && c.end <= selectedClip[1]);
@@ -436,25 +451,39 @@ export function AuthorVideoSegmenter({
       var suggestedInfo = suggestedCaptions[suggestedIdx];
 
       var style = {};
-      if(selectedMapping == usedClipId) {
+      if (selectedMapping == usedClipId) {
         style = { backgroundColor: colors[usedClipId % 7] + (hoverCaption == i ? '33' : '1A') };
-      } else if(usedClipId != -1) {
+      } else if (usedClipId != -1) {
         style = { opacity: 0.5 };
-      } else if(selected) {
-        style = { backgroundColor: "#1890ff" + (hoverCaption == i ? '33' : '1A') };
-      } else if(suggestedInfo != null) {
-        style = { borderLeftColor: '#1890ff33', borderRightColor: '#1890ff33'};
-        if(suggestedInfo[0] == i) {
-          style = { ...style, borderTopColor: '#1890ff33', borderTopLeftRadius: '4px', borderTopRightRadius: '4px', marginTop: '1px', paddingTop: '1px' };
+      } else if (selected) {
+        style = { backgroundColor: '#1890ff' + (hoverCaption == i ? '33' : '1A') };
+      } else if (suggestedInfo != null) {
+        style = { borderLeftColor: '#1890ff33', borderRightColor: '#1890ff33' };
+        if (suggestedInfo[0] == i) {
+          style = {
+            ...style,
+            borderTopColor: '#1890ff33',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px',
+            marginTop: '1px',
+            paddingTop: '1px',
+          };
         }
-        if(suggestedInfo[suggestedInfo.length - 1] == i) {
-          style = { ...style, borderBottomColor: '#1890ff33', borderBottomLeftRadius: '4px', borderBottomRightRadius: '4px', marginBottom: '1px', paddingBottom: '1px' };
+        if (suggestedInfo[suggestedInfo.length - 1] == i) {
+          style = {
+            ...style,
+            borderBottomColor: '#1890ff33',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            marginBottom: '1px',
+            paddingBottom: '1px',
+          };
         }
-        if(hoverCaption != -1 && suggestedInfo.includes(hoverCaption)) {
+        if (hoverCaption != -1 && suggestedInfo.includes(hoverCaption)) {
           style = { ...style, backgroundColor: '#1890ff33' };
         }
       } else {
-        style = { backgroundColor: hoverCaption == i ? "#ddd" : "#f6f6f6" }
+        style = { backgroundColor: hoverCaption == i ? '#ddd' : '#f6f6f6' };
       }
 
       return (
@@ -463,12 +492,18 @@ export function AuthorVideoSegmenter({
           id={'caption-' + i}
           className={'video__segmenter-transcript-container'}
           style={style}
-          onClick={e => suggestedInfo != null ? handleSelectSuggestion(suggestions[suggestedIdx], e) : handleSelectCaption(i, e)}
+          onClick={e =>
+            suggestedInfo != null
+              ? handleSelectSuggestion(suggestions[suggestedIdx], e)
+              : handleSelectCaption(i, e)
+          }
           onMouseEnter={() => setHoverCaption(i)}
-          onMouseLeave={() => setHoverCaption(-1)}>
+          onMouseLeave={() => setHoverCaption(-1)}
+        >
           <div
             className="video__segmenter-transcript-timestamp"
-            style={currentCaption == i ? { color: '#1075ff' } : {}}>
+            style={currentCaption == i ? { color: '#1075ff' } : {}}
+          >
             {timeToStr(c['start'])}
           </div>
           <div className="video__segmenter-transcript-text" onClick={handleClickTranscript}>
@@ -521,7 +556,8 @@ export function AuthorVideoSegmenter({
                   onMouseEnter={(e: React.MouseEvent) =>
                     isUsed ? setHoveredSegment({ clipId: usedClipId, index }) : ''
                   }
-                  onMouseLeave={(e: React.MouseEvent) => (isUsed ? setHoveredSegment(null) : '')}>
+                  onMouseLeave={(e: React.MouseEvent) => (isUsed ? setHoveredSegment(null) : '')}
+                >
                   {text}
                 </span>,
                 <span key={'space-' + i + '-' + j}>&nbsp;</span>,
@@ -536,14 +572,15 @@ export function AuthorVideoSegmenter({
   const adjustedVideoWidth = videoWidth;
   const videoHeight = (adjustedVideoWidth / 16) * 9;
 
-  const realWidth = (window.innerWidth - pageDimensions.width * scale - 48 - 24);
+  const realWidth = window.innerWidth - pageDimensions.width * scale - 48 - 24;
 
   return (
     <div className="video__segmenter-container" onClick={handleClickOutside}>
       <div className="video__segmenter-container-inner">
         <div
           style={{ width: adjustedVideoWidth + 'px', height: videoHeight + 'px' }}
-          onClick={e => e.stopPropagation()}>
+          onClick={e => e.stopPropagation()}
+        >
           <ReactPlayer
             ref={videoRef}
             url={url}
@@ -609,7 +646,11 @@ export function AuthorVideoSegmenter({
           scrubDirection={scrubDirection}
           setScrubDirection={setScrubDirection}
         />
-        <div className="video__segmenter-transcript" ref={captionRef} style={{width: realWidth + 'px'}}>
+        <div
+          className="video__segmenter-transcript"
+          ref={captionRef}
+          style={{ width: realWidth + 'px' }}
+        >
           {renderCaptions()}
         </div>
       </div>

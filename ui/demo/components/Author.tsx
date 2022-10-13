@@ -96,12 +96,12 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   }, []);
 
   React.useEffect(() => {
-    window.innerHeight
+    window.innerHeight;
     var videoWidth = window.innerWidth - pageDimensions.width * scale - 48 - 24;
-    var videoHeight = videoWidth / 16 * 9;
-    if(videoHeight > (window.innerHeight - 64 - 16) * 0.45) {
+    var videoHeight = (videoWidth / 16) * 9;
+    if (videoHeight > (window.innerHeight - 64 - 16) * 0.45) {
       videoHeight = (window.innerHeight - 64 - 16) * 0.45;
-      videoWidth = videoHeight / 9 * 16;
+      videoWidth = (videoHeight / 9) * 16;
     }
 
     setVideoWidth(videoWidth);
@@ -123,52 +123,56 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     if (selectedClip[0] === -1 || selectedClip[1] === -1) {
       setSuggestedBlocks([]);
       setCurrentSuggestion(-1);
-      if(suggestionTimer != null) {
+      if (suggestionTimer != null) {
         clearTimeout(suggestionTimer);
         setSuggestionTimer(null);
       }
       return;
     }
-    if(suggestionTimer != null) {
+    if (suggestionTimer != null) {
       clearTimeout(suggestionTimer);
     }
-    setSuggestionTimer(setTimeout(() => {
-      var mappings = Object.keys(clips).map(clipId => {
-        var clip = clips[parseInt(clipId)];
-        var blockIds = clip.highlights.map(highlightId => highlights[highlightId].blocks).flat();
-        return {
-          id: parseInt(clipId),
-          start: clip.start/1000,
-          end: clip.end/1000,
-          blocks: blockIds,
-        };
-      });
-      mappings.push({
-        id: -1,
-        start: selectedClip[0]/1000,
-        end: selectedClip[1]/1000,
-        blocks: [],
-      })
-      const data = { doi: doi, mappings: mappings };
-      fetch('/api/suggest_blocks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-      .then(response => {
-        return response.json();
-      })
-      .then(result => {
-        if(result['message'] != 200) {
-          console.log(result);
-        } else {
-          setCurrentSuggestion(-1);
-          setSuggestedBlocks(result['suggestions'].filter((blkId: number) => !selectedBlocks.includes(blkId)));
-        }
-      });
-    }, 500));
+    setSuggestionTimer(
+      setTimeout(() => {
+        var mappings = Object.keys(clips).map(clipId => {
+          var clip = clips[parseInt(clipId)];
+          var blockIds = clip.highlights.map(highlightId => highlights[highlightId].blocks).flat();
+          return {
+            id: parseInt(clipId),
+            start: clip.start / 1000,
+            end: clip.end / 1000,
+            blocks: blockIds,
+          };
+        });
+        mappings.push({
+          id: -1,
+          start: selectedClip[0] / 1000,
+          end: selectedClip[1] / 1000,
+          blocks: [],
+        });
+        const data = { doi: doi, mappings: mappings };
+        fetch('/api/suggest_blocks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        })
+          .then(response => {
+            return response.json();
+          })
+          .then(result => {
+            if (result['message'] != 200) {
+              console.log(result);
+            } else {
+              setCurrentSuggestion(-1);
+              setSuggestedBlocks(
+                result['suggestions'].filter((blkId: number) => !selectedBlocks.includes(blkId))
+              );
+            }
+          });
+      }, 500)
+    );
   }, [selectedClip]);
 
   const handleClickOutside = (e: React.MouseEvent<HTMLElement>) => {
@@ -188,20 +192,20 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   };
 
   const checkContinuousBlocks = (smallerBlock: Block, biggerBlock: Block) => {
-    if (smallerBlock.page == biggerBlock.page) { 
+    if (smallerBlock.page == biggerBlock.page) {
       return true;
     }
 
     var inbetweenBlocks = blocks.filter((blk: Block) => {
       var isGreaterThanSmaller = false;
-      if(blk.page >= smallerBlock.page) {
-        if(smallerBlock.page == blk.page) {
-          if(smallerBlock.left >= 0.5) {
-            if(blk.left >= 0.5 && blk.top > smallerBlock.top) {
+      if (blk.page >= smallerBlock.page) {
+        if (smallerBlock.page == blk.page) {
+          if (smallerBlock.left >= 0.5) {
+            if (blk.left >= 0.5 && blk.top > smallerBlock.top) {
               isGreaterThanSmaller = true;
             }
           } else {
-            if(blk.left >= 0.5 || blk.top > smallerBlock.top) {
+            if (blk.left >= 0.5 || blk.top > smallerBlock.top) {
               isGreaterThanSmaller = true;
             }
           }
@@ -209,15 +213,15 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
           isGreaterThanSmaller = true;
         }
       }
-      if(!isGreaterThanSmaller) return false;
-      if(blk.page <= biggerBlock.page) {
-        if(biggerBlock.page == blk.page) {
-          if(biggerBlock.left >= 0.5) {
-            if(blk.left < 0.5 || blk.top < biggerBlock.top) {
+      if (!isGreaterThanSmaller) return false;
+      if (blk.page <= biggerBlock.page) {
+        if (biggerBlock.page == blk.page) {
+          if (biggerBlock.left >= 0.5) {
+            if (blk.left < 0.5 || blk.top < biggerBlock.top) {
               return true;
             }
           } else {
-            if(blk.left < 0.5 && blk.top < biggerBlock.top) {
+            if (blk.left < 0.5 && blk.top < biggerBlock.top) {
               return true;
             }
           }
@@ -226,9 +230,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
         }
       }
     });
-    if(inbetweenBlocks.length == 0) return true;
-    for(var i = 0; i < inbetweenBlocks.length; i++) {
-      if(inbetweenBlocks[i].type == 'Paragraph') return false;
+    if (inbetweenBlocks.length == 0) return true;
+    for (var i = 0; i < inbetweenBlocks.length; i++) {
+      if (inbetweenBlocks[i].type == 'Paragraph') return false;
     }
     return true;
   };
@@ -253,18 +257,15 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
   const filterCaptions = (clip: Array<number>) => {
     return captions.filter((c: Caption) => {
-      return (
-        (clip[0] <= c.start && c.start < clip[1]) ||
-        (clip[0] < c.end && c.end <= clip[1])
-      );
+      return (clip[0] <= c.start && c.start < clip[1]) || (clip[0] < c.end && c.end <= clip[1]);
     });
-  }
+  };
 
   const createMapping = () => {
     let topTop = 0;
     let topPage = 0;
-    const copyBlocks = blocks.filter((b) => selectedBlocks.includes(b.id));
-    copyBlocks.sort((a, b) => (a.page + a.top) - (b.page + b.top));
+    const copyBlocks = blocks.filter(b => selectedBlocks.includes(b.id));
+    copyBlocks.sort((a, b) => a.page + a.top - (b.page + b.top));
     let clipId = Math.max(...Object.values(clips).map(c => c.id)) + 1;
     if (Object.values(clips).length == 0) {
       clipId = 0;
@@ -347,12 +348,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     var blocksToRemove: Array<Number> = [];
     for (let i = 0; i < highlightIds.length; i++) {
       var highlight = newHighlights[highlightIds[i]];
-      if(highlight.blocks != null) {
+      if (highlight.blocks != null) {
         blocksToRemove = blocksToRemove.concat(highlight.blocks);
       }
       delete newHighlights[highlightIds[i]];
     }
-    var newBlocks = blocks.filter((b: Block) => !(blocksToRemove.includes(b.id) && b.created == true));
+    var newBlocks = blocks.filter(
+      (b: Block) => !(blocksToRemove.includes(b.id) && b.created == true)
+    );
     setClips(newClips);
     setHighlights(newHighlights);
     setSelectedMapping(null);
@@ -385,7 +388,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   };
 
   const changeHighlight = (clipId: number, currBlock: Block | undefined, operation: number) => {
-    if(currBlock == undefined) return;
+    if (currBlock == undefined) return;
 
     const newHighlights = { ...highlights };
     if (operation == 1) {
@@ -396,9 +399,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
         for (let j = 0; j < highlight.blocks.length; j++) {
           const hlBlockId = highlight.blocks[j];
-          var hlBlock = blocks.find((b) => b.id == hlBlockId);
+          var hlBlock = blocks.find(b => b.id == hlBlockId);
           if (hlBlock == undefined) continue;
-          if(hlBlock.page + hlBlock.top > currBlock.page + currBlock.top) {
+          if (hlBlock.page + hlBlock.top > currBlock.page + currBlock.top) {
             if (checkContinuousBlocks(currBlock, hlBlock)) {
               highlightId = highlight.id;
               break;
@@ -463,12 +466,12 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
       );
       if (highlightId == undefined) return;
       var highlight = newHighlights[highlightId];
-      if(highlight.blocks == undefined) return;
+      if (highlight.blocks == undefined) return;
 
       var newBlocks = highlight.blocks.filter((b: number) => b != currBlock.id);
       newBlocks.sort((a, b) => a - b);
-      
-      if(currBlock.created) {
+
+      if (currBlock.created) {
         setBlocks(blocks.filter((b: Block) => b.id != currBlock.id));
       }
 
@@ -587,44 +590,64 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
   const handleKey = (e: any, isDown: boolean) => {
     if (e.key == 'Shift') {
       setShiftDown(isDown);
-    } else if(e.key == 'Alt') {
+    } else if (e.key == 'Alt') {
       setAltDown(isDown);
     }
-  }
+  };
 
   const createBlock = (bbox: BoundingBoxType) => {
     var blockId = Math.max(...blocks.map((blk: Block) => blk.id)) + 1;
     const newBlocks: Array<Block> = [...blocks];
-    var nextBlockIdx = blocks.findIndex((blk: Block) => blk.page >= bbox.page && blk.top > bbox.top);
-    var section = "Title";
-    if(nextBlockIdx - 1 >= 0) {
+    var nextBlockIdx = blocks.findIndex(
+      (blk: Block) => blk.page >= bbox.page && blk.top > bbox.top
+    );
+    var section = 'Title';
+    if (nextBlockIdx - 1 >= 0) {
       section = blocks[nextBlockIdx - 1].section;
     }
-    newBlocks.push({ ...bbox, id: blockId, index: blockId, created: true, type: "Created", section: section, tokens: []});
+    newBlocks.push({
+      ...bbox,
+      id: blockId,
+      index: blockId,
+      created: true,
+      type: 'Created',
+      section: section,
+      tokens: [],
+    });
     setBlocks(newBlocks);
-    if(selectedMapping == null) {
-      setSelectedBlocks([...selectedBlocks, blockId]); 
+    if (selectedMapping == null) {
+      setSelectedBlocks([...selectedBlocks, blockId]);
     } else {
-      changeHighlight(selectedMapping, newBlocks.find(b => b.id == blockId), 1);
+      changeHighlight(
+        selectedMapping,
+        newBlocks.find(b => b.id == blockId),
+        1
+      );
     }
-  }
+  };
 
   const removeCreatedBlocks = (blockIds: Array<number>) => {
     const newBlocks = blocks.filter((blk: Block) => !(blockIds.includes(blk.id) && blk.created));
     setBlocks(newBlocks);
-  }
+  };
 
   const scrollTo = (position: number) => {
     const container = document.getElementsByClassName('reader__container')[0];
     container.scrollTo({ top: position + container.scrollTop - 120, left: 0, behavior: 'smooth' });
-  }
+  };
 
   const captionsToTokens = (clip: Array<number>) => {
     const filteredCaptions = filterCaptions(clip);
     var captionTokens: Array<string> = [];
     if (filteredCaptions) {
       // to lower case, remove punctuation and quotation marks, and split into words
-      var temp = filteredCaptions.map(caption => caption.caption.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/"/g, '').split(' '));
+      var temp = filteredCaptions.map(caption =>
+        caption.caption
+          .toLowerCase()
+          .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
+          .replace(/"/g, '')
+          .split(' ')
+      );
       captionTokens = temp.reduce((a, b) => a.concat(b), []);
       // remove stop words
       captionTokens = captionTokens.filter(token => !stopWords.includes(token));
@@ -632,7 +655,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     } else {
       return undefined;
     }
-  }
+  };
 
   if (videoWidth == 0) {
     return <div>Loading...</div>;
@@ -645,7 +668,8 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
             className="reader__container"
             onKeyDown={(e: React.KeyboardEvent) => handleKey(e, true)}
             onKeyUp={(e: React.KeyboardEvent) => handleKey(e, false)}
-            tabIndex={0}>
+            tabIndex={0}
+          >
             <AuthorMappingControls
               clips={clips}
               selectedBlocks={selectedBlocks}
@@ -700,10 +724,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                           setSuggestedBlocks={setSuggestedBlocks}
                           currentSuggestion={currentSuggestion}
                           setCurrentSuggestion={setCurrentSuggestion}
-                          captionTokens={suggestedBlocks.length > 0 && currentSuggestion != -1 ? captionsToTokens(selectedClip): undefined}
+                          captionTokens={
+                            suggestedBlocks.length > 0 && currentSuggestion != -1
+                              ? captionsToTokens(selectedClip)
+                              : undefined
+                          }
                         />
-                        <AuthorDragOverlay 
-                          pageIndex={i} 
+                        <AuthorDragOverlay
+                          pageIndex={i}
                           altDown={!highlightMode && altDown}
                           createBlock={createBlock}
                         />

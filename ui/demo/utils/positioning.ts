@@ -70,23 +70,24 @@ export function spreadOutClips(
 ) {
   let sortedClips = Object.values(clips);
   sortedClips.sort((a, b) => {
-      var aRect = getOriginalPosition(a, highlights);
-      var bRect = getOriginalPosition(b, highlights);
-      var aIsRight = !(aRect.left < 0.5 && aRect.left + aRect.width > 0.5) && (aRect.left + aRect.width/2 > 0.5);
-      var bIsRight = !(bRect.left < 0.5 && bRect.left + bRect.width > 0.5) && (bRect.left + bRect.width/2 > 0.5);
-      if(aRect.page !== bRect.page) {
-        return aRect.page - bRect.page;
+    var aRect = getOriginalPosition(a, highlights);
+    var bRect = getOriginalPosition(b, highlights);
+    var aIsRight =
+      !(aRect.left < 0.5 && aRect.left + aRect.width > 0.5) && aRect.left + aRect.width / 2 > 0.5;
+    var bIsRight =
+      !(bRect.left < 0.5 && bRect.left + bRect.width > 0.5) && bRect.left + bRect.width / 2 > 0.5;
+    if (aRect.page !== bRect.page) {
+      return aRect.page - bRect.page;
+    } else {
+      if (!aIsRight && bIsRight) {
+        return -1;
+      } else if (aIsRight && !bIsRight) {
+        return 1;
       } else {
-        if(!aIsRight && bIsRight) {
-          return -1;
-        } else if(aIsRight && !bIsRight) {
-          return 1;
-        } else {
-          return aRect.top - bRect.top;
-        }
+        return aRect.top - bRect.top;
       }
     }
-  );
+  });
   const originalOrder = sortedClips.map(c => c.id);
 
   // Approximate the height of each video clip
@@ -171,7 +172,7 @@ export function spreadOutClips(
 export function positionSingleClip(
   clip: Clip,
   highlights: { [index: number]: Highlight },
-  videoWidth: number,
+  videoWidth: number
 ) {
   const highlightId = clip.highlights[clip.position];
   const highlight = highlights[highlightId];

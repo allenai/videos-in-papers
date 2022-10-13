@@ -59,7 +59,8 @@ export const AuthorBlockLabel: React.FunctionComponent<Props> = ({
           borderColor: color,
           color: isHighlighted ? '#fff' : color,
         }}
-        {...extraProps}>
+        {...extraProps}
+      >
         {id}
       </div>
     </React.Fragment>

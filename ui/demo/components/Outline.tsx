@@ -24,7 +24,8 @@ export const Outline: React.FunctionComponent<Props> = ({ parentRef }: Props) =>
       // instead of using the entire browser height.
       //@ts-ignore there's something wonky with the types here
       getContainer={parentRef.current}
-      className="reader__outline-drawer">
+      className="reader__outline-drawer"
+    >
       <PdfOutline />
     </Drawer>
   );

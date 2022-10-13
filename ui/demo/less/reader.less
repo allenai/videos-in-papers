@@ -11,7 +11,6 @@ body {
   justify-content: center;
 }
 
-
 .reader__main {
   position: relative;
   padding-top: 38px;
@@ -33,14 +32,14 @@ body {
   background-color: transparent;
   border: none;
   color: @blue;
-  
+
   &:hover {
     color: @light-blue;
     cursor: pointer;
   }
 }
 
-.reader__header{
+.reader__header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -77,7 +76,7 @@ body {
     font-weight: bold;
   }
 
-  .reader__popover__citation-authors, 
+  .reader__popover__citation-authors,
   .reader__popover__citation-year,
   .reader__popover__citation-abstract {
     font-weight: 300;
@@ -85,15 +84,15 @@ body {
 }
 
 .slider {
-  -webkit-appearance: none;  /* Override default CSS styles */
+  -webkit-appearance: none; /* Override default CSS styles */
   appearance: none;
   width: 100%; /* Full-width */
   height: 12px; /* Specified height */
   background: #ddd; /* Grey background */
   outline: none; /* Remove outline */
   opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
-  transition: opacity .2s;
+  -webkit-transition: 0.2s; /* 0.2 seconds transition on hover */
+  transition: opacity 0.2s;
   cursor: pointer;
   border-radius: 8px;
   overflow: hidden;
@@ -122,10 +121,10 @@ body {
 }
 
 .reader_highlight_color-sel {
-  background-color: #1890ff1A !important;
+  background-color: #1890ff1a !important;
   mix-blend-mode: normal !important;
   &:hover {
-      background-color: #1890ff4D !important;
+    background-color: #1890ff4d !important;
   }
 }
 
@@ -231,7 +230,7 @@ body {
 }
 
 .reader__page-overlay__sidebar-notcurrent {
-  background-color: #00000000 !important;
+  opacity: 0.1 !important;
 }
 
 .reader__page-overlay__sidebar-highlighted {
@@ -294,16 +293,16 @@ body {
   z-index: 10;
 }
 
-.popup-thumbnail__wrapper {  
+.popup-thumbnail__wrapper {
   position: relative;
   width: 100%;
-  padding-top: 56.25%
+  padding-top: 56.25%;
 }
 
 .popup-thumbnail__thumbnail {
   position: absolute;
   top: 0;
-  left: 0; 
+  left: 0;
 }
 
 .mapping-controls__container {
@@ -434,7 +433,7 @@ body {
   cursor: pointer;
 }
 
-.reader__page-overlay__drag { 
+.reader__page-overlay__drag {
   z-index: 2;
   position: absolute;
   cursor: pointer;

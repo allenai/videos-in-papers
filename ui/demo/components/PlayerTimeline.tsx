@@ -28,7 +28,7 @@ export function PlayerTimeline({
   const [hovered, setHovered] = React.useState(-1);
 
   React.useEffect(() => {
-    setRatio((width) / clips[clips.length - 1].end);
+    setRatio(width / clips[clips.length - 1].end);
   }, [width]);
 
   const handleMouseEnter = (e: React.MouseEvent) => {
@@ -84,7 +84,8 @@ export function PlayerTimeline({
             }}
             onClick={handleClick}
             onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}>
+            onMouseLeave={handleMouseLeave}
+          >
             {isCurrentClip ? id + 1 : ''}
           </div>
         );
