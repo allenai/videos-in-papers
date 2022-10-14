@@ -54,7 +54,7 @@ export const Paper: React.FunctionComponent<RouteComponentProps> = () => {
   }, [pdfScrollableRef]);
 
   const handleScroll = (e: any) => {
-    if (Math.abs(scrollPosition - e.target.scrollTop) > 5) {
+    if (Math.abs(scrollPosition - e.target.scrollTop) > 16) {
       logAction('scroll', { scrollTop: e.target.scrollTop });
     }
 

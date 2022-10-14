@@ -288,7 +288,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
 
   const handleScroll = (e: any) => {
     if (navigating == null) {
-      if (Math.abs(scrollPosition - e.target.scrollTop) > 5) {
+      if (Math.abs(scrollPosition - e.target.scrollTop) > 16) {
         logAction('scroll', { scrollTop: e.target.scrollTop });
       }
 
