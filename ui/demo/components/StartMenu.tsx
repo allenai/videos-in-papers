@@ -4,49 +4,103 @@ import { RouteComponentProps } from 'react-router';
 import { BrowserRouter, Route } from 'react-router-dom';
 
 export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
+  const [viewable, setViewable] = React.useState(false);
+
   const [doi, setDoi] = React.useState('');
   const [paperUrl, setPaperUrl] = React.useState('');
+  const [paperFile, setPaperFile] = React.useState<File | null>(null);
   const [videoUrl, setVideoUrl] = React.useState('');
+  const [videoFile, setVideoFile] = React.useState<File | null>(null);
+  const [captionFile, setCaptionFile] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [paperProcessed, setPaperProcessed] = React.useState(0);
   const [videoProcessed, setVideoProcessed] = React.useState(0);
   const [finished, setFinished] = React.useState(false);
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const key = urlParams.get('key');
+
+  React.useEffect(() => {
+    if (key) {
+      fetch('/api/check_key/' + key)
+        .then((res) => res.json())
+        .then((data) => {
+          setViewable(data.correct);
+        });
+    }
+  }, []);
+
   // https://mingyin.org/paper/CHI-22/multiple-camera.pdf
   // https://www.youtube.com/watch?v=HBcDELI9ZNE
   const handleSubmit = () => {
-    if (paperUrl.length == 0 || videoUrl.length == 0 || doi.length == 0) return;
+    console.log(doi)
+    console.log(paperUrl)
+    console.log(paperFile)
+    console.log(videoUrl)
+    console.log(videoFile)
+    console.log(captionFile)
+
+    if (paperUrl.length == 0 && paperFile == null) return;
+    if (videoUrl.length == 0 && (videoFile == null || captionFile == null)) return;
+    if (doi.length == 0) return;
     if (submitting || finished) return;
 
     setSubmitting(true);
 
-    let data = { doi: doi, url: paperUrl };
-    fetch('/api/process_paper', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-      .then(response => {
-        if (response.status == 504) return { message: 504 };
-        else return response.json();
+    if(paperUrl.length > 0) {
+      let data = { doi: doi, url: paperUrl };
+      fetch('/api/process_paper_url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       })
-      .then(result => {
-        if (result.message == 200) {
-          setPaperProcessed(1);
-        } else if (result.message == 504) {
-          setTimeout(() => {
+        .then(response => {
+          if (response.status == 504) return { message: 504 };
+          else return response.json();
+        })
+        .then(result => {
+          if (result.message == 200) {
             setPaperProcessed(1);
-          }, 30000);
-        } else {
-          alert('Error processing paper');
-          console.log(result.error);
-          setPaperProcessed(-1);
-        }
-      });
+          } else if (result.message == 504) {
+            setTimeout(() => {
+              setPaperProcessed(1);
+            }, 30000);
+          } else {
+            alert('Error processing paper');
+            console.log(result.error);
+            setPaperProcessed(-1);
+          }
+        });
+    } else if(paperFile) {
+      let data = new FormData();
+      data.append('doi', doi);
+      data.append('file', paperFile);
+      fetch('/api/process_paper_file', {
+        method: 'POST',
+        body: data,
+      })
+        .then(response => {
+          if (response.status == 504) return { message: 504 };
+          else return response.json();
+        })
+        .then(result => {
+          if (result.message == 200) {
+            setPaperProcessed(1);
+          } else if (result.message == 504) {
+            setTimeout(() => {
+              setPaperProcessed(1);
+            }, 30000);
+          } else {
+            alert('Error processing paper');
+            console.log(result.error);
+            setPaperProcessed(-1);
+          }
+        });
+    }
 
-    data = { doi: doi, url: videoUrl };
+    let data = { doi: doi, url: videoUrl };
     fetch('/api/process_video', {
       method: 'POST',
       headers: {
@@ -76,6 +130,10 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
     setSubmitting(false);
   }, [paperProcessed, videoProcessed]);
 
+  if(!viewable) {
+    return <></>;
+  }
+
   return (
     <BrowserRouter>
       <Route path="/">
@@ -97,12 +155,50 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             />
           </div>
           <div className="startmenu__row">
+            <div>PDF File</div>
+            <input 
+              type="file" name="file" 
+              onChange={e => {
+                if (submitting || finished) {
+                  return;
+                } else if(e.target.files != null) {
+                  setPaperFile(e.target.files[0])
+                }
+              }}
+            />
+          </div>
+          <div className="startmenu__row">
             <div>Your video's URL:</div>
             <input
               value={videoUrl}
               placeholder="Type or paste the url..."
               onChange={e => (submitting || finished ? null : setVideoUrl(e.target.value))}
             />
+          </div>
+          <div className="startmenu__row">
+            <div>Video File</div>
+            <input 
+              type="file" name="file" 
+              onChange={e => {
+                if(submitting || finished) {
+                  return;
+                } else if(e.target.files != null) {
+                  setVideoFile(e.target.files[0])
+                }
+              }}
+            />
+          </div>
+          <div className="startmenu__row">
+            <div>Caption File</div>
+            <input 
+              type="file" name="file" 
+              onChange={e => {
+                if((submitting || finished) && e.target.files != null) {
+                  setCaptionFile(e.target.files[0])
+                }
+              }}
+            />
+            {captionFile != null ? captionFile.name : null}
           </div>
           <div className="startmenu__row">
             <button
