@@ -16,6 +16,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
   const [paperProcessed, setPaperProcessed] = React.useState(0);
   const [videoProcessed, setVideoProcessed] = React.useState(0);
   const [finished, setFinished] = React.useState(false);
+  const [token, setToken] = React.useState('');
 
   const urlParams = new URLSearchParams(window.location.search);
   const key = urlParams.get('key');
@@ -56,6 +57,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
         .then(result => {
           if (result.message == 200) {
             setPaperProcessed(1);
+            setToken(result.token);
           } else if (result.message == 504) {
             setTimeout(() => {
               setPaperProcessed(1);
@@ -81,6 +83,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
         .then(result => {
           if (result.message == 200) {
             setPaperProcessed(1);
+            setToken(result.token);
           } else if (result.message == 504) {
             setTimeout(() => {
               setPaperProcessed(1);
@@ -272,8 +275,8 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
           {finished ? (
             <div className="startmenu__row">
               Move to annotating:
-              <a href={'https://' + window.location.hostname + '/author/' + doi}>
-                {'https://' + window.location.hostname + '/author/' + doi}
+              <a href={'https://' + window.location.hostname + '/author/' + doi + '?author_token=' + token}>
+                {'https://' + window.location.hostname + '/author/' + doi + '?author_token=' + token}
               </a>
             </div>
           ) : (

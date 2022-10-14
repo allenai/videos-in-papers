@@ -1,10 +1,11 @@
 import os
 import sys
-from flask import Blueprint, jsonify, request, current_app, send_from_directory
-from random import randint
-from time import sleep
 import json
+import random
+import string
 import traceback
+from time import sleep
+from flask import Blueprint, jsonify, request, current_app, send_from_directory
 from typing import List, Tuple
 
 from app.video_handler import download_video, split_video, convert_video, process_captions
@@ -68,11 +69,11 @@ def create_api() -> Blueprint:
             return error('Please enter at least choice value.')
 
         # We use a randomly generated index to choose our answer
-        rand_index = randint(0, len(cleaned_choices)-1)
+        rand_index = random.randint(0, len(cleaned_choices)-1)
         selected = cleaned_choices[rand_index]
 
         # We use a randomly generated value between 0 and 100 to make a fake score
-        random_value = randint(0, 100)
+        random_value = random.randint(0, 100)
         # We produce a score with no actual meaning, it's just for demonstration
         # purposes
         score = random_value - 50 if random_value > 50 else random_value - 0
@@ -86,7 +87,7 @@ def create_api() -> Blueprint:
         # Create simulated latency. You should definitely remove this. It's
         # just so that the API actually behaves like one we'd expect you to
         # build
-        sleep(randint(1,3))
+        sleep(random.randint(1,3))
 
         return jsonify(answer)
 
@@ -204,7 +205,22 @@ def create_api() -> Blueprint:
         try:
             get_paper(paper_url, doi, f"{DIR_PATH}/data/pdf")
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", f"{DIR_PATH}/data/parsed_pdf", comparer)
-            return jsonify({'message': 200})
+
+            # if token file exists read it
+            tokens = {}
+            if os.path.exists(f"{DIR_PATH}/data/tokens.json"):
+                with open(f"{DIR_PATH}/data/tokens.json", 'r') as f:
+                    tokens = json.load(f)
+            
+            # create random 16 character token
+            token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
+            tokens[doi] = token
+
+            # write token file
+            with open(f"{DIR_PATH}/data/tokens.json", 'w') as f:
+                json.dump(tokens, f)
+
+            return jsonify({'message': 200, 'token': token})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
             print(error)
@@ -229,7 +245,22 @@ def create_api() -> Blueprint:
         try:
             file.save(os.path.join(f"{DIR_PATH}/data/pdf", doi + '.pdf'))
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", f"{DIR_PATH}/data/parsed_pdf", comparer)
-            return jsonify({'message': 200})
+
+            # if token file exists read it
+            tokens = {}
+            if os.path.exists(f"{DIR_PATH}/data/tokens.json"):
+                with open(f"{DIR_PATH}/data/tokens.json", 'r') as f:
+                    tokens = json.load(f)
+            
+            # create random 16 character token
+            token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
+            tokens[doi] = token
+
+            # write token file
+            with open(f"{DIR_PATH}/data/tokens.json", 'w') as f:
+                json.dump(tokens, f)
+
+            return jsonify({'message': 200, 'token': token})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
             print(error)
@@ -380,5 +411,25 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200, 'correct': False})
         else:
             return jsonify({'message': 200, 'correct': True})
+
+    @api.route('/api/check_author_token/<string:doi>/<string:token>', methods=['GET'])
+    def check_author_token(doi, token):
+        try:
+            with open(f"{DIR_PATH}/data/tokens.json", 'r') as f:
+                data = json.load(f)
+                if doi in data and data[doi] == token:
+                    return jsonify({'message': 200, 'correct': True})
+                elif not doi in data and data['default'] == token:
+                    return jsonify({'message': 200, 'correct': True})
+                else:
+                    return jsonify({'message': 200, 'correct': False})
+        except AssertionError as e:
+            error = str(e) + '\n' + traceback.format_exc()
+            print(error)
+            return jsonify({'message': 400, 'error': error})
+        except Exception as e:
+            error = str(e) + '\n' + traceback.format_exc()
+            print(error)
+            return jsonify({'message': 400, 'error': error})
 
     return api

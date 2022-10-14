@@ -70,28 +70,40 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
 
   const [currentSuggestion, setCurrentSuggestion] = React.useState(-1);
 
+  const [viewable, setViewable] = React.useState<boolean>(false);
+
+  // get author token from query params
+  const urlParams = new URLSearchParams(window.location.search);
+  const authorToken = urlParams.get('author_token');
+
   React.useEffect(() => {
-    fetch('/api/annotation/' + doi + '.json')
-      .then(res => res.json())
-      .then(data => {
-        console.log(data);
-        setHighlights(data.highlights);
-        setClips(data.clips);
-        setSyncSegments(data.syncSegments);
-      });
-    fetch('/api/blocks/' + doi + '.json')
-      .then(res => res.json())
-      .then((data: Array<Block>) => {
-        setBlocks(data);
-      });
-    fetch('/api/captions/' + doi + '.json')
-      .then(res => res.json())
-      .then(data => {
-        setCaptions(
-          data.map((c: { caption: string; start: number; end: number }, i: number) => {
-            return { ...c, id: i };
-          })
-        );
+    fetch('/api/check_author_token/' + doi + '/' + authorToken)
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.correct) return;
+        setViewable(true);
+        fetch('/api/annotation/' + doi + '.json')
+          .then(res => res.json())
+          .then(data => {
+            console.log(data);
+            setHighlights(data.highlights);
+            setClips(data.clips);
+            setSyncSegments(data.syncSegments);
+          });
+        fetch('/api/blocks/' + doi + '.json')
+          .then(res => res.json())
+          .then((data: Array<Block>) => {
+            setBlocks(data);
+          });
+        fetch('/api/captions/' + doi + '.json')
+          .then(res => res.json())
+          .then(data => {
+            setCaptions(
+              data.map((c: { caption: string; start: number; end: number }, i: number) => {
+                return { ...c, id: i };
+              })
+            );
+          });
       });
   }, []);
 
@@ -657,7 +669,9 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     }
   };
 
-  if (videoWidth == 0) {
+  if(!viewable) {
+    return <></>;
+  }else if (videoWidth == 0) {
     return <div>Loading...</div>;
   } else {
     return (
