@@ -74,3 +74,42 @@ def split_video(doi, video_path, clips):
         clip = clips[clip_id]
         clip = video.subclip(clip['start']/1000, clip['end']/1000)
         clip.write_videofile(f"{video_dir}/{clip_id}.mp4", temp_audiofile='./temp-audio.m4a', fps=25, audio_codec="aac")
+
+def convert_video(input_path, output_path):
+    video = VideoFileClip(input_path)
+    video.audio = AudioFileClip(input_path)
+    video.write_videofile(output_path, temp_audiofile='./temp-audio.m4a', fps=25, audio_codec="aac")
+    os.remove(input_path)
+
+def timestamp_to_ms(timestamp, is_srt=True):
+    if is_srt:
+        h, m, s = timestamp.split(':')
+        s, ms = s.split(',')
+        return int(h)*60*60*1000 + int(m)*60*1000 + int(s)*1000 + int(ms)
+    else:
+        m, s = timestamp.split(':')
+        s, ms = s.split('.')
+        return int(m)*60*1000 + int(s)*1000 + int(ms)
+
+def process_captions(input_path, output_path):
+    with open(input_path, "r") as f:
+        captions = f.read()
+    
+    if '.srt' in input_path:
+        captions = captions.split('\n\n')
+        captions = [caption.split('\n') for caption in captions]
+        captions = [caption for caption in captions if len(caption) == 3]
+        captions = [{'caption': caption[2], 'timestamp': caption[1].split(' --> ')} for caption in captions]
+        captions = [{'caption': caption['caption'], 'start': timestamp_to_ms(caption['timestamp'][0]), 'end': timestamp_to_ms(caption['timestamp'][1])} for caption in captions]
+    elif '.vtt' in input_path:
+        captions = captions.split('\n\n')
+        captions = [caption.split('\n') for caption in captions]
+        # filter with one 
+        captions = [caption for caption in captions if len(caption) == 2]
+        captions = [{'caption': caption[1].strip(), 'timestamp': caption[0].split(' --> ')} for caption in captions]
+        captions = [{'caption': caption['caption'], 'start': timestamp_to_ms(caption['timestamp'][0], False), 'end': timestamp_to_ms(caption['timestamp'][1], False)} for caption in captions]
+
+    with open(output_path, "w") as f:
+        json.dump(captions, f)
+    
+    os.remove(input_path)

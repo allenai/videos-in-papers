@@ -7,7 +7,7 @@ import json
 import traceback
 from typing import List, Tuple
 
-from app.video_handler import download_video, split_video
+from app.video_handler import download_video, split_video, convert_video, process_captions
 from app.paper_handler import get_paper, process_paper_blocks
 from app.pipeline.comparer import Comparer
 
@@ -55,7 +55,8 @@ def create_api() -> Blueprint:
     def solve():
         data = request.json
         if data is None:
-            return error("No request body")
+            print('Error: No request body')
+            return {'message': 400, 'error': 'No request body'}
 
         question = data.get("question")
         if question is None or len(question.strip()) == 0:
@@ -112,11 +113,12 @@ def create_api() -> Blueprint:
     def captions(path):
         return send_from_directory(f"{DIR_PATH}/data/captions/", path)
 
-    @api.route('/api/process_video', methods=["POST"])
-    def process_video():
+    @api.route('/api/process_video_url', methods=["POST"])
+    def process_video_url():
         data = request.json
         if data is None:
-            return error("No request body")
+            print('Error: No request body')
+            return {'message': 400, 'error': 'No request body'}
 
         doi = data.get("doi")
         video_url = data.get("url")
@@ -133,11 +135,68 @@ def create_api() -> Blueprint:
             print(error)
             return jsonify({'message': 400, 'error': error})
 
+    @api.route('/api/process_video_file', methods=["POST"])
+    def process_video_file():
+        if 'file' not in request.files:
+            print('Error: No file part')
+            return {'message': 400, 'error': 'No selected file'}
+
+        doi = request.form.get("doi")
+        file = request.files['file']
+
+        if file.filename == '':
+            return {'message': 400, 'error': 'No selected file'}
+
+        try:
+            if not os.path.exists(f"{DIR_PATH}/data/clips/{doi}"):
+                os.makedirs(f"{DIR_PATH}/data/clips/{doi}")
+
+            if '.mp4' in file.filename:
+                file.save(os.path.join(f"{DIR_PATH}/data/clips/{doi}", 'full.mp4'))
+            else:
+                file.save(os.path.join(f"{DIR_PATH}/data/clips/{doi}", file.filename))
+                convert_video(f"{DIR_PATH}/data/clips/{doi}/{file.filename}", f"{DIR_PATH}/data/clips/{doi}/full.mp4")
+            return jsonify({'message': 200})
+        except AssertionError as e:
+            error = str(e) + '\n' + traceback.format_exc()
+            print(error)
+            return jsonify({'message': 400, 'error': error})
+        except Exception as e:
+            error = str(e) + '\n' + traceback.format_exc()
+            print(error)
+            return jsonify({'message': 400, 'error': error})
+
+    @api.route('/api/process_caption_file', methods=["POST"])
+    def process_caption_file():
+        if 'file' not in request.files:
+            print('Error: No file part')
+            return {'message': 400, 'error': 'No selected file'}
+
+        doi = request.form.get("doi")
+        file = request.files['file']
+
+        if file.filename == '':
+            return {'message': 400, 'error': 'No selected file'}
+
+        try:
+            file.save(f"{DIR_PATH}/data/captions/{doi}_{file.filename}")
+            process_captions(f"{DIR_PATH}/data/captions/{doi}_{file.filename}", f"{DIR_PATH}/data/captions/{doi}.json")
+            return jsonify({'message': 200})
+        except AssertionError as e:
+            error = str(e) + '\n' + traceback.format_exc()
+            print(error)
+            return jsonify({'message': 400, 'error': error})
+        except Exception as e:
+            error = str(e) + '\n' + traceback.format_exc()
+            print(error)
+            return jsonify({'message': 400, 'error': error})
+
     @api.route('/api/process_paper_url', methods=['POST'])
     def process_paper_url():
         data = request.json
         if data is None:
-            return error("No request body")
+            print('Error: No request body')
+            return {'message': 400, 'error': 'No request body'}
 
         doi = data.get("doi")
         paper_url = data.get("url")
@@ -158,13 +217,14 @@ def create_api() -> Blueprint:
     @api.route('/api/process_paper_file', methods=['POST'])
     def process_paper_file():
         if 'file' not in request.files:
-            return error("No file part")
+            print('Error: No selected file')
+            return {'message': 400, 'error': 'No file part'}
 
         doi = request.form.get("doi")
         file = request.files['file']
 
         if file.filename == '':
-            return error("No file selected")
+            return {'message': 400, 'error': 'No selected file'}
 
         try:
             file.save(os.path.join(f"{DIR_PATH}/data/pdf", doi + '.pdf'))
@@ -183,7 +243,8 @@ def create_api() -> Blueprint:
     def get_annotations():
         data = request.json
         if data is None:
-            return error("No request body")
+            print('Error: No request body')
+            return {'message': 400, 'error': 'No request body'}
 
         doi = data.get("doi")
         userId = data.get("userId")
@@ -197,7 +258,8 @@ def create_api() -> Blueprint:
     def save_annotations():
         data = request.json
         if data is None:
-            return error("No request body")
+            print('Error: No request body')
+            return {'message': 400, 'error': 'No request body'}
 
         doi = data.get("doi")
         clips = data.get("clips")
@@ -223,7 +285,8 @@ def create_api() -> Blueprint:
     def suggest_blocks():
         data = request.json
         if data is None:
-            return error("No request body")
+            print('Error: No request body')
+            return {'message': 400, 'error': 'No request body'}
 
         doi = data.get("doi")
         mappings = data.get("mappings")
@@ -249,7 +312,8 @@ def create_api() -> Blueprint:
     def log_action():
         data = request.json
         if data is None:
-            return error("No request body")
+            print('Error: No request body')
+            return {'message': 400, 'error': 'No request body'}
 
         doi = data.get("doi")
         userId = data.get("userId")

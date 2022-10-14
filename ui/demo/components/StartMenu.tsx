@@ -33,13 +33,6 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
   // https://mingyin.org/paper/CHI-22/multiple-camera.pdf
   // https://www.youtube.com/watch?v=HBcDELI9ZNE
   const handleSubmit = () => {
-    console.log(doi)
-    console.log(paperUrl)
-    console.log(paperFile)
-    console.log(videoUrl)
-    console.log(videoFile)
-    console.log(captionFile)
-
     if (paperUrl.length == 0 && paperFile == null) return;
     if (videoUrl.length == 0 && (videoFile == null || captionFile == null)) return;
     if (doi.length == 0) return;
@@ -100,26 +93,71 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
         });
     }
 
-    let data = { doi: doi, url: videoUrl };
-    fetch('/api/process_video', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-      .then(response => {
-        return response.json();
+    if(videoUrl.length > 0) {
+      let data = { doi: doi, url: videoUrl };
+      fetch('/api/process_video_url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       })
-      .then(result => {
-        if (result.message == 200) {
-          setVideoProcessed(1);
-        } else {
-          alert('Error processing video');
-          console.log(result.error);
-          setVideoProcessed(-1);
-        }
-      });
+        .then(response => {
+          return response.json();
+        })
+        .then(result => {
+          if (result.message == 200) {
+            setVideoProcessed(1);
+          } else {
+            alert('Error processing video');
+            console.log(result.error);
+            setVideoProcessed(-1);
+          }
+        });
+    } else {
+      if(videoFile) {
+        let data = new FormData();
+        data.append('doi', doi);
+        data.append('file', videoFile);
+        fetch('/api/process_video_file', {
+          method: 'POST',
+          body: data,
+        })
+          .then(response => {
+            return response.json();
+          })
+          .then(result => {
+            if (result.message == 200) {
+              setVideoProcessed(1);
+            } else {
+              alert('Error processing video');
+              console.log(result.error);
+              setVideoProcessed(-1);
+            }
+          });
+      }
+      if(captionFile) {
+        let data = new FormData();
+        data.append('doi', doi);
+        data.append('file', captionFile);
+        fetch('/api/process_caption_file', {
+          method: 'POST',
+          body: data,
+        })
+          .then(response => {
+            return response.json();
+          })
+          .then(result => {
+            if (result.message == 200) {
+              setVideoProcessed(2);
+            } else {
+              alert('Error processing captions');
+              console.log(result.error);
+              setVideoProcessed(-1);
+            }
+          });
+      }
+    } 
   };
 
   React.useEffect(() => {
@@ -193,12 +231,13 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             <input 
               type="file" name="file" 
               onChange={e => {
-                if((submitting || finished) && e.target.files != null) {
+                if(submitting || finished) {
+                  return;
+                } else if(e.target.files != null) {
                   setCaptionFile(e.target.files[0])
                 }
               }}
             />
-            {captionFile != null ? captionFile.name : null}
           </div>
           <div className="startmenu__row">
             <button
