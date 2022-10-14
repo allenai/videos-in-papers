@@ -83,8 +83,6 @@ export const Paper: React.FunctionComponent<RouteComponentProps> = () => {
       });
   };
 
-  console.log('hey');
-
   return (
     <BrowserRouter>
       <Route path="/">
