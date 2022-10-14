@@ -13,3 +13,5 @@ api/app/data/
 # UI package manager debug output
 ui/*.log
 .skiff/webapp.yaml
+
+docker-compose.yml
