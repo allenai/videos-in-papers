@@ -275,8 +275,8 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
           {finished ? (
             <div className="startmenu__row">
               Move to annotating:
-              <a href={'https://' + window.location.hostname + '/author/' + doi + '?author_token=' + token}>
-                {'https://' + window.location.hostname + '/author/' + doi + '?author_token=' + token}
+              <a href={'https://' + window.location.hostname + '/author/' + doi.replace('/', '.') + '?author_token=' + token}>
+                {'https://' + window.location.hostname + '/author/' + doi.replace('/', '.') + '?author_token=' + token}
               </a>
             </div>
           ) : (
