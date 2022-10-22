@@ -23,7 +23,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
 
   React.useEffect(() => {
     if (key) {
-      fetch('/api/check_key/' + key)
+      fetch('/api/check_start_key/' + key)
         .then((res) => res.json())
         .then((data) => {
           setViewable(data.correct);
@@ -209,7 +209,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             />
           </div>
           <div className="startmenu__row">
-            <div>Your video's URL:</div>
+            <div>YouTube URL:</div>
             <input
               value={videoUrl}
               placeholder="Type or paste the url..."

@@ -122,6 +122,8 @@ def create_api() -> Blueprint:
             return {'message': 400, 'error': 'No request body'}
 
         doi = data.get("doi")
+        # replace backslash with dot
+        doi = doi.replace('/', '.')
         video_url = data.get("url")
 
         try:
@@ -129,11 +131,14 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            # write error into data/error.log
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/process_video_file', methods=["POST"])
@@ -143,6 +148,8 @@ def create_api() -> Blueprint:
             return {'message': 400, 'error': 'No selected file'}
 
         doi = request.form.get("doi")
+        # replace backslash with dot
+        doi = doi.replace('/', '.')
         file = request.files['file']
 
         if file.filename == '':
@@ -160,11 +167,13 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/process_caption_file', methods=["POST"])
@@ -174,6 +183,8 @@ def create_api() -> Blueprint:
             return {'message': 400, 'error': 'No selected file'}
 
         doi = request.form.get("doi")
+        # replace backslash with dot
+        doi = doi.replace('/', '.')
         file = request.files['file']
 
         if file.filename == '':
@@ -185,11 +196,13 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/process_paper_url', methods=['POST'])
@@ -200,6 +213,8 @@ def create_api() -> Blueprint:
             return {'message': 400, 'error': 'No request body'}
 
         doi = data.get("doi")
+        # replace backslash with dot
+        doi = doi.replace('/', '.')
         paper_url = data.get("url")
 
         try:
@@ -223,11 +238,13 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200, 'token': token})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/process_paper_file', methods=['POST'])
@@ -237,6 +254,8 @@ def create_api() -> Blueprint:
             return {'message': 400, 'error': 'No file part'}
 
         doi = request.form.get("doi")
+        # replace backslash with dot
+        doi = doi.replace('/', '.')
         file = request.files['file']
 
         if file.filename == '':
@@ -263,11 +282,13 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200, 'token': token})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/get_annotations', methods=['POST'])
@@ -305,11 +326,13 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/suggest_blocks', methods=['POST'])
@@ -331,11 +354,13 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200, 'suggestions': predicted_blocks})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
 
@@ -361,11 +386,13 @@ def create_api() -> Blueprint:
             return jsonify({'message': 200})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/get_file_list/<string:key_secret>', methods=['GET'])
@@ -381,11 +408,13 @@ def create_api() -> Blueprint:
                 return jsonify(files)
             except AssertionError as e:
                 error = str(e) + '\n' + traceback.format_exc()
-                print(error)
+                with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                    f.write(error)
                 return jsonify({'message': 400, 'error': error})
             except Exception as e:
                 error = str(e) + '\n' + traceback.format_exc()
-                print(error)
+                with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                    f.write(error)
                 return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/get_log/<string:key_secret>', methods=['GET'])
@@ -398,16 +427,58 @@ def create_api() -> Blueprint:
                 return jsonify([log.to_dict() for log in logs])
             except AssertionError as e:
                 error = str(e) + '\n' + traceback.format_exc()
-                print(error)
+                with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                    f.write(error)
                 return jsonify({'message': 400, 'error': error})
             except Exception as e:
                 error = str(e) + '\n' + traceback.format_exc()
-                print(error)
+                with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                    f.write(error)
                 return jsonify({'message': 400, 'error': error})
 
-    @api.route('/api/check_key/<string:key_secret>', methods=['GET'])
-    def check_key(key_secret):
+    @api.route('/api/get_token_list/<string:key_secret>', methods=['GET'])
+    def get_token_list(key_secret):
         if os.getenv('KEY_SECRET') != key_secret:
+            return jsonify({'message': 400, 'error': 'Error'})
+        else:
+            try:
+                with open(f"{DIR_PATH}/data/tokens.json", 'r') as f:
+                    tokens = json.load(f)
+                return jsonify(tokens)
+            except AssertionError as e:
+                error = str(e) + '\n' + traceback.format_exc()
+                with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                    f.write(error)
+                return jsonify({'message': 400, 'error': error})
+            except Exception as e:
+                error = str(e) + '\n' + traceback.format_exc()
+                with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                    f.write(error)
+                return jsonify({'message': 400, 'error': error})
+
+    @api.route('/api/get_error_log/<string:key_secret>', methods=['GET'])
+    def get_error_log(key_secret):
+        if os.getenv('KEY_SECRET') != key_secret:
+            return jsonify({'message': 400, 'error': 'Error'})
+        else:
+            try:
+                with open(f"{DIR_PATH}/data/error.log", 'r') as f:
+                    return jsonify(f.read())
+            except AssertionError as e:
+                error = str(e) + '\n' + traceback.format_exc()
+                with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                    f.write(error)
+                return jsonify({'message': 400, 'error': error})
+            except Exception as e:
+                error = str(e) + '\n' + traceback.format_exc()
+                with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                    f.write(error)
+                return jsonify({'message': 400, 'error': error})
+
+    @api.route('/api/check_start_key/<string:key_secret>', methods=['GET'])
+    def check_key(key_secret):
+        print(os.getenv('START_KEY_SECRET'), key_secret)
+        if os.getenv('START_KEY_SECRET') != key_secret:
             return jsonify({'message': 200, 'correct': False})
         else:
             return jsonify({'message': 200, 'correct': True})
@@ -425,11 +496,13 @@ def create_api() -> Blueprint:
                     return jsonify({'message': 200, 'correct': False})
         except AssertionError as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
         except Exception as e:
             error = str(e) + '\n' + traceback.format_exc()
-            print(error)
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 400, 'error': error})
 
     return api

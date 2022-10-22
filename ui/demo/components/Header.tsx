@@ -8,6 +8,7 @@ type Props = {
   setLockable?: (lockable: boolean) => void;
   saveAnnotations?: () => void;
   saving?: boolean;
+  openModal?: () => void;
 };
 
 export const Header: React.FunctionComponent<Props> = ({
@@ -15,6 +16,7 @@ export const Header: React.FunctionComponent<Props> = ({
   setLockable,
   saveAnnotations,
   saving,
+  openModal
 }: Props) => {
   const { scale } = React.useContext(TransformContext);
 
@@ -24,27 +26,13 @@ export const Header: React.FunctionComponent<Props> = ({
 
   return (
     <div className="reader__header">
-      <div></div>
+      <div>
+      </div>
       <div>
         <ZoomOutButton />
         {renderLabel()}
         <ZoomInButton />
       </div>
-      {false && lockable != null ? (
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '8px', paddingRight: '16px' }}>
-          Lock Video
-          <input
-            type="checkbox"
-            className="toggle-switch-checkbox"
-            name="toggleSwitch"
-            id="toggleSwitch"
-            checked={lockable}
-            onChange={() => (setLockable ? setLockable(!lockable) : null)}
-          />
-        </div>
-      ) : (
-        <div></div>
-      )}
       {saveAnnotations ? (
         <div>
           <button
@@ -56,7 +44,15 @@ export const Header: React.FunctionComponent<Props> = ({
           </button>
         </div>
       ) : (
-        ''
+        <div>
+          <div onClick={openModal}>
+            <i 
+              className="fa fa-info-circle" 
+              aria-hidden="true"
+              style={{fontSize: "24px", cursor: "pointer"}}
+            ></i>
+          </div>
+        </div>
       )}
     </div>
   );
