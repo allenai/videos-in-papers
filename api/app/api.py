@@ -477,10 +477,12 @@ def create_api() -> Blueprint:
 
     @api.route('/api/check_start_key/<string:key_secret>', methods=['GET'])
     def check_key(key_secret):
-        print(os.getenv('START_KEY_SECRET'), key_secret)
         if os.getenv('START_KEY_SECRET') != key_secret:
             return jsonify({'message': 200, 'correct': False})
         else:
+            error = "Wrong key: " + key_secret + ' - ' + os.getenv('START_KEY_SECRET')
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return jsonify({'message': 200, 'correct': True})
 
     @api.route('/api/check_author_token/<string:doi>/<string:token>', methods=['GET'])
