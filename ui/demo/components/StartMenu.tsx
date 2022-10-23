@@ -18,6 +18,9 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
   const [finished, setFinished] = React.useState(false);
   const [token, setToken] = React.useState('');
 
+  const [videoErrorMsg, setVideoErrorMsg] = React.useState('');
+  const [paperErrorMsg, setPaperErrorMsg] = React.useState('');
+
   const urlParams = new URLSearchParams(window.location.search);
   const key = urlParams.get('key');
 
@@ -66,6 +69,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             alert('Error processing paper');
             console.log(result.error);
             setPaperProcessed(-1);
+            setPaperErrorMsg(result.error);
           }
         });
     } else if(paperFile) {
@@ -92,6 +96,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             alert('Error processing paper');
             console.log(result.error);
             setPaperProcessed(-1);
+            setPaperErrorMsg(result.error);
           }
         });
     }
@@ -115,6 +120,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             alert('Error processing video');
             console.log(result.error);
             setVideoProcessed(-1);
+            setVideoErrorMsg(result.error);
           }
         });
     } else {
@@ -136,6 +142,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
               alert('Error processing video');
               console.log(result.error);
               setVideoProcessed(-1);
+              setVideoErrorMsg(result.error);
             }
           });
       }
@@ -157,6 +164,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
               alert('Error processing captions');
               console.log(result.error);
               setVideoProcessed(-1);
+              setVideoErrorMsg(result.error);
             }
           });
       }
@@ -262,13 +270,13 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             ''
           )}
           {videoProcessed == -1
-            ? 'Error processing video...'
+            ? 'Error processing video...\n' + videoErrorMsg
             : videoProcessed == 1
             ? 'Video processing finished!'
             : ''}
           <br />
           {paperProcessed == -1
-            ? 'Error processing paper...'
+            ? 'Error processing paper...' + paperErrorMsg
             : paperProcessed == 1
             ? 'Paper processing finished!'
             : ''}
