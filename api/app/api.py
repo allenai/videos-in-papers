@@ -476,14 +476,22 @@ def create_api() -> Blueprint:
                 return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/check_start_key/<string:key_secret>', methods=['GET'])
-    def check_key(key_secret):
-        if os.getenv('START_KEY_SECRET') != key_secret:
-            error = "Wrong key: " + key_secret + ' - ' + os.getenv('START_KEY_SECRET')
+    def check_start_key(key_secret):
+        try:
+            if os.getenv('START_KEY_SECRET') != key_secret:
+                return jsonify({'message': 200, 'correct': False})
+            else:
+                return jsonify({'message': 200, 'correct': True})
+        except AssertionError as e:
+            error = str(e) + '\n' + traceback.format_exc()
             with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
                 f.write(error)
-            return jsonify({'message': 200, 'correct': False})
-        else:
-            return jsonify({'message': 200, 'correct': True})
+            return jsonify({'message': 400, 'error': error})
+        except Exception as e:
+            error = str(e) + '\n' + traceback.format_exc()
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
+            return jsonify({'message': 400, 'error': error})
 
     @api.route('/api/check_author_token/<string:doi>/<string:token>', methods=['GET'])
     def check_author_token(doi, token):

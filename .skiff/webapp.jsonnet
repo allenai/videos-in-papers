@@ -320,6 +320,15 @@ function(
                                             key: "KEY_SECRET"
                                         }
                                     }
+                                },
+                                {
+                                    name: "START_KEY_SECRET",
+                                    valueFrom: {
+                                        secretKeyRef: {
+                                            name: "startkey",
+                                            key: "START_KEY_SECRET"
+                                        }
+                                    }
                                 }
                             ]
                         },
