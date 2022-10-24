@@ -81,6 +81,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
       .then((response) => response.json())
       .then((data) => {
         if (!data.correct) return;
+        logAction('enter', {});
         setViewable(true);
         fetch('/api/annotation/' + doi + '.json')
           .then(res => res.json())
@@ -177,6 +178,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
             if (result['message'] != 200) {
               console.log(result);
             } else {
+              logAction('get_suggestion', { blocks: result['suggestions']})
               setCurrentSuggestion(-1);
               setSuggestedBlocks(
                 result['suggestions'].filter((blkId: number) => !selectedBlocks.includes(blkId))
@@ -540,6 +542,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     if (saving) return;
     const data = { doi: doi, highlights: highlights, clips: clips, syncSegments: syncSegments };
     setSaving(true);
+    logAction('save', {});
     fetch('/api/save_annotations', {
       method: 'POST',
       headers: {
@@ -669,6 +672,28 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
     }
   };
 
+  const logAction = (action: string, data: any) => {
+    var timestamp = new Date().getTime();
+    const formdata = {
+      doi: DOI,
+      userId: 'author',
+      timestamp: timestamp,
+      action: action,
+      data: data,
+    };
+    fetch('/api/log_action', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formdata),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data['message'] != 200) console.log('Error:', data);
+      });
+  };
+
   if(!viewable) {
     return <></>;
   }else if (videoWidth == 0) {
@@ -743,6 +768,7 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
                               ? captionsToTokens(selectedClip)
                               : undefined
                           }
+                          logAction={logAction}
                         />
                         <AuthorDragOverlay
                           pageIndex={i}

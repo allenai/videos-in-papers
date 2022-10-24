@@ -36,6 +36,7 @@ type Props = {
   currentSuggestion: number;
   setCurrentSuggestion: (index: number) => void;
   captionTokens?: Array<string>;
+  logAction: (action: string, data: any) => void;
 };
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -69,6 +70,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
   currentSuggestion,
   setCurrentSuggestion,
   captionTokens,
+  logAction
 }: Props) => {
   const { pageDimensions } = React.useContext(DocumentContext);
 
@@ -158,6 +160,7 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
           setCurrentSuggestion(currentSuggestion - 1);
         }
         setSelectedBlocks([...selectedBlocks, blockId]);
+        logAction('click_suggestion', { blockId: blockId});
         // } else {
         //   setCurrentSuggestion(index);
         // }
@@ -166,12 +169,14 @@ export const AuthorBlockOverlay: React.FunctionComponent<Props> = ({
         const index = selectedBlocks.indexOf(blockId);
         copySelBlocks.splice(index, 1);
         setSelectedBlocks(copySelBlocks);
+        logAction('remove_block', { blockId: blockId});
         console.log(blockId);
         if (block && block.created) {
           removeCreatedBlocks([blockId]);
         }
       } else {
         setSelectedBlocks([...selectedBlocks, blockId]);
+        logAction('click_block', { blockId: blockId});
       }
       setSelectedMapping(null);
     } else if (modifyMode && selectedMapping != null) {
