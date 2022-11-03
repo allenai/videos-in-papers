@@ -96,7 +96,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({
         style={{ ...getBoundingBoxStyle({ ...sidebarBox }), width: scaledPosition != -1 ? 64 : 12 }}
         onClick={onClick}
         onMouseMove={onMouseMove}
-        onMouseOut={onMouseOut}
+        onMouseLeave={onMouseOut}
         {...extraProps}
       >
         <div
