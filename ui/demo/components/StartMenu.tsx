@@ -34,8 +34,6 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
     }
   }, []);
 
-  // https://mingyin.org/paper/CHI-22/multiple-camera.pdf
-  // https://www.youtube.com/watch?v=HBcDELI9ZNE
   const handleSubmit = () => {
     if (paperUrl.length == 0 && paperFile == null) return;
     if (videoUrl.length == 0 && (videoFile == null || captionFile == null)) return;
@@ -71,6 +69,12 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             setPaperProcessed(-1);
             setPaperErrorMsg(result.error);
           }
+        })
+        .catch((error) => {
+          alert('Error processing paper');
+          console.log(error);
+          setPaperProcessed(-1);
+          setPaperErrorMsg(error);
         });
     } else if(paperFile) {
       let data = new FormData();
@@ -98,6 +102,12 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             setPaperProcessed(-1);
             setPaperErrorMsg(result.error);
           }
+        })
+        .catch((error) => {
+          alert('Error processing paper');
+          console.log(error);
+          setPaperProcessed(-1);
+          setPaperErrorMsg(error);
         });
     }
 
@@ -122,6 +132,12 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             setVideoProcessed(-1);
             setVideoErrorMsg(result.error);
           }
+        })
+        .catch((error) => {
+          alert('Error processing video');
+          console.log(error);
+          setVideoProcessed(-1);
+          setVideoErrorMsg(error);
         });
     } else {
       if(videoFile) {
@@ -144,6 +160,12 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
               setVideoProcessed(-1);
               setVideoErrorMsg(result.error);
             }
+          })
+          .catch((error) => {
+            alert('Error processing video');
+            console.log(error);
+            setVideoProcessed(-1);
+            setVideoErrorMsg(error);
           });
       }
       if(captionFile) {
@@ -166,6 +188,12 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
               setVideoProcessed(-1);
               setVideoErrorMsg(result.error);
             }
+          })
+          .catch((error) => {
+            alert('Error processing video');
+            console.log(error);
+            setVideoProcessed(-1);
+            setVideoErrorMsg(error);
           });
       }
     } 
