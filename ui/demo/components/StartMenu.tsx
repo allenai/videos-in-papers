@@ -219,7 +219,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
             <div className="startmenu__info">
               Welcome CSCW authors!<br/><br/>
               To start making your Papeos, you need to first upload your paper and talk video.<br/><br/>
-              <b>For the DOI,</b> enter the doi ID for your paper. It should be of the form <b>"10.1145/XXXXXX</b>.<br/><br/>
+              <b>For the DOI,</b> enter the doi ID for your paper. It should be of the form "<b>10.1145/XXXXXX</b>"".<br/><br/>
               <b>For the paper</b>, you can upload your PDF file OR provide a URL to the paper.<br/>
               In certain cases, the system might fail to process your PDF. In this case, we suggest that you try compiling from Overleaf and uploading that file.<br/><br/>
               <b>For the video</b>, you can upload you video file and caption file (.vtt, .srt), OR provide a Youtube URL to your video.<br/>

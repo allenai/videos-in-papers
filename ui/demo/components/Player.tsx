@@ -36,7 +36,7 @@ interface Props {
   autoplay?: boolean;
   setAutoplay?: (autoplay: boolean) => void;
   logAction?: (action: string, data: any) => void;
-  setTooltip?: (event: React.MouseEvent, type: string | null) => void;
+  setTooltip?: (id: number, event: React.MouseEvent, type: string | null) => void;
 }
 
 const colors = ['#cb725e', '#d9a460', '#3e9d29', '#306ed3', '#07cead', '#9d58e1', '#dd59ba'];
@@ -306,12 +306,12 @@ export function Player({
                   style={style}
                   onMouseEnter={(e) => {
                     handleWordEnter(syncIdx != undefined ? syncIdx : -1)
-                    setTooltip && setTooltip(e, "sync");
+                    setTooltip && setTooltip(id, e, "sync");
                   }}
-                  onMouseMove={(e) => setTooltip && setTooltip(e, "sync")}
+                  onMouseMove={(e) => setTooltip && setTooltip(id, e, "sync")}
                   onMouseLeave={(e) => {
                     handleWordLeave();
-                    setTooltip && setTooltip(e, null);
+                    setTooltip && setTooltip(id, e, null);
                   }}
                 >
                   {text}&nbsp;
@@ -461,9 +461,9 @@ export function Player({
                 {isHovered && isFocus ? (
                   <div 
                     className="video__note-player-rate-tray" 
-                    onMouseOver={(e) => setTooltip && setTooltip(e, "playback")} 
-                    onMouseMove={(e) => setTooltip && setTooltip(e, "playback")}
-                    onMouseLeave={(e) => setTooltip && setTooltip(e, null)}
+                    onMouseOver={(e) => setTooltip && setTooltip(id, e, "playback")} 
+                    onMouseMove={(e) => setTooltip && setTooltip(id, e, "playback")}
+                    onMouseLeave={(e) => setTooltip && setTooltip(id, e, null)}
                   >
                     {[1.0, 1.25, 1.5, 1.75, 2.0].map((rate, i) => {
                       return (
@@ -488,9 +488,9 @@ export function Player({
                 {isHovered && isFocus && autoplay != undefined && autoplay != null ? (
                   <div 
                     className="video__note-autoplay"
-                    onMouseOver={(e) => setTooltip && setTooltip(e, "autoplay")}
-                    onMouseMove={(e) => setTooltip && setTooltip(e, "autoplay")}
-                    onMouseLeave={(e) => setTooltip && setTooltip(e, null)}
+                    onMouseOver={(e) => setTooltip && setTooltip(id, e, "autoplay")}
+                    onMouseMove={(e) => setTooltip && setTooltip(id, e, "autoplay")}
+                    onMouseLeave={(e) => setTooltip && setTooltip(id, e, null)}
                   >
                     <div className="video__note-autoplay-inner">
                       <label className="video__note-autoplay-switch">

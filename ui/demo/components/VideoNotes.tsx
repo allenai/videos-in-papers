@@ -1,4 +1,5 @@
 import { DocumentContext, TransformContext } from '@allenai/pdf-components';
+import { rejects } from 'assert';
 import * as React from 'react';
 
 import { Clip, Highlight, SyncWords } from '../types/clips';
@@ -104,13 +105,18 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     );
   }
 
-  function setTooltipWrapper(e: React.MouseEvent, type: string | null) {
+  function setTooltipWrapper(id: number, e: React.MouseEvent, type: string | null) {
     if(type == null) {
       setTooltip(null);
     } else {
-      console.log(e.clientX, e.clientY);
-      var position = {x: e.clientX, y: e.clientY};
-      setTooltip({position, type});
+      const note = document.getElementById("video__note-" + id);
+      if(note == null) {
+        setTooltip(null);
+      } else {
+        const rect = note.getBoundingClientRect();
+        var top = parseInt(note.style.top);
+        setTooltip({position: {x: e.clientX - rect.left - 30, y: top + e.clientY - rect.top + 30}, type: type});
+      }
     }
   }
 
@@ -191,14 +197,12 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   return (
     <div className="video__note-list" style={{ width: videoWidth + 40 + 'px' }}>
       {renderClips()}
+      {tooltip != null &&
+        <div className="video__tooltip" style={{top: tooltip.position.y + "px", left: tooltip.position.x + "px"}}>
+          {tooltip.type == "autoplay" ? 
+            (autoplay ? "Click to turn off Autoplay" : "Click to turn on Autoplay") :
+            (tooltip.type == "playback" ? "Change playback speed" : "Hover to show synchronized highlights in the paper")}
+        </div>}
     </div>
   );
 };
-
-
-// {tooltip != null &&
-//   <div className="video__tooltip" style={{top: tooltip.position.y + "px"}}>
-//     {tooltip.type == "autoplay" ? 
-//       (autoplay ? "Click to turn off Autoplay" : "Click to turn on Autoplay") :
-//       (tooltip.type == "playback" ? "Change playback speed" : "Hovering shows synchronized highlights in the paper")}
-//   </div>}
