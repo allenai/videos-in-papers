@@ -125,7 +125,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
         })
         .then(result => {
           if (result.message == 200) {
-            setVideoProcessed(1);
+            if(videoProcessed != -1) setVideoProcessed(1);
           } else {
             alert('Error processing video');
             console.log(result.error);
@@ -153,7 +153,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
           })
           .then(result => {
             if (result.message == 200) {
-              setVideoProcessed(1);
+              if(videoProcessed != -1) setVideoProcessed(1);
             } else {
               alert('Error processing video');
               console.log(result.error);
@@ -181,7 +181,7 @@ export const StartMenu: React.FunctionComponent<RouteComponentProps> = () => {
           })
           .then(result => {
             if (result.message == 200) {
-              setVideoProcessed(2);
+              if(videoProcessed != -1) setVideoProcessed(2);
             } else {
               alert('Error processing captions');
               console.log(result.error);
