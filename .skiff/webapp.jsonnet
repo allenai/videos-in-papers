@@ -166,6 +166,10 @@ function(
                     }
                 } for host in hosts
             ]
+        },
+        annotations: annotations + {
+            ...,
+            'nginx.ingress.kubernetes.io/proxy-body-size': '500m'
         }
     };
 
