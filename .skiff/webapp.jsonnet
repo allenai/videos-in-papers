@@ -147,6 +147,7 @@ function(
                 'kubernetes.io/ingress.class': 'nginx',
                 'nginx.ingress.kubernetes.io/ssl-redirect': 'true',
                 'nginx.ingress.kubernetes.io/proxy-read-timeout': '300',
+                'nginx.ingress.kubernetes.io/proxy-body-size': '500m',
             }
         },
         spec: {
@@ -166,10 +167,6 @@ function(
                     }
                 } for host in hosts
             ]
-        },
-        annotations: annotations + {
-            ...,
-            'nginx.ingress.kubernetes.io/proxy-body-size': '500m'
         }
     };
 
