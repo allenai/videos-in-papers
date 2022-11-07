@@ -234,7 +234,11 @@ def create_api() -> Blueprint:
 
         try:
             if(os.path.isfile(f"{DIR_PATH}/data/blocks/{doi}.json")):
-                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+                with open(f"{DIR_PATH}/data/tokens.json", 'r') as f:
+                    tokens = json.load(f)
+
+                token = tokens[doi]
+                return jsonify({'message': 200, 'token': token})
 
             get_paper(paper_url, doi, f"{DIR_PATH}/data/pdf")
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", f"{DIR_PATH}/data/parsed_pdf", comparer)
@@ -281,7 +285,11 @@ def create_api() -> Blueprint:
 
         try:
             if(os.path.isfile(f"{DIR_PATH}/data/blocks/{doi}.json")):
-                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+                with open(f"{DIR_PATH}/data/tokens.json", 'r') as f:
+                    tokens = json.load(f)
+
+                token = tokens[doi]
+                return jsonify({'message': 200, 'token': token})
             
             file.save(os.path.join(f"{DIR_PATH}/data/pdf", doi + '.pdf'))
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", f"{DIR_PATH}/data/parsed_pdf", comparer)
