@@ -127,6 +127,10 @@ def create_api() -> Blueprint:
         video_url = data.get("url")
 
         try:
+            # check if file exists
+            if(os.path.isfile(f"{DIR_PATH}/data/clips/{doi}/full.mp4")):
+                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+
             download_video(video_url, doi, video_path=f"{DIR_PATH}/data/clips", caption_path=f"{DIR_PATH}/data/captions")
             return jsonify({'message': 200})
         except AssertionError as e:
@@ -162,6 +166,10 @@ def create_api() -> Blueprint:
             if not os.path.exists(f"{DIR_PATH}/data/clips/{doi}"):
                 os.makedirs(f"{DIR_PATH}/data/clips/{doi}")
 
+            # check if file exists
+            if(os.path.isfile(f"{DIR_PATH}/data/clips/{doi}/full.mp4")):
+                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+
             if '.mp4' in file.filename:
                 file.save(os.path.join(f"{DIR_PATH}/data/clips/{doi}", 'full.mp4'))
             else:
@@ -194,6 +202,10 @@ def create_api() -> Blueprint:
             return {'message': 400, 'error': 'No selected file'}
 
         try:
+            # check if file exists
+            if(os.path.isfile(f"{DIR_PATH}/data/captions/{doi}.json")):
+                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+
             file.save(f"{DIR_PATH}/data/captions/{doi}_{file.filename}")
             process_captions(f"{DIR_PATH}/data/captions/{doi}_{file.filename}", f"{DIR_PATH}/data/captions/{doi}.json")
             return jsonify({'message': 200})
@@ -221,6 +233,9 @@ def create_api() -> Blueprint:
         paper_url = data.get("url")
 
         try:
+            if(os.path.isfile(f"{DIR_PATH}/data/blocks/{doi}.json")):
+                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+
             get_paper(paper_url, doi, f"{DIR_PATH}/data/pdf")
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", f"{DIR_PATH}/data/parsed_pdf", comparer)
 
@@ -265,6 +280,9 @@ def create_api() -> Blueprint:
             return {'message': 400, 'error': 'No selected file'}
 
         try:
+            if(os.path.isfile(f"{DIR_PATH}/data/blocks/{doi}.json")):
+                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+            
             file.save(os.path.join(f"{DIR_PATH}/data/pdf", doi + '.pdf'))
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", f"{DIR_PATH}/data/parsed_pdf", comparer)
 
