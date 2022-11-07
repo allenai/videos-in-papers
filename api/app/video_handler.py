@@ -97,13 +97,13 @@ def process_captions(input_path, output_path):
     
     if '.srt' in input_path:
         captions = captions.split('\n\n')
-        captions = [caption.split('\n') for caption in captions]
+        captions = [caption.strip().split('\n') for caption in captions]
         captions = [caption for caption in captions if len(caption) >= 3]
         captions = [{'caption': " ".join(caption[2:]).replace("\n", " ").strip(), 'timestamp': caption[1].split(' --> ')} for caption in captions]
         captions = [{'caption': caption['caption'], 'start': timestamp_to_ms(caption['timestamp'][0]), 'end': timestamp_to_ms(caption['timestamp'][1])} for caption in captions]
     elif '.vtt' in input_path:
         captions = captions.split('\n\n')
-        captions = [caption.split('\n') for caption in captions]
+        captions = [caption.strip().split('\n') for caption in captions]
         # filter with one 
         captions = [caption for caption in captions if len(caption) >= 2]
         captions = [{'caption': " ".join(caption[1:]).replace("\n", " ").strip(), 'timestamp': caption[0].split(' --> ')} for caption in captions]
