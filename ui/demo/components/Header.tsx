@@ -27,6 +27,13 @@ export const Header: React.FunctionComponent<Props> = ({
   return (
     <div className="reader__header">
       <div>
+        <a href="https://papeo.app" target="_blank">
+          <i 
+            className="fa-solid fa-house" 
+            aria-hidden="true"
+            style={{fontSize: "20px", cursor: "pointer", marginLeft: "4px"}}
+          ></i>
+        </a>
       </div>
       <div>
         <ZoomOutButton />
@@ -49,7 +56,7 @@ export const Header: React.FunctionComponent<Props> = ({
             <i 
               className="fa fa-info-circle" 
               aria-hidden="true"
-              style={{fontSize: "24px", cursor: "pointer"}}
+              style={{fontSize: "24px", cursor: "pointer", marginRight: "4px"}}
             ></i>
           </div>
         </div>

@@ -144,7 +144,8 @@ def create_api() -> Blueprint:
     @api.route('/api/process_video_file', methods=["POST"])
     def process_video_file():
         if 'file' not in request.files:
-            print('Error: No file part')
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write('Error: No file part')
             return {'message': 400, 'error': 'No selected file'}
 
         doi = request.form.get("doi")
@@ -153,6 +154,8 @@ def create_api() -> Blueprint:
         file = request.files['file']
 
         if file.filename == '':
+            with open(f"{DIR_PATH}/data/error.log", 'a+') as f:
+                f.write(error)
             return {'message': 400, 'error': 'No selected file'}
 
         try:

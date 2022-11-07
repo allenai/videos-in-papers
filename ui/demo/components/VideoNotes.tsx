@@ -65,7 +65,9 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
   const [processedClips, setProcessedClips] = React.useState<{ [index: number]: Clip }>({});
 
   const [playbackRate, setPlaybackRate] = React.useState(1.0);
-  const [autoplay, setAutoplay] = React.useState(false);
+  const [autoplay, setAutoplay] = React.useState(true);
+
+  const [tooltip, setTooltip] = React.useState<{ position: {x: number, y: number}, type: String } | null>(null);
 
   // On load, find top positions of clips so that they are spread out
   React.useEffect(() => {
@@ -100,6 +102,16 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
         playedHistory={playedHistory}
       />
     );
+  }
+
+  function setTooltipWrapper(e: React.MouseEvent, type: string | null) {
+    if(type == null) {
+      setTooltip(null);
+    } else {
+      console.log(e.clientX, e.clientY);
+      var position = {x: e.clientX, y: e.clientY};
+      setTooltip({position, type});
+    }
   }
 
   // Render all the clips
@@ -166,6 +178,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
           autoplay={autoplay}
           setAutoplay={setAutoplay}
           logAction={logAction}
+          setTooltip={setTooltipWrapper}
         />
       );
     });
@@ -181,3 +194,11 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     </div>
   );
 };
+
+
+// {tooltip != null &&
+//   <div className="video__tooltip" style={{top: tooltip.position.y + "px"}}>
+//     {tooltip.type == "autoplay" ? 
+//       (autoplay ? "Click to turn off Autoplay" : "Click to turn on Autoplay") :
+//       (tooltip.type == "playback" ? "Change playback speed" : "Hovering shows synchronized highlights in the paper")}
+//   </div>}

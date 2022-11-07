@@ -346,22 +346,30 @@ iframe {
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  height: 100%;
-  padding: 20%;
-  font-size: 20px;
+  padding: 16px 20%;
+  font-size: 16px;
   align-items: center;
+}
+
+.startmenu__info {
+  font-size: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: #f6f6f6;
+  border-radius: 16px;
+  border: solid 1px #ccc;
 }
 
 .startmenu__row {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 4px;
   justify-content: center;
   width: 100%;
 }
 
 .startmenu__row div {
-  width: 40%;
+  width: 30%;
   text-align: left;
 }
 
@@ -571,4 +579,14 @@ iframe {
   -webkit-transform: translateX(24px);
   -ms-transform: translateX(24px);
   transform: translateX(24px);
+}
+
+.video__tooltip_cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background-color: #1890ff;
+  z-index: 100;
 }
