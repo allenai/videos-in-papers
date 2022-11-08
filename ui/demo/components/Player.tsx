@@ -247,8 +247,6 @@ export function Player({
   function renderCaptions() {
     const highlight = highlights[clip['position']];
 
-    const tokens = highlight['tokens'].map(t => t['text']);
-
     let summary = (
       <div>
         <b>Summary</b>&nbsp;&nbsp;{clip.captions[0].caption}
@@ -382,6 +380,9 @@ export function Player({
   // If clip is navigating, adjust the positions to be relative
   const container = document.getElementsByClassName('video__note-list');
   var color = colors[id % 7];
+  if(id <= -10) {
+    color = "#aaa";
+  }
   var isLocked = top == -1;
   if (container.length > 0) {
     var rect = container[0].getBoundingClientRect();

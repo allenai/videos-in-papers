@@ -80,7 +80,7 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
 
   // Render a phantom clip to act as placeholder for clips during navigation
   function renderPhantom(timeOrderedClips: Array<Clip>): React.ReactElement {
-    if (navigating == null) {
+    if (navigating == null || navigating.toId <= -10) {
       return <></>;
     }
     const clip = processedClips[navigating.toId];
@@ -128,13 +128,18 @@ export const VideoNotes: React.FunctionComponent<Props> = ({
     for (let i = 0; i < timeOrderedClips.length; i++) {
       const clip = timeOrderedClips[i];
       const highlight = highlights[clip.highlights[clip.position]];
-      sections[clip.id] = highlight.section;
+      if (highlight != null) {
+        sections[clip.id] = highlight.section;
+      }
     }
 
     timeOrderedClips.sort((a, b) => a['start'] - b['start']);
     const clipsHTML = Object.keys(processedClips).map((i: string) => {
       const id = parseInt(i);
       const clip = processedClips[id];
+
+      if (id <= -10 && focusId != id) return <div key={id}></div>;
+
       let top = (clip.top + clip.page) * pageDimensions.height * scale + (24 + clip.page * 48);
       let isOverlay = false;
       let isPhantom = false;

@@ -347,6 +347,35 @@ def create_api() -> Blueprint:
         highlights = data.get('highlights')
         syncSegments = data.get('syncSegments')
 
+        captions = []
+        with open(f"{DIR_PATH}/data/captions/{doi}.json", 'r') as f:
+            captions = json.load(f)
+
+        new_clips = {}
+        # TODO: check if there are any long enough not used clips and add it to clips
+        last_time = None
+        last_clip = None
+        sorted_clips = sorted(clips.items(), key=lambda x: x[1]['start'])
+        for clip_id, clip in sorted_clips:
+            if last_time is not None and clips[clip_id]['start'] - last_time > 5000:
+                new_clip_id = str(int(last_clip) * -1 - 10)
+                new_clips[new_clip_id] = {
+                    "id": new_clip_id,
+                    "start": last_time,
+                    "end": clips[clip_id]['start'],
+                    "highlights": [],
+                    "position": 0,
+                    "top": 0,
+                    "page": 0,
+                    "captions": list(filter(lambda x: (last_time <= x['start'] and x['start'] <= clips[clip_id]['start']) or (last_time <= x['end'] and x['end'] <= clips[clip_id]['start']), captions))
+                }
+
+            new_clips[clip_id] = clips[clip_id]
+            last_time = clips[clip_id]['end']
+            last_clip = clip_id
+
+        clips = new_clips
+
         with open(f"{DIR_PATH}/data/annotation/{doi}.json", 'w') as f:
             json.dump({'highlights': highlights, 'clips': clips, 'syncSegments': syncSegments}, f)
 

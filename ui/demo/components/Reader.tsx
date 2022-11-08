@@ -143,10 +143,19 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
         for (var i = 0; i < clipIds.length; i++) {
           var clipId = clipIds[i];
           var clip = clips[clipId];
-          highlightId = clip['highlights'][clip['position']];
-          var highlight = data['highlights'][highlightId];
-          clips[clipId].top = highlight['rects'][0].top;
-          clips[clipId].page = highlight['rects'][0].page;
+          if(parseInt(clipId) > -10) {
+            highlightId = clip['highlights'][clip['position']];
+            var highlight = data['highlights'][highlightId];
+            clips[clipId].top = highlight['rects'][0].top;
+            clips[clipId].page = highlight['rects'][0].page;
+          } else {
+            var subId = parseInt(clipId) * -1 - 10 + '';
+            var subClip = clips[subId];
+            highlightId = subClip['highlights'][subClip['position']];
+            var highlight = data['highlights'][highlightId];
+            clips[clipId].top = highlight['rects'][0].top + 0.1;
+            clips[clipId].page = highlight['rects'][0].page;
+          }
         }
         setClips(clips);
         setHighlights(highlights);
@@ -362,9 +371,11 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     if (fromId == toId) return;
 
     const newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
-    const highlightId = newClips[toId].highlights[newClips[toId].position];
-    newClips[toId].top = highlights[highlightId].rects[0].top;
-    newClips[toId].page = highlights[highlightId].rects[0].page;
+    if(toId > -10) {
+      const highlightId = newClips[toId].highlights[newClips[toId].position];
+      newClips[toId].top = highlights[highlightId].rects[0].top;
+      newClips[toId].page = highlights[highlightId].rects[0].page;
+    }
 
     if (lock != null) {
       setLock({ clipId: toId, relativePosition: lock.relativePosition });
@@ -393,9 +404,11 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   ) => {
     // Find what the clip's top will be in the new position;
     var newClips: { [index: number]: Clip } = JSON.parse(JSON.stringify(clips));
-    const highlightId = newClips[toId].highlights[newClips[toId].position];
-    newClips[toId].top = highlights[highlightId].rects[0].top;
-    newClips[toId].page = highlights[highlightId].rects[0].page;
+    if(toId > -10) {
+      const highlightId = newClips[toId].highlights[newClips[toId].position];
+      newClips[toId].top = highlights[highlightId].rects[0].top;
+      newClips[toId].page = highlights[highlightId].rects[0].page;
+    }
     const spreadClips = spreadOutClips(
       newClips,
       highlights,

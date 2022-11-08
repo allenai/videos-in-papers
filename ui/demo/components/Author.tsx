@@ -88,7 +88,14 @@ export const Author: React.FunctionComponent<RouteComponentProps> = () => {
           .then(data => {
             console.log(data);
             setHighlights(data.highlights);
-            setClips(data.clips);
+            // filter clips that id <= -10
+            var filteredClips: { [index: number]: Clip } = {};
+            for (var clipId in data.clips) {
+              if (parseInt(clipId) > -10) {
+                filteredClips[parseInt(clipId)] = data.clips[clipId];
+              }
+            }
+            setClips(filteredClips);
             setSyncSegments(data.syncSegments);
           });
         fetch('/api/blocks/' + doi + '.json')

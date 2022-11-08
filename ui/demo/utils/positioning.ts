@@ -56,8 +56,12 @@ export function checkOverlap(clips: Array<Clip>, heights: { [id: number]: number
 }
 
 function getOriginalPosition(clip: Clip, highlights: { [index: number]: Highlight }) {
-  const highlightId = clip.highlights[clip.position];
-  return highlights[highlightId].rects[0];
+  if(clip.id <= -10) {
+    return {top: clip.top, page: clip.page, left: 0, width: 0};
+  } else {
+    const highlightId = clip.highlights[clip.position];
+    return highlights[highlightId].rects[0];
+  }
 }
 
 // Spread out clips in page so that they don't overlap
@@ -68,7 +72,7 @@ export function spreadOutClips(
   videoWidth: number,
   scaledPageHeight: number
 ) {
-  let sortedClips = Object.values(clips);
+  let sortedClips = Object.values(clips).filter((clip) => clip.id > -10 || clip.id == focusId);
   sortedClips.sort((a, b) => {
     var aRect = getOriginalPosition(a, highlights);
     var bRect = getOriginalPosition(b, highlights);
