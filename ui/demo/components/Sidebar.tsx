@@ -19,6 +19,8 @@ export type Props = BoundingBoxType & {
   rects: Array<BoundingBoxType>;
 };
 
+const DEFAULT_POS = 36;
+
 /*
  * Adapting BoundingBox elements from the library to be used as Sidebars
  */
@@ -80,8 +82,8 @@ export const Sidebar: React.FunctionComponent<Props> = ({
     left:
       boxSize.left + boxSize.width / 2 <= pageCenter ||
       (boxSize.left < pageCenter && boxSize.left + boxSize.width > pageCenter)
-        ? 48
-        : pageDimensions.width - 48 - 12,
+        ? DEFAULT_POS
+        : pageDimensions.width - DEFAULT_POS - 12,
   };
   if (scaledPosition != -1) {
     sidebarBox.left -= 26;
