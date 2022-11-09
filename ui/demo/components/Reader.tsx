@@ -29,6 +29,7 @@ import { ThumbnailPopup } from './ThumbnailPopup';
 import { VideoNotes } from './VideoNotes';
 import { VideoPopup } from './VideoPopup';
 import { WordOverlay } from './WordOverlay';
+import { Modal } from './Modal';
 
 const URL_DOI = window.location.pathname.split('/').pop();
 
@@ -671,40 +672,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
             <ThumbnailPopup thumbnail={thumbnail} doi={DOI} />
           </div>
           {openModal ? 
-            <div
-              className="modal"
-              onClick={() => setOpenModal(false)}
-            >
-              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <div className="modal-title">Papeo Reader 📄 📹</div>
-                  <div className="modal-close" onClick={() => setOpenModal(false)}>
-                    <i 
-                      className="fa fa-times" 
-                      aria-hidden="true"
-                    ></i>
-                  </div>
-                </div>
-                <div className="modal-body">
-                  The <b>Papeo Reader</b> is an interactive reader to read <b>pap</b>ers augmented with their talk vid<b>eos</b>. Learn more about the interface and its features in <a href="https://docs.google.com/document/d/1rT1MsJ0aN1CbEtfcW2R8kw4cRUa8M1-Y0b5XA4qavZY/edit?usp=sharing" target="_blank">this tutorial document</a>. For other Papeos, check our <a href="https://papeo.app" target="_blank">Papeo portal</a>.
-                </div>
-                <div className="modal-body">
-                  This interface is the result of an internship project in the <b>Semantic Scholar</b> team at the <b>Allen Institute for AI</b> (AI2). Our team is composed of <a href="https://taesookim.com" target="_blank">Tae Soo Kim</a> (KAIST), <a href="https://homes.cs.washington.edu/~axz/index.html" target="_blank">Amy X. Zhang</a> (University of Washington), <a href="https://www.jonathanbragg.com/" target="_blank">Jonathan Bragg</a> (AI2), <a href="https://joe.cat/" target="_blank">Joseph Chee Chang</a> (AI2), and <a href="https://www.linkedin.com/in/mlatzke" target="_blank">Matt Latzke</a> (AI2).
-                </div>
-                <div className="modal-body">
-                  We are promoting the interface at <b>CSCW 2022</b> as part of a deployment study with the intention of understanding how the interface would be used by users in the wild. Our study has been approved by the <b>University of Washington IRB</b>.
-                </div>
-                <div className="modal-body">
-                  The interface collects <b>NO personally identifiable information</b> and only logs interaction that occur within the interface.
-                </div>
-                <div className="modal-body">
-                  If you are an <b>author for a CSCW 2022 paper</b> and want to create your own papeo, you can sign up to use the authoring tool through <a href="https://forms.gle/V5fFxRaA8hzjzmoP8" target="_blank">this form</a>.
-                </div>
-                <div className="modal-body">
-                  If you have any questions or feedback regarding the interface (e.g., bugs or suggestions), you can submit them anonymously through <a href="https://forms.gle/jAv71LvjF4WuN17e7" target="_blank">this form</a> or email us at <b>taesoo.kim@kaist.ac.kr</b>
-                </div>
-              </div>
-            </div> : 
+            <Modal setOpenModal={setOpenModal}/> : 
             ""
           }
         </Route>
@@ -779,40 +747,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
             </DocumentWrapper>
           </div>
           {openModal ? 
-            <div
-              className="modal"
-              onClick={() => setOpenModal(false)}
-            >
-              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <div className="modal-title">Papeo Reader 📄 📹</div>
-                  <div className="modal-close" onClick={() => setOpenModal(false)}>
-                    <i 
-                      className="fa fa-times" 
-                      aria-hidden="true"
-                    ></i>
-                  </div>
-                </div>
-                <div className="modal-body">
-                  The <b>Papeo Reader</b> is an interactive reader to read <b>pap</b>ers augmented with their talk vid<b>eos</b>. Learn more about the interface and its features in <a href="https://docs.google.com/document/d/1rT1MsJ0aN1CbEtfcW2R8kw4cRUa8M1-Y0b5XA4qavZY/edit?usp=sharing" target="_blank">this tutorial document</a>. For other Papeos, check our <a href="https://papeo.app" target="_blank">Papeo portal</a>.
-                </div>
-                <div className="modal-body">
-                  This interface is the result of an internship project in the <b>Semantic Scholar</b> team at the <b>Allen Institute for AI</b> (AI2). Our team is composed of <a href="https://taesookim.com">Tae Soo Kim</a> (KAIST), <a href="https://homes.cs.washington.edu/~axz/index.html">Amy X. Zhang</a> (University of Washington), <a href="https://www.jonathanbragg.com/">Jonathan Bragg</a> (AI2), <a href="https://joe.cat/">Joseph Chee Chang</a> (AI2), and <a href="https://www.linkedin.com/in/mlatzke">Matt Latzke</a> (AI2).
-                </div>
-                <div className="modal-body">
-                  We are promoting the interface at <b>CSCW 2022</b> as part of a deployment study with the intention of understanding how the interface would be used by users in the wild. Our study has been approved by the <b>University of Washington IRB</b>.
-                </div>
-                <div className="modal-body">
-                  The interface collects <b>NO personally identifiable information</b> and only logs interaction that occur within the interface.
-                </div>
-                <div className="modal-body">
-                  If you are an <b>author for a CSCW 2022 paper</b> and want to create your own papeo, you can sign up to use the authoring tool through <a href="https://forms.gle/V5fFxRaA8hzjzmoP8">this form</a>.
-                </div>
-                <div className="modal-body">
-                  If you have any questions or feedback regarding the interface (e.g., bugs or suggestions), you can submit them anonymously through <a href="https://forms.gle/jAv71LvjF4WuN17e7">this form</a> or email us at <b>taesoo.kim@kaist.ac.kr</b>
-                </div>
-              </div>
-            </div> : 
+            <Modal setOpenModal={setOpenModal}/> : 
             ""
           }
         </Route>
