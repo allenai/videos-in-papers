@@ -19,7 +19,7 @@ export type Props = BoundingBoxType & {
   rects: Array<BoundingBoxType>;
 };
 
-const DEFAULT_POS = 36;
+const DEFAULT_POS = 40;
 
 /*
  * Adapting BoundingBox elements from the library to be used as Sidebars
