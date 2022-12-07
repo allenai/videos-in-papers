@@ -1,6 +1,6 @@
 {
   "appName": "paper-video-nav",
-  "contact": "taesook",
-  "team": "s2",
+  "contact": "josephc",
+  "team": "s2research",
   "replicas": { "prod": 2 }
 }
