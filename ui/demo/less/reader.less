@@ -7,8 +7,12 @@ body {
   display: flex;
   height: 100vh;
   background-color: @grey;
-  overflow: scroll;
+  overflow-y: scroll;
   justify-content: center;
+}
+
+.reader__container::-webkit-scrollbar-track {
+  background: #00000000;
 }
 
 .reader__main {
