@@ -249,7 +249,7 @@ export function Player({
 
     let summary = (
       <div>
-        <b>Summary</b>&nbsp;&nbsp;{clip.captions[0].caption}
+        <b>Summary</b>&nbsp;&nbsp;{clip.captions.length > 0 ? clip.captions[0].caption : ""}
       </div>
     );
     let transcript = <></>;
