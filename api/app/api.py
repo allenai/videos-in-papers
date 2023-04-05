@@ -167,8 +167,8 @@ def create_api() -> Blueprint:
                 os.makedirs(f"{DIR_PATH}/data/clips/{doi}")
 
             # check if file exists
-            if(os.path.isfile(f"{DIR_PATH}/data/clips/{doi}/full.mp4")):
-                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+            # if(os.path.isfile(f"{DIR_PATH}/data/clips/{doi}/full.mp4")):
+            #     return jsonify({'message': 200, 'error': 'DOI already exists.'})
 
             if '.mp4' in file.filename:
                 file.save(os.path.join(f"{DIR_PATH}/data/clips/{doi}", 'full.mp4'))
@@ -203,8 +203,8 @@ def create_api() -> Blueprint:
 
         try:
             # check if file exists
-            if(os.path.isfile(f"{DIR_PATH}/data/captions/{doi}.json")):
-                return jsonify({'message': 200, 'error': 'DOI already exists.'})
+            # if(os.path.isfile(f"{DIR_PATH}/data/captions/{doi}.json")):
+            #     return jsonify({'message': 200, 'error': 'DOI already exists.'})
 
             file.save(f"{DIR_PATH}/data/captions/{doi}_{file.filename}")
             process_captions(f"{DIR_PATH}/data/captions/{doi}_{file.filename}", f"{DIR_PATH}/data/captions/{doi}.json")
@@ -285,13 +285,13 @@ def create_api() -> Blueprint:
             return {'message': 400, 'error': 'No selected file'}
 
         try:
-            if(os.path.isfile(f"{DIR_PATH}/data/blocks/{doi}.json")):
-                with open(f"{DIR_PATH}/data/tokens.json", 'r') as f:
-                    tokens = json.load(f)
+            # if(os.path.isfile(f"{DIR_PATH}/data/blocks/{doi}.json")):
+            #     with open(f"{DIR_PATH}/data/tokens.json", 'r') as f:
+            #         tokens = json.load(f)
 
-                if doi in tokens:
-                    token = tokens[doi]
-                    return jsonify({'message': 200, 'token': token})
+            #     if doi in tokens:
+            #         token = tokens[doi]
+            #         return jsonify({'message': 200, 'token': token})
             
             file.save(os.path.join(f"{DIR_PATH}/data/pdf", doi + '.pdf'))
             process_paper_blocks(doi, f"{DIR_PATH}/data/pdf", f"{DIR_PATH}/data/blocks", f"{DIR_PATH}/data/parsed_pdf", comparer)
