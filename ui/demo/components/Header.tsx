@@ -27,13 +27,15 @@ export const Header: React.FunctionComponent<Props> = ({
   return (
     <div className="reader__header">
       <div>
-        <a href="https://papeo.app" target="_blank">
-          <i 
-            className="fa-solid fa-house" 
-            aria-hidden="true"
-            style={{fontSize: "20px", cursor: "pointer", marginLeft: "4px"}}
-          ></i>
-        </a>
+        {
+        // <a href="https://papeo.app" target="_blank">
+        //   <i 
+        //     className="fa-solid fa-house" 
+        //     aria-hidden="true"
+        //     style={{fontSize: "20px", cursor: "pointer", marginLeft: "4px"}}
+        //   ></i>
+        // </a>
+        }
       </div>
       <div>
         <ZoomOutButton />
