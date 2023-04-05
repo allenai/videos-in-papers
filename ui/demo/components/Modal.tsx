@@ -21,7 +21,10 @@ export function Modal({setOpenModal}: Props) {
                     </div>
                 </div>
                 <div className="modal-body">
-                    Anonymous submission.
+                    The <b>Papeo Reader</b> is an interactive reader to read <b>pap</b>ers augmented with their talk vid<b>eos</b>.
+                </div>
+                <div className="modal-body">
+                    Details have been <b>anonymized</b>.
                 </div>
             </div>
         </div>
