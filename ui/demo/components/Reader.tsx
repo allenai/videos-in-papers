@@ -198,6 +198,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
             var tokenIdx = parseInt(id.split('-')[1]);
             var block = data.find((blk: Block) => blk.id == blockIdx);
             var token = block.tokens.find((tok: Token) => tok.id == tokenIdx);
+            if(token == undefined) return;
             token.syncIdx = paperToIdx[id];
             token.clip = parseInt(clipId);
             tokens.push(token);

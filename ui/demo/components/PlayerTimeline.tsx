@@ -86,7 +86,7 @@ export function PlayerTimeline({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            {isCurrentClip ? id + 1 : ''}
+            {isCurrentClip ? i + 1 : ''}
           </div>
         );
       })}
