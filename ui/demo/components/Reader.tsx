@@ -33,6 +33,8 @@ import { Modal } from './Modal';
 
 const URL_DOI = window.location.pathname.split('/').pop();
 
+const identifier = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
 export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const { pageDimensions, numPages } = React.useContext(DocumentContext);
   const { rotation, scale } = React.useContext(TransformContext);
@@ -99,14 +101,14 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
   const [scrollPosition, setScrollPosition] = React.useState<number>(0);
 
   React.useEffect(() => {
-    var identifier = localStorage.getItem('s2-paper-video-identifier');
-    if (!identifier) {
-      // generate random 16 character string
-      const randomString =
-        Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      localStorage.setItem('s2-paper-video-identifier', randomString);
-      identifier = randomString;
-    }
+    // var identifier = localStorage.getItem('s2-paper-video-identifier');
+    // if (!identifier) {
+    //   // generate random 16 character string
+    //   const randomString =
+    //     Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    //   localStorage.setItem('s2-paper-video-identifier', randomString);
+    //   identifier = randomString;
+    // }
 
     const data = { doi: DOI, userId: identifier };
     fetch('/api/get_annotations', {
@@ -539,7 +541,7 @@ export const Reader: React.FunctionComponent<RouteComponentProps> = () => {
     var timestamp = new Date().getTime();
     const formdata = {
       doi: DOI,
-      userId: localStorage.getItem('s2-paper-video-identifier'),
+      userId: identifier, // localStorage.getItem('s2-paper-video-identifier'),
       timestamp: timestamp,
       action: action,
       data: data,
