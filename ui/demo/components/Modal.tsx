@@ -31,9 +31,8 @@ export function Modal({setOpenModal}: Props) {
         </div>
         <div className="modal-body">
             <div className="modal-body-inner">
-                <a className="modal-btn" href="https://papeo.app" target="_blank"><i className="fa-solid fa-house" aria-hidden="true"></i> Papeo Home</a>
+                <a className="modal-btn" href="https://arxiv.org/abs/2308.15224" target="_blank"><i className="fa-solid fa-file"></i> Paper</a>
                 <a className="modal-btn" href="https://docs.google.com/document/d/1rT1MsJ0aN1CbEtfcW2R8kw4cRUa8M1-Y0b5XA4qavZY/edit?usp=sharing" target="_blank"><i className="fa-solid fa-circle-question"></i> Tutorial</a>
-                <a className="modal-btn" href="https://forms.gle/V5fFxRaA8hzjzmoP8" target="_blank"><i className="fa-solid fa-upload"></i> Create Papeo</a>
                 <a className="modal-btn"  href="https://forms.gle/jAv71LvjF4WuN17e7" target="_blank"><i className="fa-solid fa-message"></i>Feedback</a>
             </div>
         </div>
